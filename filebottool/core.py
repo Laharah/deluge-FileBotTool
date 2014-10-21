@@ -1,3 +1,4 @@
+#
 # core.py
 #
 # Copyright (C) 2009 laharah <laharah+fbt@gmail.com>
