@@ -1,0 +1,13 @@
+setup.py
+FileBotTool.egg-info/PKG-INFO
+FileBotTool.egg-info/SOURCES.txt
+FileBotTool.egg-info/dependency_links.txt
+FileBotTool.egg-info/entry_points.txt
+FileBotTool.egg-info/top_level.txt
+filebottool/__init__.py
+filebottool/common.py
+filebottool/core.py
+filebottool/gtkui.py
+filebottool/webui.py
+filebottool/data/config.glade
+filebottool/data/filebottool.js
