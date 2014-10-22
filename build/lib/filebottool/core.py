@@ -47,7 +47,11 @@ DEFAULT_PREFS = {
     "test":"NiNiNi"
 }
 
+
 class Core(CorePluginBase):
+    """
+    Core of the plugin ingerfaces between its parts and gets and sets prefs
+    """
     def enable(self):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
 
