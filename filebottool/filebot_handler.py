@@ -1,33 +1,114 @@
+"""contains the FileBotHandler class and utility functions for interaction with
+filebot.
+"""
 __author__ = 'Lunchbox'
 
 import subprocess
 import re
 import os
-import platform
-import locale
 import tempfile
 
 #from deluge.log import LOG as log
 
+def parse_filebot(data):
+    """Parses the output of a filebot run and returns relevent infromation
 
-class FileBotInterface(object):
+    parses and gives info about number of files processd, their moves, and
+    the number of skipped files, using regular expressions
+    NOTE: data should be pre-decoded as utf-8 or windows-1252
+
+    Args:
+        data: a string containing the output of a filebot run
+
+    Returns:
+        a tuple in format (num processed files, list of movement tuples,
+                          number of skipped files)
+    """
+    data = data.splitlines()
+
+    skipped_files = []
+    for line in data:
+        skipped_match = re.search(r'Skipped \[(.*?)\] because', line)
+        if skipped_match:
+            skipped_files.append(skipped_match.group(1))
+
+    #processed files
+    total_processed_files = 0
+    for line in data:
+        match = re.search(r'Processed (\d*) ', line)
+        if match:
+            total_processed_files = int(match.group(1))
+
+    #suggested moves
+    file_moves = []
+    for line in data:
+        match = re.search(r' \[(.*?)\] to \[(.*?)\]', line)
+        if match:
+            file_moves.append((match.group(1), match.group(2)))
+
+    return (total_processed_files, file_moves, len(skipped_files))
+
+class FileBotHandler(object):
     """Calls and interacts with filebot as a subprocess
 
     Attributes:
         database: the databse to use with a filebot run
         format_string: a filebot format string to use with a filebot run
             see 'http://www.filebot.net/naming.html' for details
-        order: the order filebot should use for episode naming
+        order: a special order filebot should use for episode naming
             airdate | absolute | dvd
         action: filebot --action flag argument defaluts to 'move'
         """
     def __init__(self):
-        self.database = None
+        self.filebot_database = None
         self.format_string = None
         self.filebot_order = None
         self.filebot_mode = "-rename"
         self.filebot_action = "move"
         self.destination_mappings = {}
+
+    def set_format_string(self, format_string):
+        """sets the format string to *string*
+
+        it is recomended that you test the format string using
+        FileBotHandler.test_format_string()
+        """
+        self.format_string = format_string
+
+    def set_filebot_database(self, database, override=False):
+        """sets the filebot_database to *database*
+
+        Args:
+            database: the database filebot shoud use
+                Valid databases include:
+                    TheTVDB
+                    TvRage
+                    AniDB
+                    OpenSubtitles
+                    TheMovieDB
+            override: set to true pass database argument to filebot
+            regardless of validity checking
+
+        Returns: True or False depending on whether or not database is valid
+        and was successfully set
+        """
+        if override:
+            self.filebot_database = database
+            return True
+
+        valid_databases = [
+            'thetvdbb',
+            'tvrage',
+            'anidb',
+            'opensubtitles'
+            'themoviedb'
+        ]
+        database = database.lower()
+        if database in valid_databases:
+            self.filebot_database = database
+            return True
+        else:
+            return False
 
     def dry_run(self, target):
         """executes a filebot dry run using current settings.
@@ -48,60 +129,22 @@ class FileBotInterface(object):
         """
         exit_code, data, filebot_error = self._execute(target, action='test')
         if exit_code != 0:
-            log.error("FILEBOT ERROR:\n{}\n".format(data, filebot_error))
+            #log.error("FILEBOT ERROR:\n{}\n{}".format(data, filebot_error))
             return (0, "FILEBOT ERROR", 0)
 
         total_processed_files, suggested_moves, skipped_files = (
-            self.parse_filebot(data))
+            parse_filebot(data))
 
         if len(suggested_moves) < 1:
             return (total_processed_files, "NO SUGGESTIONS", skipped_files)
         else:
             return (total_processed_files, suggested_moves, skipped_files)
 
-    def parse_filebot(self, data):
-        """Parses the output of a filebot run and returns relevent infromation
-
-        parses and gives info about number of files processd, their moves, and
-        the number of skipped files, using regular expressions
-        NOTE: data should be pre-decoded as utf-8 or windows-1252
-
-        Args:
-            data: a string containing the output of a filebot run
-
-        Returns:
-            a tuple in format (num processed files, list of movement tuples,
-                              number of skipped files)
-        """
-        data = data.splitlines()
-
-        skipped_files = []
-        for line in data:
-            skippedMatch = re.search(r'Skipped \[(.*?)\] because', line)
-            if skippedMatch:
-                skipped_files.append(skippedMatch.group(1))
-
-        #processed files
-        total_processed_files = 0
-        for line in data:
-            match = re.search(r'Processed (\d*) ', line)
-            if match:
-                total_processed_files = int(match.group(1))
-
-        #suggested moves
-        file_moves = []
-        for line in data:
-            match = re.search(r' \[(.*?)\] to \[(.*?)\]', line)
-            if match:
-                file_moves.append((match.group(1), match.group(2)))
-
-        return (total_processed_files, file_moves, len(skipped_files))
-
     def _execute(self, target, action=None, format_string=None):
-        """used to execute a filebot run on target.
+        """internal function used to execute a filebot run on target.
 
         executes a run using the current handler settings, optionally takes an
-        action argument
+        action and format argument
 
         Args:
             target: str; the file or folder filebot will execute on.
@@ -138,9 +181,9 @@ class FileBotInterface(object):
         if format_string:
             process_arguments.append("--format")
             process_arguments.append(format_string)
-        if self.database:
+        if self.filebot_database:
             process_arguments.append("--db")
-            process_arguments.append(self.database)
+            process_arguments.append(self.filebot_database)
         if self.filebot_order:
             process_arguments.append('--order')
             process_arguments.append(self.filebot_order)
@@ -180,7 +223,7 @@ class FileBotInterface(object):
             format_string = self.format_string
         _, data, _ = self._execute(file_name, action='test',
                                    format_string=format_string)
-        _, file_moves, _ = self.parse_filebot(data)
+        _, file_moves, _ = parse_filebot(data)
         if not file_moves:
             return ""
         else:
