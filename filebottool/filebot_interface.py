@@ -115,6 +115,11 @@ class FileBotInterface(object):
             tuple in format '(exit_code, stdoutput, stderr)'
         """
 
+        #open and close a temp file so filebot can use it as a log file.
+        #this is a workaround for malfunctioning UTF-8 chars in windows.
+        file_temp = tempfile.NamedTemporaryFile(delete=False)
+        file_temp.close()
+
         if not format_string:
             format_string = self.format_string
         if not action:
@@ -140,10 +145,6 @@ class FileBotInterface(object):
             process_arguments.append('--order')
             process_arguments.append(self.filebot_order)
 
-        #open and close a temp file so filebot can use it as a log file.
-        #this is a workaround for malfunctioning UTF-8 chars in windows.
-        file_temp = tempfile.NamedTemporaryFile(delete=False)
-        file_temp.close()
 
         process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
         process.wait()
