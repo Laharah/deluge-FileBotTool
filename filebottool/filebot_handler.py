@@ -46,40 +46,39 @@ def parse_filebot(data):
         if match:
             file_moves.append((match.group(1), match.group(2)))
 
-    return (total_processed_files, file_moves, len(skipped_files))
+    return total_processed_files, file_moves, len(skipped_files)
+
 
 class FileBotHandler(object):
     """Calls and interacts with filebot as a subprocess
 
     Attributes:
-        database: the databse to use with a filebot run
-        format_string: a filebot format string to use with a filebot run
+        database: the database to use with a filebot run
+        filebot_format_string: a filebot format string to use with a filebot
+            run. it is recomended that you test your format string with
+            test_format_string before setting this value
             see 'http://www.filebot.net/naming.html' for details
-        order: a special order filebot should use for episode naming
+        filebot_order: a special order filebot should use for episode naming
             airdate | absolute | dvd
-        action: filebot --action flag argument defaluts to 'move'
+        filebot_query_string: optional string to overide the title filebot
+            should try to match. coresponds to the -'-q' command in filebot
+        filebot_mode: the type of function you would like filebot to preform
+            [rename, get-subtitles, check, etc...]
+        filebot_action: filebot --action flag argument defaults to 'move'
         """
     def __init__(self):
         self.filebot_database = None
-        self.format_string = None
+        self.filebot_format_string = None
         self.filebot_order = None
+        self.filebot_query_string = None
         self.filebot_mode = "-rename"
         self.filebot_action = "move"
-        self.destination_mappings = {}
-
-    def set_format_string(self, format_string):
-        """sets the format string to *string*
-
-        it is recomended that you test the format string using
-        FileBotHandler.test_format_string()
-        """
-        self.format_string = format_string
 
     def set_filebot_database(self, database, override=False):
         """sets the filebot_database to *database*
 
         Args:
-            database: the database filebot shoud use
+            database: the database filebot should use
                 Valid databases include:
                     TheTVDB
                     TvRage
@@ -113,14 +112,14 @@ class FileBotHandler(object):
     def dry_run(self, target):
         """executes a filebot dry run using current settings.
 
-        Useful for gathering non-destructive infromation about filemovements
+        Useful for gathering non-destructive information about file movements
         before they are executed.
 
         Args:
             target: file or folder you would like the handler to run on
 
         Returns:
-            a tupple consisting of:
+            a tuple consisting of:
             -number of processed files
             -list of tuples containing (old, suggested) file locations OR error
                 message
@@ -130,15 +129,15 @@ class FileBotHandler(object):
         exit_code, data, filebot_error = self._execute(target, action='test')
         if exit_code != 0:
             #log.error("FILEBOT ERROR:\n{}\n{}".format(data, filebot_error))
-            return (0, "FILEBOT ERROR", 0)
+            return 0, "FILEBOT ERROR", 0
 
         total_processed_files, suggested_moves, skipped_files = (
             parse_filebot(data))
 
         if len(suggested_moves) < 1:
-            return (total_processed_files, "NO SUGGESTIONS", skipped_files)
+            return total_processed_files, "NO SUGGESTIONS", skipped_files
         else:
-            return (total_processed_files, suggested_moves, skipped_files)
+            return total_processed_files, suggested_moves, skipped_files
 
     def _execute(self, target, action=None, format_string=None):
         """internal function used to execute a filebot run on target.
@@ -159,12 +158,12 @@ class FileBotHandler(object):
         """
 
         #open and close a temp file so filebot can use it as a log file.
-        #this is a workaround for malfunctioning UTF-8 chars in windows.
+        #this is a workaround for malfunctioning UTF-8 chars in Windows.
         file_temp = tempfile.NamedTemporaryFile(delete=False)
         file_temp.close()
 
         if not format_string:
-            format_string = self.format_string
+            format_string = self.filebot_format_string
         if not action:
             action = self.filebot_action
         process_arguments = [
@@ -185,8 +184,11 @@ class FileBotHandler(object):
             process_arguments.append("--db")
             process_arguments.append(self.filebot_database)
         if self.filebot_order:
-            process_arguments.append('--order')
+            process_arguments.append("--order")
             process_arguments.append(self.filebot_order)
+        if self.filebot_query_string:
+            process_arguments.append("--q")
+            process_arguments.append(self.filebot_query_string)
 
         process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
         process.wait()
@@ -194,11 +196,11 @@ class FileBotHandler(object):
         exit_code = process.returncode
 
         with open(file_temp.name, 'rU') as log:
-            data = log.read().decode('utf8')  #read and cleanup temp/logfile
+            data = log.read().decode('utf8')  # read and cleanup temp/logfile
             log.close()
         os.remove(file_temp.name)
 
-        return (exit_code, data, error)
+        return exit_code, data, error
 
     def test_format_string(self, format_string=None,
                            file_name="Citizen Kane.avi"):
@@ -207,7 +209,7 @@ class FileBotHandler(object):
 
         Useful for testing to see if filebot will correctly parse a format
         string. By default uses a movie title, you must pass a custom filename
-        to test a tvshow style format string.
+        to test a tv show style format string.
 
         Args:
             format_string: the string to be tested. defaults instance format
@@ -220,7 +222,7 @@ class FileBotHandler(object):
                 Returns an empty string if no matches were found.
         """
         if not format_string:
-            format_string = self.format_string
+            format_string = self.filebot_format_string
         _, data, _ = self._execute(file_name, action='test',
                                    format_string=format_string)
         _, file_moves, _ = parse_filebot(data)
