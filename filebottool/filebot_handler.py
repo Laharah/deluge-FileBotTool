@@ -10,6 +10,7 @@ import tempfile
 
 #from deluge.log import LOG as log
 
+
 def parse_filebot(data):
     """Parses the output of a filebot run and returns relevent infromation
 
@@ -32,14 +33,14 @@ def parse_filebot(data):
         if skipped_match:
             skipped_files.append(skipped_match.group(1))
 
-    #processed files
+    # processed files
     total_processed_files = 0
     for line in data:
         match = re.search(r'Processed (\d*) ', line)
         if match:
             total_processed_files = int(match.group(1))
 
-    #suggested moves
+    # file moves
     file_moves = []
     for line in data:
         match = re.search(r' \[(.*?)\] to \[(.*?)\]', line)
@@ -109,8 +110,45 @@ class FileBotHandler(object):
         else:
             return False
 
+    def set_filebot_mode(self, mode_string):
+        """sets the filebot mode to *mode_string*
+
+        Args:
+            mode_string: the function you would like filebot to execute
+                Valid Modes:
+                    rename
+                    move
+                    check
+                    get-missing-subtitle
+                    get-subtitles
+                    list
+                    mediainfo
+
+        Returns:
+            True if set successfully, False if not.
+        """
+        valid_modes = [
+            '-rename',
+            '-move',
+            '-check',
+            '-get-missing-subtitles',
+            '-get-subtitles',
+            '-list',
+            '-mediainfo'
+        ]
+
+        if not mode_string.startswith('-'):
+            mode_string = "-" + mode_string
+
+        if mode_string not in valid_modes:
+            return False
+        else:
+            self.filebot_mode = mode_string
+            return True
+
     def dry_run(self, target):
-        """executes a filebot dry run using current settings.
+        """executes a filebot dry run using current settings, making no
+        changes to the filesystem
 
         Useful for gathering non-destructive information about file movements
         before they are executed.
@@ -139,7 +177,60 @@ class FileBotHandler(object):
         else:
             return total_processed_files, suggested_moves, skipped_files
 
-    def _execute(self, target, action=None, format_string=None):
+    def sort_files(self, target, format_string=None):
+        """Executes filebot on *target* using the current settings
+
+        Args:
+            target: the file or folder you want filebot to execute against
+            format_string: optional argument to override the currently set
+                format string. Mostly there for convenience.
+        Returns:
+            a tuple consisting of:
+                -number of processed files
+                -list of tuples containing (old, new) file locations OR error
+                    message
+                -number of skipped files
+        """
+        if not format_string:
+            format_string = self.filebot_format_string
+        exit_code, data, filebot_error = self._execute(target,format_string)
+
+        if exit_code != 0:
+            return 0, "FILEBOT ERROR", 0
+
+        return parse_filebot(data)
+
+    def get_subtitles(self, target, language_code=None, encoding=None, force=False):
+        """Gets subtitles for a given *target*
+
+        Will use filebot to download subtitles from OpenSubtitles.org using
+        the file hash. By default, it will only download subtitles if the
+        .srt file for the given language is missing. This behavior can be
+        overridden by the *force* flag
+
+        Args:
+            target: The file or folder you want filebot to find subtitles for
+            language_code: the 2 letter language code of the language you
+                want. Uses the filebot default if not designated
+            encoding: the output charset filebot should use (UTF-8, etc...)
+            force: a flag to force filebot to ignore pre-exsisting subtitle
+                files
+
+        Returns:
+            A list containing the downloaded subtitle file names
+        """
+        mode = "-get-missing-subtitles"
+        if force:
+            mode = "-get-subtitles"
+
+        _, data, _ = self._execute(target, mode=mode,
+                                   language_code=language_code,
+                                   encoding=encoding)
+        _, downloads, _ = parse_filebot(data)
+        return [name[1] for name in downloads]
+
+    def _execute(self, target, action=None, format_string=None, mode=None,
+                 language_code=None, encoding=None):
         """internal function used to execute a filebot run on target.
 
         executes a run using the current handler settings, optionally takes an
@@ -152,13 +243,18 @@ class FileBotHandler(object):
                 defaults to the filebot_action attribute (default='move')
             format_string: str; the format string you would like to use
                 defaults to instance format string
+            mode: the filebot mode, see *FileBotHandler.set_filebot_mode* for
+                details
+            language_code: 2 letter language code to hand filebot --lang
+                argument
+            encoding: output charset
 
         Returns:
             tuple in format '(exit_code, stdoutput, stderr)'
         """
 
-        #open and close a temp file so filebot can use it as a log file.
-        #this is a workaround for malfunctioning UTF-8 chars in Windows.
+        # open and close a temp file so filebot can use it as a log file.
+        # this is a workaround for malfunctioning UTF-8 chars in Windows.
         file_temp = tempfile.NamedTemporaryFile(delete=False)
         file_temp.close()
 
@@ -166,9 +262,11 @@ class FileBotHandler(object):
             format_string = self.filebot_format_string
         if not action:
             action = self.filebot_action
+        if not mode:
+            mode = self.filebot_mode
         process_arguments = [
             "filebot",
-            self.filebot_mode,
+            mode,
             target.decode('utf8'),
             "-non-strict",
             "--action",
@@ -189,6 +287,12 @@ class FileBotHandler(object):
         if self.filebot_query_string:
             process_arguments.append("--q")
             process_arguments.append(self.filebot_query_string)
+        if language_code:
+            process_arguments.append("--lang"):
+            process_arguments.append(language_code)
+        if encoding:
+            process_arguments.append("--encoding")
+            process_arguments.append(encoding)
 
         process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
         process.wait()
