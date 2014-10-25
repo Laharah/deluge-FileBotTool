@@ -173,6 +173,35 @@ class FileBotHandler(object):
         else:
             return False
 
+    def test_format_string(self, format_string=None,
+                           file_name="Citizen Kane.avi"):
+        """Runs a quick test of a format string and returns renamed sample
+         filename
+
+        Useful for testing to see if filebot will correctly parse a format
+        string. By default uses a movie title, you must pass a custom filename
+        to test a tv show style format string.
+
+        Args:
+            format_string: the string to be tested. defaults the instance
+            format string
+            file_name: a string that contains an (imaginary) file name to
+                test the format string against. defaults to a movie
+
+        Returns:
+            a string containing the renamed file_name using the format_string.
+                Returns an empty string if no matches were found.
+        """
+        if not format_string:
+            format_string = self.filebot_format_string
+        _, data, _ = self._send_to_filebot(file_name, action='test',
+                                           format_string=format_string)
+        _, file_moves, _ = parse_filebot(data)
+        if not file_moves:
+            return ""
+        else:
+            return file_moves[0][1]
+
     def dry_run(self, target):
         """executes a filebot dry run using current settings, making no
         changes to the filesystem
@@ -259,34 +288,43 @@ class FileBotHandler(object):
         _, downloads, _ = parse_filebot(data)
         return [name[1] for name in downloads]
 
-    def test_format_string(self, format_string=None,
-                           file_name="Citizen Kane.avi"):
-        """Runs a quick test of a format string and returns renamed sample
-         filename
+    def get_history(self, targets):
+        """returns the filebot history of given targets on a file by
+            file basis.
 
-        Useful for testing to see if filebot will correctly parse a format
-        string. By default uses a movie title, you must pass a custom filename
-        to test a tv show style format string.
+        Uses the filebot fn:history script to get the history of each target.
 
         Args:
-            format_string: the string to be tested. defaults the instance
-            format string
-            file_name: a string that contains an (imaginary) file name to
-                test the format string against. defaults to a movie
+            targets: file/folder or list of files/folders you want the
+                filebot history of.
 
         Returns:
-            a string containing the renamed file_name using the format_string.
-                Returns an empty string if no matches were found.
+            list of tuples in format (current_filename, previous_filename)
         """
-        if not format_string:
-            format_string = self.filebot_format_string
-        _, data, _ = self._send_to_filebot(file_name, action='test',
-                                           format_string=format_string)
+        _, data, _ = self._send_to_filebot_script("fn:history", targets)
         _, file_moves, _ = parse_filebot(data)
-        if not file_moves:
-            return ""
-        else:
-            return file_moves[0][1]
+        file_moves = [(x[1], x[0]) for x in file_moves]  # swaps entries for
+        # clarity
+
+        return file_moves
+
+    def revert_files(self, targets):
+        """reverts the given targets to the most previous point in their
+            filebot history
+
+        uses the filebot fn:revert script to revert the given files or folders
+
+        Args:
+            targets: file/folder or list of files/folders to revert
+
+        Returns:
+            a list of tuples containing the file movements in format
+                (old, new)
+        """
+        _, data, _ = self._send_to_filebot_script("fn:revert", targets)
+        _, file_moves, _ = parse_filebot(data)
+
+        return file_moves
 
     def _send_to_filebot(self, targets, action=None, format_string=None,
                          mode=None,
@@ -377,7 +415,7 @@ class FileBotHandler(object):
             script_arguments = [script_arguments]
         process_arguments += [arg.decode("utf8") for arg in script_arguments]
 
-        self._execute(process_arguments)
+        return self._execute(process_arguments)
 
     def _execute(self, process_arguments):
         """underlying execution method to call filebot as subprocess
@@ -408,3 +446,4 @@ class FileBotHandler(object):
         os.remove(file_temp.name)
 
         return exit_code, data, error
+
