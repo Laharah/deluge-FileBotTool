@@ -67,6 +67,7 @@ class FileBotHandler(object):
             [rename, get-subtitles, check, etc...]
         filebot_action: filebot --action flag argument defaults to 'move'
         """
+
     def __init__(self):
         self.filebot_database = None
         self.filebot_format_string = None
@@ -154,7 +155,8 @@ class FileBotHandler(object):
         before they are executed.
 
         Args:
-            target: file or folder you would like the handler to run on
+            target: file/folder or list of files/folders you would like the
+            handler to run on
 
         Returns:
             a tuple consisting of:
@@ -162,7 +164,6 @@ class FileBotHandler(object):
             -list of tuples containing (old, suggested) file locations OR error
                 message
             -number of skipped files
-
         """
         exit_code, data, filebot_error = self._execute(target, action='test')
         if exit_code != 0:
@@ -193,14 +194,14 @@ class FileBotHandler(object):
         """
         if not format_string:
             format_string = self.filebot_format_string
-        exit_code, data, filebot_error = self._execute(target,format_string)
-
+        exit_code, data, filebot_error = self._execute(target, format_string)
         if exit_code != 0:
             return 0, "FILEBOT ERROR", 0
 
         return parse_filebot(data)
 
-    def get_subtitles(self, target, language_code=None, encoding=None, force=False):
+    def get_subtitles(self, target, language_code=None, encoding=None,
+                      force=False):
         """Gets subtitles for a given *target*
 
         Will use filebot to download subtitles from OpenSubtitles.org using
@@ -209,7 +210,8 @@ class FileBotHandler(object):
         overridden by the *force* flag
 
         Args:
-            target: The file or folder you want filebot to find subtitles for
+            target: The file/folder or list of files/folders you want filebot
+            to find subtitles for
             language_code: the 2 letter language code of the language you
                 want. Uses the filebot default if not designated
             encoding: the output charset filebot should use (UTF-8, etc...)
@@ -229,7 +231,7 @@ class FileBotHandler(object):
         _, downloads, _ = parse_filebot(data)
         return [name[1] for name in downloads]
 
-    def _execute(self, target, action=None, format_string=None, mode=None,
+    def _execute(self, targets, action=None, format_string=None, mode=None,
                  language_code=None, encoding=None):
         """internal function used to execute a filebot run on target.
 
@@ -267,7 +269,6 @@ class FileBotHandler(object):
         process_arguments = [
             "filebot",
             mode,
-            target.decode('utf8'),
             "-non-strict",
             "--action",
             action,
@@ -288,11 +289,17 @@ class FileBotHandler(object):
             process_arguments.append("--q")
             process_arguments.append(self.filebot_query_string)
         if language_code:
-            process_arguments.append("--lang"):
+            process_arguments.append("--lang")
             process_arguments.append(language_code)
         if encoding:
             process_arguments.append("--encoding")
             process_arguments.append(encoding)
+
+        if isinstance(targets, str):
+            process_arguments.append(targets)
+        else:
+            for target in targets:
+                process_arguments.append(target.decode("utf8"))
 
         process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
         process.wait()
@@ -318,8 +325,8 @@ class FileBotHandler(object):
         Args:
             format_string: the string to be tested. defaults instance format
                 string
-            file_name: a string that contains an (imaginary) file name to test
-                the format string against. defaults to a movie
+            file_name: a string that contains an (imaginary) file name to
+            test the format string against. defaults to a movie
 
         Returns:
             a string containing the renamed file_name using the format_string.
