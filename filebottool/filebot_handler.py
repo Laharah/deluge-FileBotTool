@@ -50,6 +50,37 @@ def parse_filebot(data):
     return total_processed_files, file_moves, len(skipped_files)
 
 
+def _execute(process_arguments):
+    """underlying execution method to call filebot as subprocess
+
+    Handles the actual execution and output capture
+
+    Args:
+        process_arguments: list of the arguments to be passed to filebotCLI
+
+    Returns:
+        tuple in format '(exit_code, stdout, stderr)'
+    """
+    # open and close a temp file so filebot can use it as a log file.
+    # this is a workaround for malfunctioning UTF-8 chars in Windows.
+    file_temp = tempfile.NamedTemporaryFile(delete=False)
+    file_temp.close()
+    process_arguments = (["filebot", "--log-file", file_temp.name] +
+                         process_arguments)
+
+    process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
+    process.wait()
+    _, error = process.communicate()
+    exit_code = process.returncode
+
+    with open(file_temp.name, 'rU') as log:
+        data = log.read().decode('utf8')  # read and cleanup temp/logfile
+        log.close()
+    os.remove(file_temp.name)
+
+    return exit_code, data, error
+
+
 class FileBotHandler(object):
     """Calls and interacts with filebot as a subprocess
 
@@ -391,7 +422,7 @@ class FileBotHandler(object):
         else:
             process_arguments += [target.decode("utf8") for target in targets]
 
-        return self._execute(process_arguments)
+        return _execute(process_arguments)
 
     def _send_to_filebot_script(self, script_name, script_arguments):
         """special execution method for setting arguments and executing
@@ -415,35 +446,4 @@ class FileBotHandler(object):
             script_arguments = [script_arguments]
         process_arguments += [arg.decode("utf8") for arg in script_arguments]
 
-        return self._execute(process_arguments)
-
-    def _execute(self, process_arguments):
-        """underlying execution method to call filebot as subprocess
-
-        Handles the actual execution and output capture
-
-        Args:
-            process_arguments: list of the arguments to be passed to filebotCLI
-
-        Returns:
-            tuple in format '(exit_code, stdout, stderr)'
-        """
-        # open and close a temp file so filebot can use it as a log file.
-        # this is a workaround for malfunctioning UTF-8 chars in Windows.
-        file_temp = tempfile.NamedTemporaryFile(delete=False)
-        file_temp.close()
-        process_arguments = (["filebot", "--log-file", file_temp.name] +
-                             process_arguments)
-
-        process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
-        process.wait()
-        _, error = process.communicate()
-        exit_code = process.returncode
-
-        with open(file_temp.name, 'rU') as log:
-            data = log.read().decode('utf8')  # read and cleanup temp/logfile
-            log.close()
-        os.remove(file_temp.name)
-
-        return exit_code, data, error
-
+        return _execute(process_arguments)
