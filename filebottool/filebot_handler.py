@@ -288,7 +288,7 @@ class FileBotHandler(object):
             process_arguments.append("--q")
             process_arguments.append(self.filebot_query_string)
         if language_code:
-            process_arguments.append("--lang"):
+            process_arguments.append("--lang")
             process_arguments.append(language_code)
         if encoding:
             process_arguments.append("--encoding")
