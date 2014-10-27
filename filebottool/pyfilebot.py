@@ -137,13 +137,12 @@ class FilebotHandler(object):
         else:
             return False
 
-#TODO: fix and rewrite doc strings
 
 def parse_filebot(data):
     """Parses the output of a filebot run and returns relevant information
 
     parses and gives info about number of files processed, their moves, and
-    the number of skipped files, using regular expressions
+    files that were skipped.
     NOTE: data should be pre-decoded as utf-8
 
     Args:
@@ -151,7 +150,7 @@ def parse_filebot(data):
 
     Returns:
         a tuple in format (num processed files, list of movement tuples,
-                          number of skipped files)
+                           skipped files)
     """
     data = data.splitlines()
 
@@ -175,7 +174,7 @@ def parse_filebot(data):
         if match:
             file_moves.append((match.group(1), match.group(2)))
 
-    return total_processed_files, file_moves, len(skipped_files)
+    return total_processed_files, file_moves, skipped_files
 
 
 def test_format_string(format_string=None,
@@ -188,10 +187,10 @@ def test_format_string(format_string=None,
     to test a tv show style format string.
 
     Args:
-        format_string: the string to be tested. defaults the instance
-        format string
+        format_string: the string to be tested. defaults to filebot's default
+         format.
         file_name: a string that contains an (imaginary) file name to
-            test the format string against. defaults to a movie
+            test the format string against. defaults to a movie.
 
     Returns:
         a string containing the renamed file_name using the format_string.
@@ -215,7 +214,22 @@ def rename_files(targets, format_string=None, database=None,
     Args:
         target: the file or folder you want filebot to execute against
         format_string: optional argument to override the currently set
-            format string. Mostly there for convenience.
+            format string.
+        database: the database filebot should match against. leave None to
+            allow filebot to decide for you
+        rename_action: (move | copy | keeplink | symlink | hardlink | test)
+            use "test" here to test output without changing files. defaults to
+            move.
+        episode_order: (dvd | airdate | absolute). None uses filebot's
+            default season:episode order
+        on_conflict: (override, skip, fail). what to do when filebot
+            encounters a naming conflict. Defaults to skip.
+        query_override: sets the query filebot should match against rather
+            than the file name. Useful if matches are returning incorrect.
+        non_strict: generally kept on to allow filebot more leeway when
+            identifying files. set to False if you want to force an exact
+            match. Defaults to True
+        recursive: process folders recursively. Defaults to True
     Returns:
         a tuple consisting of:
             -number of processed files
@@ -302,8 +316,7 @@ def revert_files(targets):
         targets: file/folder or list of files/folders to revert
 
     Returns:
-        a list of tuples containing the file movements in format
-            (old, new)
+        a list of tuples containing the file movements in format (old, new).
     """
     _, data, _ = _build_script_arguments("fn:revert", targets)
     _, file_moves, _ = parse_filebot(data)
@@ -424,7 +437,7 @@ def _rename_action_is_valid(action_string):
         return False
 
 
-def on_conflict_is_valid(on_conflict_string):
+def _on_conflict_is_valid(on_conflict_string):
     """Checks if on_conflict argument is valid
 
     None returns True as it uses filebot default behavior (skip)
