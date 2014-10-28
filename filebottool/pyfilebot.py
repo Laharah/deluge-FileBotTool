@@ -1,4 +1,5 @@
-"""contains functions for interaction with the filebotCLI
+"""Contains functions for interaction with the filebotCLI and the
+FilebotHandler convenience class.
 """
 __author__ = 'Lunchbox'
 
@@ -6,6 +7,9 @@ import subprocess
 import re
 import os
 import tempfile
+import inspect
+import sys
+from types import MethodType
 
 
 class Error(Exception):
@@ -19,27 +23,79 @@ class FilebotArgumentError(Error):
 
 
 class FilebotHandler(object):
-    #TODO: add wraper functions
-    """A convienience class for interacting with filebot.
+    """A convenience class for interacting with filebot.
 
     contains attributes for storing often used filebot settings as well as
-    error checking on arguments. Implements method functions using stored
-    arguments
+    error checking on arguments. Implements module functions as methods
+    replacing the arguments with attributes stored in the class. Methods are
+    used exactly like the module functions except that they will use the
+    handler attributes as default arguments.
+    NOTE: Methods are generated at __init__ dynamically using the module level
+    functions. If you are subclassing the handler be sure to call super(
+    __init__)
 
+    Examples:
+        test_format_string, when called from the handler uses handler
+            attrubutes as defaults
+
+        #>>> fb_handler = pyfilebot.FilebotHandler()
+        #>>> fb_handler.format_string = '{n} made in {y}'
+        #>>> fb_handler.test_format_string()
+        u'Citizen Kane made in 1941.avi'
+
+        to ignore handler attributes, simply pass the arguments you want
+            to use
+        #>>> fb_handler.test_format_string('{n} ({d})')
+        u'Citizen Kane (1941-05-01).avi'
+        #>>> fb_handler.test_format_string(format_string='{n} ({y})')
+        u'Citizen Kane (1941).avi'
     """
 
     def __init__(self):
         self.mode = None
         self.format_string = None
         self.database = None
-        self.order = None
+        self.episode_order = None
         self.rename_action = None
         self.recursive = True
         self.language_code = None
         self.encoding = None
         self.on_conflict = None
         self.non_strict = True
+        self._populate_methods()
 
+    def _populate_methods(self):
+        """populates the class methods with public functions from the module"""
+        to_add = inspect.getmembers(sys.modules[__name__], inspect.isfunction)
+        to_add = [f[0] for f in to_add if not f[0].startswith('_')]
+        for func_name in to_add:
+            func = getattr(sys.modules[__name__], func_name)
+            self._add_function_as_method(func_name, func)
+
+    def _add_function_as_method(self, func_name, func):
+        """used to add a module function as a method for this class"""
+        def function_template(self, *args, **kwargs):
+            """template for added methods"""
+            return self._pass_to_function(func, *args, **kwargs)
+        setattr(FilebotHandler, func_name, MethodType(function_template, None,
+                                                      FilebotHandler))
+
+    def _pass_to_function(self, function, *overrided_args, **overrided_kwargs):
+        """used set the function arguments to attributes found in this class.
+         Also allows for argument replacement by the user"""
+        functon_kwargs = inspect.getargspec(function)[0][len(overrided_args):]
+        handler_vars = vars(self)
+        kwargs_to_pass = {}
+
+        for arg in functon_kwargs:
+            if arg in handler_vars:
+                kwargs_to_pass[arg] = handler_vars[arg]
+        for arg in overrided_kwargs:
+            kwargs_to_pass[arg] = overrided_kwargs[arg]
+
+        return function(*overrided_args, **kwargs_to_pass)
+
+#TODO: cleanup get and set functions with implemented checks
     def set_filebot_database(self, database, override=False):
         """sets the filebot_database to *database*
 
@@ -170,7 +226,7 @@ def parse_filebot(data):
     # file moves
     file_moves = []
     for line in data:
-        match = re.search(r' \[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]', line)
+        match = re.search(r'\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]', line)
         if match:
             file_moves.append((match.group(1), match.group(2)))
 
@@ -206,17 +262,17 @@ def test_format_string(format_string=None,
         return file_moves[0][1]
 
 
-def rename_files(targets, format_string=None, database=None,
-                 rename_action='move', episode_order=None, on_conflict=None,
-                 query_override=None, non_strict=True, recursive=True):
+def rename(targets, format_string=None, database=None,
+           rename_action='move', episode_order=None, on_conflict=None,
+           query_override=None, non_strict=True, recursive=True):
     """Renames file or files from *targets* using the current settings
 
     Args:
         target: the file or folder you want filebot to execute against
-        format_string: optional argument to override the currently set
-            format string.
+        format_string: The filename formatting string you want filebot to use.
+             Defaults to None which will use the filebot defaut format.
         database: the database filebot should match against. leave None to
-            allow filebot to decide for you
+            allow filebot to decide for you.
         rename_action: (move | copy | keeplink | symlink | hardlink | test)
             use "test" here to test output without changing files. defaults to
             move.
@@ -306,7 +362,7 @@ def get_history(targets):
     return file_moves
 
 
-def revert_files(targets):
+def revert(targets):
     """reverts the given targets to the most previous point in their
         filebot history
 
@@ -562,9 +618,10 @@ def _build_script_arguments(script_name, script_arguments):
         '-script',
         script_name
     ]
-    if isinstance(script_arguments, str):
-        script_arguments = [script_arguments]
-    process_arguments += [arg.decode("utf8") for arg in script_arguments]
+    if script_arguments:
+        if isinstance(script_arguments, str):
+            script_arguments = [script_arguments]
+        process_arguments += [arg.decode("utf8") for arg in script_arguments]
 
     return _execute(process_arguments)
 
