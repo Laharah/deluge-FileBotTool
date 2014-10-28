@@ -22,178 +22,6 @@ class FilebotArgumentError(Error):
     pass
 
 
-class FilebotHandler(object):
-    """A convenience class for interacting with filebot.
-
-    contains attributes for storing often used filebot settings as well as
-    error checking on arguments. Implements module functions as methods
-    replacing the arguments with attributes stored in the class. Methods are
-    used exactly like the module functions except that they will use the
-    handler attributes as default arguments.
-    NOTE: Methods are generated at __init__ dynamically using the module level
-    functions. If you are subclassing the handler be sure to call super(
-    __init__)
-
-    Examples:
-        test_format_string, when called from the handler uses handler
-            attrubutes as defaults
-
-        #>>> fb_handler = pyfilebot.FilebotHandler()
-        #>>> fb_handler.format_string = '{n} made in {y}'
-        #>>> fb_handler.test_format_string()
-        u'Citizen Kane made in 1941.avi'
-
-        to ignore handler attributes, simply pass the arguments you want
-            to use
-        #>>> fb_handler.test_format_string('{n} ({d})')
-        u'Citizen Kane (1941-05-01).avi'
-        #>>> fb_handler.test_format_string(format_string='{n} ({y})')
-        u'Citizen Kane (1941).avi'
-    """
-
-    def __init__(self):
-        self.mode = None
-        self.format_string = None
-        self.database = None
-        self.episode_order = None
-        self.rename_action = None
-        self.recursive = True
-        self.language_code = None
-        self.encoding = None
-        self.on_conflict = None
-        self.non_strict = True
-        self._populate_methods()
-
-    def _populate_methods(self):
-        """populates the class methods with public functions from the module"""
-        to_add = inspect.getmembers(sys.modules[__name__], inspect.isfunction)
-        to_add = [f[0] for f in to_add if not f[0].startswith('_')]
-        for func_name in to_add:
-            func = getattr(sys.modules[__name__], func_name)
-            self._add_function_as_method(func_name, func)
-
-    def _add_function_as_method(self, func_name, func):
-        """used to add a module function as a method for this class"""
-        def function_template(self, *args, **kwargs):
-            """template for added methods"""
-            return self._pass_to_function(func, *args, **kwargs)
-        setattr(FilebotHandler, func_name, MethodType(function_template, None,
-                                                      FilebotHandler))
-
-    def _pass_to_function(self, function, *overrided_args, **overrided_kwargs):
-        """used set the function arguments to attributes found in this class.
-         Also allows for argument replacement by the user"""
-        functon_kwargs = inspect.getargspec(function)[0][len(overrided_args):]
-        handler_vars = vars(self)
-        kwargs_to_pass = {}
-
-        for arg in functon_kwargs:
-            if arg in handler_vars:
-                kwargs_to_pass[arg] = handler_vars[arg]
-        for arg in overrided_kwargs:
-            kwargs_to_pass[arg] = overrided_kwargs[arg]
-
-        return function(*overrided_args, **kwargs_to_pass)
-
-#TODO: cleanup get and set functions with implemented checks
-    def set_filebot_database(self, database, override=False):
-        """sets the filebot_database to *database*
-
-        Args:
-            database: the database filebot should use
-                Valid databases include:
-                    TheTVDB
-                    TvRage
-                    AniDB
-                    OpenSubtitles
-                    TheMovieDB
-            override: set to true pass database argument to filebot
-            regardless of validity checking
-
-        Returns: True or False depending on whether or not database is valid
-        and was successfully set
-        """
-        if override:
-            self.database = database
-            return True
-
-        valid_databases = [
-            'thetvdbb',
-            'tvrage',
-            'anidb',
-            'opensubtitles'
-            'themoviedb'
-        ]
-        database = database.lower()
-        if database in valid_databases:
-            self.database = database
-            return True
-        else:
-            return False
-
-    def set_filebot_mode(self, mode_string):
-        """sets the filebot mode to *mode_string*
-
-        Args:
-            mode_string: the function you would like filebot to execute
-                Valid Modes:
-                    rename
-                    move
-                    check
-                    get-missing-subtitle
-                    get-subtitles
-                    list
-                    mediainfo
-
-        Returns:
-            True if set successfully, False if not.
-        """
-        valid_modes = [
-            '-rename',
-            '-move',
-            '-check',
-            '-get-missing-subtitles',
-            '-get-subtitles',
-            '-list',
-            '-mediainfo'
-        ]
-
-        if not mode_string.startswith('-'):
-            mode_string = "-" + mode_string
-
-        if mode_string not in valid_modes:
-            return False
-        else:
-            self.mode = mode_string
-            return True
-
-    def set_filebot_order(self, order_string):
-        """sets the episode order flag for the filebot run
-
-        sets and checks for validity of the *order_string passed*. Pass None to
-         reset to filebot default
-
-        Args:
-            order_string: the order you want your episodes named.
-            valid orders:(None | airdate | dvd | absolute)
-
-        Returns:
-            True or False based on success
-        """
-        valid_orders = [
-            None,
-            "dvd",
-            "airdate",
-            "absolute"
-        ]
-
-        if order_string in valid_orders:
-            self.order = order_string
-            return True
-        else:
-            return False
-
-
 def parse_filebot(data):
     """Parses the output of a filebot run and returns relevant information
 
@@ -447,6 +275,7 @@ def _database_is_valid(database):
                     AniDB
                     OpenSubtitles
                     TheMovieDB
+                    IMDB
 
     Returns: True if valid Database, False if not
     """
@@ -455,8 +284,9 @@ def _database_is_valid(database):
         'thetvdbb',
         'tvrage',
         'anidb',
-        'opensubtitles'
-        'themoviedb'
+        'opensubtitles',
+        'themoviedb',
+        'imdb'
     ]
     if database is not None:
         database = database.lower()
@@ -558,6 +388,9 @@ def _build_filebot_arguments(targets, format_string=None,
     if not _mode_is_valid(mode):
         raise FilebotArgumentError("'{}' is not a valid filebot mode".format(
             mode))
+    if not _on_conflict_is_valid(on_confilct):
+        raise FilebotArgumentError("'{}' is not a valid conflict resolution."
+                                   .format(on_confilct))
 
     if not mode.startswith('-'):
         mode = '-' + mode
@@ -655,3 +488,181 @@ def _execute(process_arguments):
     os.remove(file_temp.name)
 
     return exit_code, data, error
+
+
+class FilebotHandler(object):
+    """A convenience class for interacting with filebot.
+
+    contains attributes for storing often used filebot settings as well as
+    error checking on arguments. Implements module functions as methods
+    replacing the arguments with attributes stored in the class. Methods are
+    used exactly like the module functions except that they will use the
+    handler attributes as default arguments.
+    NOTE: Methods are generated at __init__ dynamically using the module level
+    functions. If you are subclassing the handler be sure to call super(
+    __init__)
+
+    Examples:
+        test_format_string, when called from the handler uses handler
+            attributes as defaults
+
+        #>>> fb_handler = pyfilebot.FilebotHandler()
+        #>>> fb_handler.format_string = '{n} made in {y}'
+        #>>> fb_handler.test_format_string()
+        u'Citizen Kane made in 1941.avi'
+
+        to ignore handler attributes, simply pass the arguments you want
+            to use
+        #>>> fb_handler.test_format_string('{n} ({d})')
+        u'Citizen Kane (1941-05-01).avi'
+
+        or
+        #>>> fb_handler.test_format_string(format_string='{n} ({y})')
+        u'Citizen Kane (1941).avi'
+
+    Attributes:
+        format_string: the format string you would like filebot to use. None
+            uses filebot default.
+            for details see: http://www.filebot.net/naming.html
+        database: the database filebot should match against.
+            (TVRage | TheTVDB | IMDB | TheMovieDB | AniDB | OpenSubtitles).
+            Leave None to allow filebot to decide for you.
+        episode_order: (dvd | airdate | absolute). None uses filebot's
+            default season:episode order
+        rename_action: (move | copy | keeplink | symlink | hardlink | test)
+            use "test" here to test output without changing files. defaults to
+            move.
+        recursive: Process folders recursively. Defaults to True
+        language_code: The 2 letter language code filebot should use for
+            subtitles. None uses the filebot default
+        encoding: The charset filebot should use for file output
+        on_conflict: The action filebot should take on a file conflict.
+            (skip | override | fail). Defaults to skip
+        non_strict: allow filebot more leeway when identifying files. Defaults
+             to true
+        mode: the function you would like filebot to execute. Defaults to
+            '-rename'. Very rarely used
+
+    Methods:
+        Implements all the functions in pyfilebot as methods using handler
+        settings where appropriate.
+        has these
+        additional methods:
+
+        get_settings(): returns a dictionary containing all the current
+            handler settings and their values
+    """
+
+    def __init__(self):
+        self.format_string = None
+        self._database = None
+        self._episode_order = None
+        self._rename_action = None
+        self.recursive = True
+        self.language_code = None
+        self.encoding = None
+        self._on_conflict = 'skip'
+        self.non_strict = True
+        self._mode = '-rename'
+
+        self._populate_methods()
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, value):
+        if _mode_is_valid(value):
+            self._mode = value
+        else:
+            raise FilebotArgumentError('"{}" is not a valid filebot mode.'
+                                       .format(value))
+
+    @property
+    def database(self):
+        return self._database
+
+    @database.setter
+    def database(self, value):
+        if _database_is_valid(value):
+            self._database = value
+        else:
+            raise FilebotArgumentError('"{}" is not a valid filebot database'
+                                       .format(value))
+
+    @property
+    def episode_order(self):
+        return self._episode_order
+
+    @episode_order.setter
+    def episode_order(self, order):
+        if _order_is_valid(order):
+            self._episode_order = order
+        else:
+            raise FilebotArgumentError('"{}" is not a valid episode order'
+                                       .format(order))
+
+    @property
+    def rename_action(self):
+        return self._rename_action
+
+    @rename_action.setter
+    def rename_action(self, action):
+        if _rename_action_is_valid(action):
+            self._rename_action = action
+        else:
+            raise FilebotArgumentError('"{}" is not a valid rename action.'
+                                       .format(action))
+
+    @property
+    def on_conflict(self):
+        return self._on_conflict
+
+    @on_conflict.setter
+    def on_conflict(self, value):
+        if _on_conflict_is_valid(value):
+            self._on_conflict = value
+        else:
+            raise FilebotArgumentError('"{}" is not a valid conflict '
+                                       'resolution'.format(value))
+
+    def _populate_methods(self):
+        """populates the class methods with public functions from the module"""
+        to_add = inspect.getmembers(sys.modules[__name__], inspect.isfunction)
+        to_add = [f[0] for f in to_add if not f[0].startswith('_')]
+        for func_name in to_add:
+            func = getattr(sys.modules[__name__], func_name)
+            self._add_function_as_method(func_name, func)
+
+    def _add_function_as_method(self, func_name, func):
+        """used to add a module function as a method for this class"""
+        def function_template(self, *args, **kwargs):
+            """template for added methods"""
+            return self._pass_to_function(func, *args, **kwargs)
+        setattr(FilebotHandler, func_name, MethodType(function_template, None,
+                                                      FilebotHandler))
+
+    def get_settings(self):
+        """returns a dict containing all the current handler settings"""
+        handler_vars = vars(self).copy()
+        for var in handler_vars:
+            if var.startswith('_'):
+                handler_vars[var[1:]] = handler_vars[var]
+                del handler_vars[var]
+        return handler_vars
+
+    def _pass_to_function(self, function, *overrided_args, **overrided_kwargs):
+        """used set the function arguments to attributes found in this class.
+         Also allows for argument replacement by the user"""
+        functon_kwargs = inspect.getargspec(function)[0][len(overrided_args):]
+        handler_vars = self.get_settings()
+        kwargs_to_pass = {}
+
+        for arg in functon_kwargs:
+            if arg in handler_vars:
+                kwargs_to_pass[arg] = handler_vars[arg]
+        for arg in overrided_kwargs:
+            kwargs_to_pass[arg] = overrided_kwargs[arg]
+
+        return function(*overrided_args, **kwargs_to_pass)
