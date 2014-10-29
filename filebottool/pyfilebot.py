@@ -119,7 +119,7 @@ def rename(targets, format_string=None, database=None,
             -number of processed files
             -list of tuples containing (old, new) file locations OR error
                 message
-            -number of skipped files
+            -list of skipped files
     """
 
     exit_code, data, filebot_error = (
@@ -206,6 +206,23 @@ def revert(targets):
     _, file_moves, _ = parse_filebot(data)
 
     return file_moves
+
+def get_media_info(targets, recursive=True):
+    """returns list of lines detailing the file name (without extention) and
+    the media info returned.
+
+    Example:
+    >>pyfilebot.get_media_info('Batman (1989).avi')
+    [u'Batman (1989) [716x480 6ch x264 AC3]']
+
+    Args:
+        targets: the file/folder or list of files/folders you want media
+            info for.
+        recursive: process folders recursivly. Defualt:True
+    """
+    _, data, _ = _build_filebot_arguments(targets, mode='mediainfo',
+                                          recursive=True)
+    return data.splitlines()
 
 
 def _order_is_valid(order_string):
@@ -546,8 +563,7 @@ class FilebotHandler(object):
     Methods:
         Implements all the functions in pyfilebot as methods using handler
         settings where appropriate.
-        has these
-        additional methods:
+        Has these additional methods:
 
         get_settings(): returns a dictionary containing all the current
             handler settings and their values
