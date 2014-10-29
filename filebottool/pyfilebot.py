@@ -541,7 +541,7 @@ class FilebotHandler(object):
         non_strict: allow filebot more leeway when identifying files. Defaults
              to true
         mode: the function you would like filebot to execute. Defaults to
-            '-rename'. Very rarely used
+            'rename'. Very rarely used
 
     Methods:
         Implements all the functions in pyfilebot as methods using handler
@@ -560,10 +560,10 @@ class FilebotHandler(object):
         self._rename_action = None
         self.recursive = True
         self.language_code = None
-        self.encoding = None
+        self.encoding = 'UTF-8'
         self._on_conflict = 'skip'
         self.non_strict = True
-        self._mode = '-rename'
+        self._mode = 'rename'
 
         self._populate_methods()
 
