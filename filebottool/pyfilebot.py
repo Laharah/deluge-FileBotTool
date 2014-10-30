@@ -22,6 +22,62 @@ class FilebotArgumentError(Error):
     pass
 
 
+def get_filebot_version():
+    return_code, output, error_data = _execute(['-version'], workaround=False)
+    if return_code != 0:
+        return 'FileBot Not Found!', error_data
+
+    else:
+        return output.strip()
+
+
+def rename(targets, format_string=None, database=None,
+           rename_action='move', episode_order=None, on_conflict=None,
+           query_override=None, non_strict=True, recursive=True):
+    """Renames file or files from *targets* using the current settings
+
+    Args:
+        target: the file or folder you want filebot to execute against
+        format_string: The filename formatting string you want filebot to use.
+             Defaults to None which will use the filebot defaut format.
+        database: the database filebot should match against. leave None to
+            allow filebot to decide for you.
+        rename_action: (move | copy | keeplink | symlink | hardlink | test)
+            use "test" here to test output without changing files. defaults to
+            move.
+        episode_order: (dvd | airdate | absolute). None uses filebot's
+            default season:episode order
+        on_conflict: (override, skip, fail). what to do when filebot
+            encounters a naming conflict. Defaults to skip.
+        query_override: sets the query filebot should match against rather
+            than the file name. Useful if matches are returning incorrect.
+        non_strict: generally kept on to allow filebot more leeway when
+            identifying files. set to False if you want to force an exact
+            match. Defaults to True
+        recursive: process folders recursively. Defaults to True
+    Returns:
+        a tuple consisting of:
+            -number of processed files
+            -list of tuples containing (old, new) file locations OR error
+                message
+            -number of skipped files
+    """
+
+    exit_code, data, filebot_error = (
+        _build_filebot_arguments(targets, format_string=format_string,
+                                 database=database,
+                                 rename_action=rename_action,
+                                 episode_order=episode_order,
+                                 on_confilct=on_conflict,
+                                 query_override=query_override,
+                                 non_strict=non_strict, recursive=recursive))
+
+    if exit_code != 0:
+        return 0, "FILEBOT ERROR", 0
+
+    return parse_filebot(data)
+
+
 def parse_filebot(data):
     """Parses the output of a filebot run and returns relevant information
 
@@ -54,7 +110,9 @@ def parse_filebot(data):
     # file moves
     file_moves = []
     for line in data:
-        match = re.search(r'\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]', line)
+        match = (
+            re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]',
+                      line))
         if match:
             file_moves.append((match.group(1), match.group(2)))
 
@@ -88,53 +146,6 @@ def test_format_string(format_string=None,
         return ""
     else:
         return file_moves[0][1]
-
-
-def rename(targets, format_string=None, database=None,
-           rename_action='move', episode_order=None, on_conflict=None,
-           query_override=None, non_strict=True, recursive=True):
-    """Renames file or files from *targets* using the current settings
-
-    Args:
-        target: the file or folder you want filebot to execute against
-        format_string: The filename formatting string you want filebot to use.
-             Defaults to None which will use the filebot defaut format.
-        database: the database filebot should match against. leave None to
-            allow filebot to decide for you.
-        rename_action: (move | copy | keeplink | symlink | hardlink | test)
-            use "test" here to test output without changing files. defaults to
-            move.
-        episode_order: (dvd | airdate | absolute). None uses filebot's
-            default season:episode order
-        on_conflict: (override, skip, fail). what to do when filebot
-            encounters a naming conflict. Defaults to skip.
-        query_override: sets the query filebot should match against rather
-            than the file name. Useful if matches are returning incorrect.
-        non_strict: generally kept on to allow filebot more leeway when
-            identifying files. set to False if you want to force an exact
-            match. Defaults to True
-        recursive: process folders recursively. Defaults to True
-    Returns:
-        a tuple consisting of:
-            -number of processed files
-            -list of tuples containing (old, new) file locations OR error
-                message
-            -list of skipped files
-    """
-
-    exit_code, data, filebot_error = (
-        _build_filebot_arguments(targets, format_string=format_string,
-                                 database=database,
-                                 rename_action=rename_action,
-                                 episode_order=episode_order,
-                                 on_confilct=on_conflict,
-                                 query_override=query_override,
-                                 non_strict=non_strict, recursive=recursive))
-
-    if exit_code != 0:
-        return 0, "FILEBOT ERROR", 0
-
-    return parse_filebot(data)
 
 
 def get_subtitles(target, language_code=None, encoding=None,
@@ -206,23 +217,6 @@ def revert(targets):
     _, file_moves, _ = parse_filebot(data)
 
     return file_moves
-
-def get_media_info(targets, recursive=True):
-    """returns list of lines detailing the file name (without extention) and
-    the media info returned.
-
-    Example:
-    >>pyfilebot.get_media_info('Batman (1989).avi')
-    [u'Batman (1989) [716x480 6ch x264 AC3]']
-
-    Args:
-        targets: the file/folder or list of files/folders you want media
-            info for.
-        recursive: process folders recursivly. Defualt:True
-    """
-    _, data, _ = _build_filebot_arguments(targets, mode='mediainfo',
-                                          recursive=True)
-    return data.splitlines()
 
 
 def _order_is_valid(order_string):
@@ -476,13 +470,16 @@ def _build_script_arguments(script_name, script_arguments):
     return _execute(process_arguments)
 
 
-def _execute(process_arguments):
+def _execute(process_arguments, workaround=True):
     """underlying execution method to call filebot as subprocess
 
     Handles the actual execution and output capture
 
     Args:
         process_arguments: list of the arguments to be passed to filebotCLI
+        workaround: implements a work around for capturing unicode
+            characters on windows systems. should always be true except in
+            special circumstances.
 
     Returns:
         tuple in format '(exit_code, stdout, stderr)'
@@ -496,12 +493,16 @@ def _execute(process_arguments):
 
     process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
     process.wait()
-    _, error = process.communicate()
+    stdout, error = process.communicate()
     exit_code = process.returncode
 
-    with open(file_temp.name, 'rU') as log:
-        data = log.read().decode('utf8')  # read and cleanup temp/logfile
-        log.close()
+    if workaround:
+        with open(file_temp.name, 'rU') as log:
+            data = log.read().decode('utf8')  # read and cleanup temp/logfile
+            log.close()
+    else:
+        data = stdout
+
     os.remove(file_temp.name)
 
     return exit_code, data, error
@@ -563,7 +564,8 @@ class FilebotHandler(object):
     Methods:
         Implements all the functions in pyfilebot as methods using handler
         settings where appropriate.
-        Has these additional methods:
+        has these
+        additional methods:
 
         get_settings(): returns a dictionary containing all the current
             handler settings and their values
