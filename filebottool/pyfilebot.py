@@ -22,72 +22,13 @@ class FilebotArgumentError(Error):
     pass
 
 
-def parse_filebot(data):
-    """Parses the output of a filebot run and returns relevant information
+def get_filebot_version():
+    return_code, output, error_data = _execute(['-version'], workaround=False)
+    if return_code != 0:
+        return 'FileBot Not Found!', error_data
 
-    parses and gives info about number of files processed, their moves, and
-    files that were skipped.
-    NOTE: data should be pre-decoded as utf-8
-
-    Args:
-        data: a string containing the output of a filebot run
-
-    Returns:
-        a tuple in format (num processed files, list of movement tuples,
-                           skipped files)
-    """
-    data = data.splitlines()
-
-    skipped_files = []
-    for line in data:
-        skipped_match = re.search(r'Skipped \[(.*?)\] because', line)
-        if skipped_match:
-            skipped_files.append(skipped_match.group(1))
-
-    # processed files
-    total_processed_files = 0
-    for line in data:
-        match = re.search(r'Processed (\d*) ', line)
-        if match:
-            total_processed_files = int(match.group(1))
-
-    # file moves
-    file_moves = []
-    for line in data:
-        match = re.search(r'\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]', line)
-        if match:
-            file_moves.append((match.group(1), match.group(2)))
-
-    return total_processed_files, file_moves, skipped_files
-
-
-def test_format_string(format_string=None,
-                       file_name="Citizen Kane.avi"):
-    """Runs a quick test of a format string and returns renamed sample
-     filename
-
-    Useful for testing to see if filebot will correctly parse a format
-    string. By default uses a movie title, you must pass a custom filename
-    to test a tv show style format string.
-
-    Args:
-        format_string: the string to be tested. defaults to filebot's default
-         format.
-        file_name: a string that contains an (imaginary) file name to
-            test the format string against. defaults to a movie.
-
-    Returns:
-        a string containing the renamed file_name using the format_string.
-            Returns an empty string if no matches were found.
-    """
-
-    _, data, _ = _build_filebot_arguments(file_name, rename_action='test',
-                                          format_string=format_string)
-    _, file_moves, _ = parse_filebot(data)
-    if not file_moves:
-        return ""
     else:
-        return file_moves[0][1]
+        return output.strip()
 
 
 def rename(targets, format_string=None, database=None,
@@ -135,6 +76,76 @@ def rename(targets, format_string=None, database=None,
         return 0, "FILEBOT ERROR", 0
 
     return parse_filebot(data)
+
+
+def parse_filebot(data):
+    """Parses the output of a filebot run and returns relevant information
+
+    parses and gives info about number of files processed, their moves, and
+    files that were skipped.
+    NOTE: data should be pre-decoded as utf-8
+
+    Args:
+        data: a string containing the output of a filebot run
+
+    Returns:
+        a tuple in format (num processed files, list of movement tuples,
+                           skipped files)
+    """
+    data = data.splitlines()
+
+    skipped_files = []
+    for line in data:
+        skipped_match = re.search(r'Skipped \[(.*?)\] because', line)
+        if skipped_match:
+            skipped_files.append(skipped_match.group(1))
+
+    # processed files
+    total_processed_files = 0
+    for line in data:
+        match = re.search(r'Processed (\d*) ', line)
+        if match:
+            total_processed_files = int(match.group(1))
+
+    # file moves
+    file_moves = []
+    for line in data:
+        match = (
+            re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]',
+                      line))
+        if match:
+            file_moves.append((match.group(1), match.group(2)))
+
+    return total_processed_files, file_moves, skipped_files
+
+
+def test_format_string(format_string=None,
+                       file_name="Citizen Kane.avi"):
+    """Runs a quick test of a format string and returns renamed sample
+     filename
+
+    Useful for testing to see if filebot will correctly parse a format
+    string. By default uses a movie title, you must pass a custom filename
+    to test a tv show style format string.
+
+    Args:
+        format_string: the string to be tested. defaults to filebot's default
+         format.
+        file_name: a string that contains an (imaginary) file name to
+            test the format string against. defaults to a movie.
+
+    Returns:
+        a string containing the renamed file_name using the format_string.
+            Returns an empty string if no matches were found.
+    """
+
+    _, data, _ = _build_filebot_arguments(file_name, rename_action='test',
+                                          format_string=format_string)
+    _, file_moves, _ = parse_filebot(data)
+    if not file_moves:
+        return ""
+    else:
+        return file_moves[0][1]
 
 
 def get_subtitles(target, language_code=None, encoding=None,
@@ -459,13 +470,16 @@ def _build_script_arguments(script_name, script_arguments):
     return _execute(process_arguments)
 
 
-def _execute(process_arguments):
+def _execute(process_arguments, workaround=True):
     """underlying execution method to call filebot as subprocess
 
     Handles the actual execution and output capture
 
     Args:
         process_arguments: list of the arguments to be passed to filebotCLI
+        workaround: implements a work around for capturing unicode
+            characters on windows systems. should always be true except in
+            special circumstances.
 
     Returns:
         tuple in format '(exit_code, stdout, stderr)'
@@ -479,12 +493,16 @@ def _execute(process_arguments):
 
     process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
     process.wait()
-    _, error = process.communicate()
+    stdout, error = process.communicate()
     exit_code = process.returncode
 
-    with open(file_temp.name, 'rU') as log:
-        data = log.read().decode('utf8')  # read and cleanup temp/logfile
-        log.close()
+    if workaround:
+        with open(file_temp.name, 'rU') as log:
+            data = log.read().decode('utf8')  # read and cleanup temp/logfile
+            log.close()
+    else:
+        data = stdout
+
     os.remove(file_temp.name)
 
     return exit_code, data, error
