@@ -8,6 +8,7 @@ filebottool/__init__.py
 filebottool/common.py
 filebottool/core.py
 filebottool/gtkui.py
+filebottool/pyfilebot.py
 filebottool/webui.py
 filebottool/data/config.glade
 filebottool/data/filebottool.js

@@ -42,16 +42,20 @@ from deluge.plugins.pluginbase import CorePluginBase
 import deluge.component as component
 import deluge.configmanager
 from deluge.core.rpcserver import export
+from filebottool.pyfilebot import FilebotHandler
 
 DEFAULT_PREFS = {
     "test":"NiNiNi"
 }
 
 class Core(CorePluginBase):
-    """interfaces between deluge, FileBotInterpreter, and UI elements"""
+    """The Plugin Core"""
 
     def enable(self):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
+        self.handler = FilebotHandler()
+        self.handler.database = 'thetvdb'
+        self.fb_version = self.handler.get_filebot_version()
 
     def disable(self):
         pass
@@ -65,6 +69,14 @@ class Core(CorePluginBase):
         for key in config.keys():
             self.config[key] = config[key]
         self.config.save()
+
+    @export
+    def get_filebot_version(self):
+        return self.fb_version
+
+    @export
+    def get_handler_database(self):
+        return self.handler.database
 
     @export
     def get_config(self):

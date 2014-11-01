@@ -23,6 +23,8 @@ class FilebotArgumentError(Error):
 
 
 def get_filebot_version():
+    """returns the filebot version string. Usefull for testing if filebot is
+    installed."""
     return_code, output, error_data = _execute(['-version'], workaround=False)
     if return_code != 0:
         return 'FileBot Not Found!', error_data
@@ -90,7 +92,7 @@ def parse_filebot(data):
 
     Returns:
         a tuple in format (num processed files, list of movement tuples,
-                           skipped files)
+                           skipped/failed files)
     """
     data = data.splitlines()
 
@@ -292,7 +294,7 @@ def _database_is_valid(database):
     """
     valid_databases = [
         None,
-        'thetvdbb',
+        'thetvdb',
         'tvrage',
         'anidb',
         'opensubtitles',
