@@ -65,7 +65,7 @@ class GtkUI(GtkPluginBase):
         config = {
             "test":self.glade.get_widget("txt_test").get_text()
         }
-        client.filebottool.set_config(config)
+        #client.filebottool.set_config(config)
 
     def on_show_prefs(self):
         client.filebottool.get_filebot_version().addCallback(

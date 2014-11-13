@@ -1,58 +1,162 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <glade-interface>
   <!-- interface-requires gtk+ 2.6 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="window1">
-    <property name="can_focus">False</property>
     <child>
       <widget class="GtkVBox" id="prefs_box">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <child>
-          <widget class="GtkHBox" id="hbox2">
+          <widget class="GtkHBox" id="version_info">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="spacing">1</property>
             <child>
               <widget class="GtkLabel" id="_filebot_version">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">FileBot Version: </property>
               </widget>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
               <widget class="GtkLabel" id="filebot_version">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">NONE</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
             <property name="padding">1</property>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
+          <widget class="GtkVBox" id="handler_settings">
+            <property name="visible">True</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <widget class="GtkLabel" id="filebot_settings_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">4</property>
+                <property name="label" translatable="yes">&lt;b&gt;Filebot Settings&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkAlignment" id="alignment1">
+                <property name="visible">True</property>
+                <property name="top_padding">5</property>
+                <property name="left_padding">10</property>
+                <child>
+                  <widget class="GtkTable" id="table1">
+                    <property name="visible">True</property>
+                    <property name="n_rows">2</property>
+                    <property name="n_columns">2</property>
+                    <child>
+                      <widget class="GtkLabel" id="database Lable">
+                        <property name="visible">True</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Database</property>
+                      </widget>
+                      <packing>
+                        <property name="x_options">GTK_FILL</property>
+                        <property name="y_options"></property>
+                        <property name="x_padding">5</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkComboBox" id="db_combo">
+                        <property name="visible">True</property>
+                        <property name="items" translatable="yes">The TVDB
+IMDB
+TheMovieDB</property>
+                      </widget>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="x_options">GTK_FILL</property>
+                        <property name="y_options"></property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="format_string_lable">
+                        <property name="visible">True</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Format Expression</property>
+                      </widget>
+                      <packing>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                        <property name="x_options">GTK_FILL</property>
+                        <property name="y_options"></property>
+                        <property name="x_padding">5</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkHBox" id="hbox1">
+                        <property name="visible">True</property>
+                        <child>
+                          <widget class="GtkEntry" id="format_string">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                          </widget>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkLinkButton" id="linkbutton1">
+                            <property name="label">gtk-help</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="has_tooltip">True</property>
+                            <property name="relief">none</property>
+                            <property name="use_stock">True</property>
+                            <property name="uri">http://www.filebot.net/naming.html</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">2</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="padding">1</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="position">1</property>
+          </packing>
         </child>
       </widget>
     </child>

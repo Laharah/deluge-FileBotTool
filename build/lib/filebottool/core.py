@@ -48,8 +48,9 @@ DEFAULT_PREFS = {
     "test":"NiNiNi"
 }
 
+
 class Core(CorePluginBase):
-    """The Plugin Core"""
+    """interfaces between deluge, FileBotInterpreter, and UI elements"""
 
     def enable(self):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
