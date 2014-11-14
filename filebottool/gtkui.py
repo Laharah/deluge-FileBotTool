@@ -65,7 +65,7 @@ class GtkUI(GtkPluginBase):
         component.get("PluginManager").deregister_hook("on_apply_prefs", self.on_apply_prefs)
         component.get("PluginManager").deregister_hook("on_show_prefs", self.on_show_prefs)
 
-    def on_format_help_clicked(self):
+    def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
         log.debug('button was clicked')
         self.glade.get_widget("filebot_version").set_text("CLICKED!!!")
