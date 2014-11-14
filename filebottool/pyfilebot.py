@@ -493,7 +493,8 @@ def _execute(process_arguments, workaround=True):
     process_arguments = (["filebot", "--log-file", file_temp.name] +
                          process_arguments)
 
-    process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE)
+    process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, stdin=subprocess.PIPE)
     process.wait()
     stdout, error = process.communicate()
     exit_code = process.returncode

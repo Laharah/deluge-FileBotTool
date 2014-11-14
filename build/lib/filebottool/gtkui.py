@@ -38,6 +38,7 @@
 #
 
 import gtk
+import webbrowser
 
 from deluge.log import LOG as log
 from deluge.ui.client import client
@@ -50,8 +51,12 @@ from common import get_resource
 class GtkUI(GtkPluginBase):
     def enable(self):
         self.glade = gtk.glade.XML(get_resource("config.glade"))
+        self.glade.signal_autoconnect({
+            "on_format_help_clicked": self.on_format_help_clicked
+        })
 
         component.get("Preferences").add_page("FileBotTool", self.glade.get_widget("prefs_box"))
+        log.debug('filebot tool added to pref pages')
         component.get("PluginManager").register_hook("on_apply_prefs", self.on_apply_prefs)
         component.get("PluginManager").register_hook("on_show_prefs", self.on_show_prefs)
 
@@ -59,6 +64,11 @@ class GtkUI(GtkPluginBase):
         component.get("Preferences").remove_page("FileBotTool")
         component.get("PluginManager").deregister_hook("on_apply_prefs", self.on_apply_prefs)
         component.get("PluginManager").deregister_hook("on_show_prefs", self.on_show_prefs)
+
+    def on_format_help_clicked(self):
+        webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
+        log.debug('button was clicked')
+        self.glade.get_widget("filebot_version").set_text("CLICKED!!!")
 
     def on_apply_prefs(self):
         log.debug("applying prefs for FileBotTool")

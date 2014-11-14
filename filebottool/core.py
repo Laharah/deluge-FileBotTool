@@ -55,7 +55,7 @@ class Core(CorePluginBase):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
         self.handler = FilebotHandler()
         self.handler.database = 'thetvdb'
-        self.fb_version = self.handler.get_filebot_version()
+        self.fb_version = '3'
 
     def disable(self):
         pass

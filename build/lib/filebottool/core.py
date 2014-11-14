@@ -48,14 +48,14 @@ DEFAULT_PREFS = {
     "test":"NiNiNi"
 }
 
-
 class Core(CorePluginBase):
-    """interfaces between deluge, FileBotInterpreter, and UI elements"""
+    """The Plugin Core"""
 
     def enable(self):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
         self.handler = FilebotHandler()
         self.handler.database = 'thetvdb'
+        self.fb_version = '3'
 
     def disable(self):
         pass
@@ -72,7 +72,7 @@ class Core(CorePluginBase):
 
     @export
     def get_filebot_version(self):
-        return self.handler.get_filebot_version()
+        return self.fb_version
 
     @export
     def get_handler_database(self):
