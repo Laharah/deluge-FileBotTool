@@ -67,20 +67,21 @@ class GtkUI(GtkPluginBase):
 
     def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
-        log.debug('button was clicked')
-        self.glade.get_widget("filebot_version").set_text("CLICKED!!!")
+        log.debug('Format expression info button was clicked')
 
     def on_apply_prefs(self):
         log.debug("applying prefs for FileBotTool")
-        config = {
-            "test":self.glade.get_widget("txt_test").get_text()
-        }
-        #client.filebottool.set_config(config)
+        self.config['database'] = self.glade.get_widget("db_combo").get  # TODO
+        client.filebottool.set_config(self.config)
 
     def on_show_prefs(self):
+        client.filebottool.get_config().addCallback(self.on_get_config)
         client.filebottool.get_filebot_version().addCallback(
-            self.cb_get_config)
+            self.on_get_version)
 
-    def cb_get_config(self, version):
+    def on_get_config(self, config):
+        self.config = config
+
+    def on_get_version(self, version):
         "callback for on show_prefs"
         self.glade.get_widget("filebot_version").set_text(version)

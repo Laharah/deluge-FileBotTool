@@ -45,7 +45,10 @@ from deluge.core.rpcserver import export
 from filebottool.pyfilebot import FilebotHandler
 
 DEFAULT_PREFS = {
-    "test":"NiNiNi"
+    "database": None,
+    "format_string": None,
+    "mode": None,
+    "episode_order": None
 }
 
 class Core(CorePluginBase):
@@ -54,8 +57,12 @@ class Core(CorePluginBase):
     def enable(self):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
         self.handler = FilebotHandler()
-        self.handler.database = 'thetvdb'
-        self.fb_version = '3'
+        self.handler.database = self.config["database"]
+        self.handler.format_string = self.config["format_string"]
+        self.handler.mode = self.config["mode"]
+        self.handler.episode_order = self.config["episode_order"]
+
+        self.fb_version = self.get_filebot_version()
 
     def disable(self):
         pass
