@@ -12,6 +12,55 @@ import sys
 from types import MethodType
 
 
+FILEBOT_MODES = [
+    'rename',
+    'move',
+    'check',
+    'get-missing-subtitles',
+    'get-subtitles',
+    'list',
+    'mediainfo'
+]
+
+
+FILEBOT_ORDERS = [
+    None,
+    "dvd",
+    "airdate",
+    "absolute"
+]
+
+
+FILEBOT_DATABASES = [
+    None,
+    'TheTVDB',
+    'TvRage',
+    'AniDB',
+    'OpenSubtitles',
+    'TheMovieDB',
+    'IMDB'
+]
+
+
+FILEBOT_RENAME_ACTIONS = [
+    None,
+    'move',
+    'copy',
+    'keeplink',
+    'symlink',
+    'hardlink',
+    'test'
+]
+
+
+FILEBOT_ON_CONFLICT = [
+    None,
+    'override',
+    'skip',
+    'fail'
+]
+
+
 class Error(Exception):
     """Error baseclass for module"""
     pass
@@ -234,7 +283,7 @@ def _order_is_valid(order_string):
     """
     if order_string is not None:
         order_string = order_string.lower()
-    if order_string in [None, "dvd", "airdate", "absolute"]:
+    if order_string in FILEBOT_ORDERS:
         return True
     else:
         return False
@@ -256,20 +305,10 @@ def _mode_is_valid(mode_string):
     Returns:
         True if valid, False if not.
     """
-    valid_modes = [
-        '-rename',
-        '-move',
-        '-check',
-        '-get-missing-subtitles',
-        '-get-subtitles',
-        '-list',
-        '-mediainfo'
-    ]
+    if mode_string.startswith('-'):
+        mode_string = mode_string[1:]
 
-    if not mode_string.startswith('-'):
-        mode_string = "-" + mode_string
-
-    if mode_string.lower() not in valid_modes:
+    if mode_string.lower() not in FILEBOT_MODES:
         return False
     else:
         return True
@@ -292,18 +331,10 @@ def _database_is_valid(database):
 
     Returns: True if valid Database, False if not
     """
-    valid_databases = [
-        None,
-        'thetvdb',
-        'tvrage',
-        'anidb',
-        'opensubtitles',
-        'themoviedb',
-        'imdb'
-    ]
+    valid_databases = [db.lower() for db in FILEBOT_DATABASES if db is not None]
     if database is not None:
         database = database.lower()
-    if database in valid_databases:
+    if database in valid_databases or database is None:
         return True
     else:
         return False
@@ -319,18 +350,9 @@ def _rename_action_is_valid(action_string):
     Returns: True if valid action, False if not.
 
     """
-    valid_rename_actions = [
-        None,
-        'move',
-        'copy',
-        'keeplink',
-        'symlink',
-        'hardlink',
-        'test'
-    ]
     if action_string is not None:
         action_string = action_string.lower()
-    if action_string in valid_rename_actions:
+    if action_string in FILEBOT_RENAME_ACTIONS:
         return True
     else:
         return False
@@ -349,7 +371,7 @@ def _on_conflict_is_valid(on_conflict_string):
     """
     if on_conflict_string is not None:
         on_conflict_string = on_conflict_string.lower()
-    if on_conflict_string in [None, 'override', 'skip', 'fail']:
+    if on_conflict_string in FILEBOT_ON_CONFLICT:
         return True
     else:
         return False
