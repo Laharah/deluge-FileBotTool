@@ -47,7 +47,7 @@ from filebottool.pyfilebot import FilebotHandler
 DEFAULT_PREFS = {
     "database": None,
     "format_string": None,
-    "mode": None,
+    "mode": 'rename',
     "episode_order": None
 }
 

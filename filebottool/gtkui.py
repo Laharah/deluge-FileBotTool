@@ -51,12 +51,12 @@ from common import get_resource
 class GtkUI(GtkPluginBase):
     def enable(self):
         self.glade = gtk.glade.XML(get_resource("config.glade"))
-        self.glade.signal_autoconnect({
-            "on_format_help_clicked": self.on_format_help_clicked
-        })
+        autoconnect_dic = {
+            "on_format_help_clicked":self.on_format_help_clicked,
+        }
+        self.glade.signal_autoconnect(autoconnect_dic)
 
         component.get("Preferences").add_page("FileBotTool", self.glade.get_widget("prefs_box"))
-        log.debug('filebot tool added to pref pages')
         component.get("PluginManager").register_hook("on_apply_prefs", self.on_apply_prefs)
         component.get("PluginManager").register_hook("on_show_prefs", self.on_show_prefs)
 
