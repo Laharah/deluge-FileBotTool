@@ -71,6 +71,11 @@ class FilebotArgumentError(Error):
     pass
 
 
+class FilebotFatalError(Error):
+    """raise on a non-recoverable error, such as filebot not found"""
+    pass
+
+
 def get_filebot_version():
     """returns the filebot version string. Usefull for testing if filebot is
     installed."""
@@ -515,8 +520,13 @@ def _execute(process_arguments, workaround=True):
     process_arguments = (["filebot", "--log-file", file_temp.name] +
                          process_arguments)
 
-    process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    try:
+        process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   stdin=subprocess.PIPE)
+    except OSError:
+        raise FilebotFatalError("Filebot could not be found!")
+    
     process.wait()
     stdout, error = process.communicate()
     exit_code = process.returncode
