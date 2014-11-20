@@ -62,7 +62,7 @@ class RenameDialog(object):
         self.window = self.glade.get_widget("rename_dialog")
         signal_dic = {}
 
-        self.glade.siginal_autoconnect(signal_dic)
+        self.glade.signal_autoconnect(signal_dic)
 
         self.build_combo_boxes()
         self.populate_with_previous_settings()
@@ -114,12 +114,13 @@ class GtkUI(GtkPluginBase):
             self.build_rename_dialog)
 
     def build_rename_dialog(self, dialog_info):
-        rename_dialog = RenameDialog()
+        rename_dialog = RenameDialog(dialog_info)
 
     def disable(self):
         component.get("Preferences").remove_page("FileBotTool")
         component.get("PluginManager").deregister_hook("on_apply_prefs", self.on_apply_prefs)
         component.get("PluginManager").deregister_hook("on_show_prefs", self.on_show_prefs)
+        component.get("MenuBar").torrentmenu.remove(self.menu_item)
 
     def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
@@ -127,13 +128,10 @@ class GtkUI(GtkPluginBase):
 
     def on_apply_prefs(self):
         log.debug("applying prefs for FileBotTool")
-        self.config['database'] = self.glade.get_widget("db_combo").get  # TODO
         client.filebottool.set_config(self.config)
 
     def on_show_prefs(self):
         client.filebottool.get_config().addCallback(self.on_get_config)
-        client.filebottool.get_filebot_version().addCallback(
-            self.on_get_version)
 
     def on_get_config(self, config):
         self.config = config

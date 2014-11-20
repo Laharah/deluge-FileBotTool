@@ -6,7 +6,7 @@
     <property name="title" translatable="yes">Hellow World</property>
     <property name="window_position">center</property>
     <child>
-      <widget class="GtkViewport" id="viewport1">
+      <widget class="GtkViewport" id="prefs_box">
         <property name="visible">True</property>
         <property name="resize_mode">queue</property>
         <child>

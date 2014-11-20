@@ -89,10 +89,6 @@ class Core(CorePluginBase):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
 
         self.handler = pyfilebot.FilebotHandler()
-        self.handler.database = self.config["database"]
-        self.handler.format_string = self.config["format_string"]
-        self.handler.mode = self.config["mode"]
-        self.handler.episode_order = self.config["episode_order"]
         try:
             self.fb_version = pyfilebot.get_filebot_version()
             log.info("Filebot Found with version {}".format(self.fb_version))
@@ -173,7 +169,9 @@ class Core(CorePluginBase):
         log.debug("dialog info requested, packing dialog.")
         dialog_info = {}
         dialog_info["torrent_id"] = torrent_id
-        dialog_info["files"] = self.torrent_manager[torrent_id].get_files()
+        torrent = self.torrent_manager[torrent_id]
+        dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])
+        dialog_info["files"] = torrent.get_files()
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]
         dialog_info["rename_dialog_last_settings"] = rename_dialog_last_settings
         log.debug("sending dialog info to client: {}".format(dialog_info))
