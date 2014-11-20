@@ -132,6 +132,7 @@ class Core(CorePluginBase):
     def _check_listening_dictionary(self, event):
         """called on events, checks if the plugin has been waiting for the
         event and decides what to do."""
+        pass
 
     def disable(self):
         pass
@@ -168,12 +169,20 @@ class Core(CorePluginBase):
         rename dialog"""
         log.debug("dialog info requested, packing dialog.")
         dialog_info = {}
+
         dialog_info["torrent_id"] = torrent_id
         torrent = self.torrent_manager[torrent_id]
         dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])
         dialog_info["files"] = torrent.get_files()
+
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]
         dialog_info["rename_dialog_last_settings"] = rename_dialog_last_settings
+
+        dialog_info["valid_databases"] = pyfilebot.FILEBOT_DATABASES
+        dialog_info["valid_rename_actions"] = pyfilebot.FILEBOT_RENAME_ACTIONS
+        dialog_info["valid_on_conflicts"] = pyfilebot.FILEBOT_ON_CONFLICT
+        dialog_info["valid_episode_orders"] = pyfilebot.FILEBOT_ORDERS
+
         log.debug("sending dialog info to client: {}".format(dialog_info))
         return dialog_info
 

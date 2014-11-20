@@ -12,3 +12,4 @@ filebottool/pyfilebot.py
 filebottool/webui.py
 filebottool/data/config.glade
 filebottool/data/filebottool.js
+filebottool/data/rename.glade

@@ -64,7 +64,16 @@ class RenameDialog(object):
 
         self.glade.signal_autoconnect(signal_dic)
 
-        self.build_combo_boxes()
+        combo_data = {}
+        for key in dialog_settings:
+            try:
+                if key.startswith('valid_'):
+                    combo_data[key] = dialog_settings[key]
+            except KeyError:
+                pass
+
+        self.build_combo_boxes(combo_data)
+
         self.populate_with_previous_settings()
         self.build_treestore()
         self.load_treestore()
@@ -73,9 +82,38 @@ class RenameDialog(object):
         treeview.expand_all()
         self.window.show()
 
-    def build_combo_boxes(self):
-        """builds models and links them up to the combo boxes"""
-        pass
+    def build_combo_boxes(self, combo_data):
+        """builds the combo boxes for the dialog"""
+        log.debug("building database combo box")
+        databases = combo_data["valid_databases"]
+        database_combo = self.glade.get_widget("database_combo")
+        self.build_list_store_combo(databases, database_combo)
+
+        log.debug("building rename action combo box")
+        rename_actions = combo_data["valid_rename_actions"]
+        rename_action_combo = self.glade.get_widget("rename_action_combo")
+        self.build_list_store_combo(rename_actions, rename_action_combo)
+
+        log.debug("building on conflict combo box")
+        on_conflicts = combo_data["valid_on_conflicts"]
+        on_conflict_combo = self.glade.get_widget("on_conflict_combo")
+        self.build_list_store_combo(on_conflicts, on_conflict_combo)
+
+        log.debug("building episode order combo box")
+        episode_orders = combo_data["valid_episode_orders"]
+        episode_order_combo = self.glade.get_widget("episode_order_combo")
+        self.build_list_store_combo(episode_orders, episode_order_combo)
+
+    def build_list_store_combo(self, model_data, combo_widget):
+        """builds an individual combo box"""
+        list_store = gtk.ListStore(str)
+        for datum in model_data:
+            list_store.append([datum])
+
+        combo_widget.set_model(list_store)
+        renderer = gtk.CellRendererText()
+        combo_widget.pack_start(renderer, expand=True)
+        combo_widget.add_attribute(renderer, "text", 0)
 
     def populate_with_previous_settings(self):
         """presets the window with the last settings used in the plugin"""
