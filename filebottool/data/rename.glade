@@ -141,12 +141,39 @@
                   <widget class="GtkHBox" id="hbox6">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkComboBox" id="database_combo_box">
+                      <widget class="GtkComboBox" id="database_combo">
                         <property name="visible">True</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
                         <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkHBox" id="hbox11">
+                        <property name="visible">True</property>
+                        <child>
+                          <widget class="GtkLabel" id="file_mode_lable">
+                            <property name="visible">True</property>
+                            <property name="xalign">1</property>
+                            <property name="label" translatable="yes">File Mode:</property>
+                          </widget>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkComboBox" id="rename_action_combo">
+                            <property name="visible">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="position">1</property>
                       </packing>
                     </child>
                   </widget>
@@ -483,7 +510,7 @@
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkComboBox" id="combobox1">
+                      <widget class="GtkComboBox" id="on_conflict_combo">
                         <property name="visible">True</property>
                       </widget>
                       <packing>
