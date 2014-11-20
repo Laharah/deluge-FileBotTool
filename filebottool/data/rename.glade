@@ -2,7 +2,7 @@
 <glade-interface>
   <!-- interface-requires gtk+ 2.16 -->
   <!-- interface-naming-policy project-wide -->
-  <widget class="GtkWindow" id="filebot_dialog">
+  <widget class="GtkWindow" id="rename_dialog">
     <property name="default_width">800</property>
     <property name="default_height">500</property>
     <child>

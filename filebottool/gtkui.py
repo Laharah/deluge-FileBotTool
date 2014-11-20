@@ -48,17 +48,73 @@ import deluge.common
 
 from common import get_resource
 
+
+class RenameDialog(object):
+    """builds and runs the rename dialog
+    """
+    def __init__(self, dialog_settings):
+        """sets up the dialog using the settings supplied by the server"""
+        self.torrent_id = dialog_settings["torrent_id"]
+        self.files = dialog_settings["files"]
+        self.ui_settings = dialog_settings["rename_dialog_last_settings"]
+
+        self.glade = gtk.glade.XML(get_resource("rename.glade"))
+        self.window = self.glade.get_widget("rename_dialog")
+        signal_dic = {}
+
+        self.glade.siginal_autoconnect(signal_dic)
+
+        self.build_combo_boxes()
+        self.populate_with_previous_settings()
+        self.build_treestore()
+        self.load_treestore()
+
+        treeview = self.glade.get_widget("files_treeview")
+        treeview.expand_all()
+        self.window.show()
+
+    def build_combo_boxes(self):
+        """builds models and links them up to the combo boxes"""
+        pass
+
+    def populate_with_previous_settings(self):
+        """presets the window with the last settings used in the plugin"""
+        pass
+
+    def build_treestore(self):
+        """builds the treestore that will be used to hold the files info"""
+        pass
+
+    def load_treestore(self):
+        """populates the treestore using the torrent data given to dialog"""
+        pass
+
+
 class GtkUI(GtkPluginBase):
     def enable(self):
         self.glade = gtk.glade.XML(get_resource("config.glade"))
-        autoconnect_dic = {
-            "on_format_help_clicked":self.on_format_help_clicked,
-        }
-        self.glade.signal_autoconnect(autoconnect_dic)
 
         component.get("Preferences").add_page("FileBotTool", self.glade.get_widget("prefs_box"))
         component.get("PluginManager").register_hook("on_apply_prefs", self.on_apply_prefs)
         component.get("PluginManager").register_hook("on_show_prefs", self.on_show_prefs)
+
+        # add context menu item for FileBotTool
+        torrentmenu = component.get("MenuBar").torrentmenu
+        self.menu_item = gtk.ImageMenuItem("FileBotTool")
+
+        img = gtk.image_new_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_MENU)
+        self.menu_item.set_image(img)
+        self.menu_item.connect("activate", self.get_torrent_info)
+        torrentmenu.append(self.menu_item)
+        torrentmenu.show_all()
+
+    def get_torrent_info(self, *args):
+        torrent_id = component.get("TorrentView").get_selected_torrent()
+        client.filebottool.get_rename_dialog_info(torrent_id).addCallback(
+            self.build_rename_dialog)
+
+    def build_rename_dialog(self, dialog_info):
+        rename_dialog = RenameDialog()
 
     def disable(self):
         component.get("Preferences").remove_page("FileBotTool")

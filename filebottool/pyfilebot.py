@@ -526,7 +526,7 @@ def _execute(process_arguments, workaround=True):
                                    stdin=subprocess.PIPE)
     except OSError:
         raise FilebotFatalError("Filebot could not be found!")
-    
+
     process.wait()
     stdout, error = process.communicate()
     exit_code = process.returncode
