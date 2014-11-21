@@ -50,7 +50,7 @@ from common import get_resource
 
 
 class RenameDialog(object):
-    """builds and runs the rename dialog
+    """builds and runs the rename dialog.
     """
     def __init__(self, dialog_settings):
         """sets up the dialog using the settings supplied by the server"""
@@ -60,6 +60,18 @@ class RenameDialog(object):
 
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
         self.window = self.glade.get_widget("rename_dialog")
+        self.database_combo = self.glade.get_widget("database_combo")
+        self.rename_action_combo = self.glade.get_widget("rename_action_combo")
+        self.on_conflict_combo = self.glade.get_widget("on_conflict_combo")
+        self.episode_order_combo = self.glade.get_widget("episode_order_combo")
+
+        self.format_string_entry = self.glade.get_widget("format_string_entry")
+        self.query_entry = self.glade.get_widget("query entry")
+        self.download_subs_checkbox = self.glade.get_widget(
+            "download_subs_checkbox")
+        self.language_code_entry = self.glade.get_widget("language_code_entry")
+        self.encoding_entry = self.glade.get_widget("encoding_entry")
+
         signal_dic = {}
 
         self.glade.signal_autoconnect(signal_dic)
@@ -73,8 +85,7 @@ class RenameDialog(object):
                 pass
 
         self.build_combo_boxes(combo_data)
-
-        self.populate_with_previous_settings()
+        self.populate_with_settings(self.ui_settings)
         self.build_treestore()
         self.load_treestore()
 
@@ -86,23 +97,19 @@ class RenameDialog(object):
         """builds the combo boxes for the dialog"""
         log.debug("building database combo box")
         databases = combo_data["valid_databases"]
-        database_combo = self.glade.get_widget("database_combo")
-        self.build_list_store_combo(databases, database_combo)
+        self.build_list_store_combo(databases, self.database_combo)
 
         log.debug("building rename action combo box")
         rename_actions = combo_data["valid_rename_actions"]
-        rename_action_combo = self.glade.get_widget("rename_action_combo")
-        self.build_list_store_combo(rename_actions, rename_action_combo)
+        self.build_list_store_combo(rename_actions, self.rename_action_combo)
 
         log.debug("building on conflict combo box")
         on_conflicts = combo_data["valid_on_conflicts"]
-        on_conflict_combo = self.glade.get_widget("on_conflict_combo")
-        self.build_list_store_combo(on_conflicts, on_conflict_combo)
+        self.build_list_store_combo(on_conflicts, self.on_conflict_combo)
 
         log.debug("building episode order combo box")
         episode_orders = combo_data["valid_episode_orders"]
-        episode_order_combo = self.glade.get_widget("episode_order_combo")
-        self.build_list_store_combo(episode_orders, episode_order_combo)
+        self.build_list_store_combo(episode_orders, self.episode_order_combo)
 
     def build_list_store_combo(self, model_data, combo_widget):
         """builds an individual combo box"""
@@ -115,9 +122,29 @@ class RenameDialog(object):
         combo_widget.pack_start(renderer, expand=True)
         combo_widget.add_attribute(renderer, "text", 0)
 
-    def populate_with_previous_settings(self):
+    def populate_with_settings(self, settings):
         """presets the window with the last settings used in the plugin"""
-        pass
+        combo_value_pairs = [
+            (self.database_combo, settings["database"]),
+            (self.rename_action_combo, settings["rename_action"]),
+            (self.on_conflict_combo, settings["on_conflict"]),
+            (self.episode_order_combo, settings["episode_order"])
+        ]
+
+        for combo, value in combo_value_pairs:
+            combo_model = combo.get_model()
+            value_index = [index for index, row in enumerate(combo_model)
+                           if row[0] == value][0]
+            combo.set_active(value_index)
+
+        self.format_string_entry.set_text(settings["format_string"])
+        self.encoding_entry.set_text(settings["encoding"])
+        self.language_code_entry.set_text(settings["language_code"])
+        self.query_entry.set_text(settings["query"])
+
+        advanced_options = self.glade.get_widget("advanced_options")
+        if advanced_options.get_visible != settings["show_advanced"]:
+            self.on_toggle_advanced()
 
     def build_treestore(self):
         """builds the treestore that will be used to hold the files info"""
@@ -127,14 +154,33 @@ class RenameDialog(object):
         """populates the treestore using the torrent data given to dialog"""
         pass
 
+    #  Section: UI actions
+
+    def on_toggle_advanced(self, *args):
+        advanced_options = self.glade.get_widget("advanced_options")
+        arrow = self.glade.get_widget("advanced_arrow")
+        advanced_lable = self.glade.get_widget("show_advanced_lable")
+
+        if advanced_options.get_visible():
+            advanced_options.hide()
+            advanced_lable.set_text("Show Advanced")
+            arrow.set(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
+        else:
+            advanced_options.show()
+            advanced_lable.set_text("Hide Advanced")
+            arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
+
 
 class GtkUI(GtkPluginBase):
     def enable(self):
         self.glade = gtk.glade.XML(get_resource("config.glade"))
 
-        component.get("Preferences").add_page("FileBotTool", self.glade.get_widget("prefs_box"))
-        component.get("PluginManager").register_hook("on_apply_prefs", self.on_apply_prefs)
-        component.get("PluginManager").register_hook("on_show_prefs", self.on_show_prefs)
+        component.get("Preferences").add_page("FileBotTool",
+                                              self.glade.get_widget("prefs_box"))
+        component.get("PluginManager").register_hook("on_apply_prefs",
+                                                     self.on_apply_prefs)
+        component.get("PluginManager").register_hook("on_show_prefs",
+                                                     self.on_show_prefs)
 
         # add context menu item for FileBotTool
         torrentmenu = component.get("MenuBar").torrentmenu

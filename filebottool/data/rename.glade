@@ -462,7 +462,7 @@
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkLabel" id="lang_lable">
+                          <widget class="GtkLabel" id="language_code_lable">
                             <property name="visible">True</property>
                             <property name="has_tooltip">True</property>
                             <property name="tooltip" translatable="yes">2 character language code
@@ -476,7 +476,7 @@
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkEntry" id="lang_code_entry">
+                          <widget class="GtkEntry" id="language_code_entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="tooltip" translatable="yes">2 character language code

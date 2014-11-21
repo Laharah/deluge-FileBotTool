@@ -70,12 +70,14 @@ DEFAULT_PREFS = {
     "rename_dialog_last_settings": {
         "database": None,
         "format_string": None,
+        "rename_action": None,
         "show_advanced": False,
         "query": None,
+        "on_conflict": None,
         "episode_order": None,
         "download_subs": False,
-        "language": None,
-        "encoding": None
+        "language_code": None,
+        "encoding": "UTF-8"
     },
 
 
