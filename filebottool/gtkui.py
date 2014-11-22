@@ -60,6 +60,7 @@ class RenameDialog(object):
 
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
         self.window = self.glade.get_widget("rename_dialog")
+        self.files_treeview = self.glade.get_widget("files_treeview")
         self.database_combo = self.glade.get_widget("database_combo")
         self.rename_action_combo = self.glade.get_widget("rename_action_combo")
         self.on_conflict_combo = self.glade.get_widget("on_conflict_combo")
@@ -112,7 +113,7 @@ class RenameDialog(object):
         self.build_list_store_combo(episode_orders, self.episode_order_combo)
 
     def build_list_store_combo(self, model_data, combo_widget):
-        """builds an individual combo box"""
+        """inflates an individual combo box"""
         list_store = gtk.ListStore(str)
         for datum in model_data:
             list_store.append([datum])
@@ -124,7 +125,7 @@ class RenameDialog(object):
 
     def populate_with_settings(self, settings):
         """presets the window with the last settings used in the plugin"""
-        log.debug("Previous settings recieved: {}".format(settings))
+        log.debug("Previous settings received: {}".format(settings))
         combo_value_pairs = [
             (self.database_combo, settings["database"]),
             (self.rename_action_combo, settings["rename_action"]),
@@ -158,7 +159,21 @@ class RenameDialog(object):
 
     def build_treestore(self):
         """builds the treestore that will be used to hold the files info"""
-        pass
+        model = gtk.TreeStore(int, str, str)
+
+        file_index_name_pairs = [(f["index"], f["path"]) for f in self.files]
+        file_index_name_pairs = sorted(file_index_name_pairs)
+        for index, file_path in file_index_name_pairs:
+            model.append([index, file_path, ''])
+        self.files_treeview.set_model(model)
+        renderer = gtk.CellRendererText()
+        original_files = gtk.TreeViewColumn("Original Files", renderer, text=1)
+        moved_files = gtk.TreeViewColumn("Moved Files", renderer, text=2)
+        self.files_treeview.append_column(original_files)
+        self.files_treeview.append_column(moved_files)
+        self.files_treeview.expand_all()
+
+        #  TODO: add allow let tree track folder hierarchy
 
     def load_treestore(self):
         """populates the treestore using the torrent data given to dialog"""
