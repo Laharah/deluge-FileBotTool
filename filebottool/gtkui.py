@@ -153,7 +153,8 @@ class RenameDialog(object):
         if advanced_options.get_visible() != settings["show_advanced"]:
             self.on_toggle_advanced()
 
-        #  database_checkbox :
+        if self.download_subs_checkbox.get_active() != settings["download_subs"]:
+            self.on_download_subs_toggled()
 
     def build_treestore(self):
         """builds the treestore that will be used to hold the files info"""
@@ -164,6 +165,13 @@ class RenameDialog(object):
         pass
 
     #  Section: UI actions
+
+    def on_download_subs_toggled(self, *args):
+        subs_options = self.glade.get_widget("subs_options")
+        if subs_options.get_sensitive():
+            subs_options.set_sensitive(False)
+        else:
+            subs_options.set_sensitive(True)
 
     def on_toggle_advanced(self, *args):
         advanced_options = self.glade.get_widget("advanced_options")
