@@ -124,6 +124,7 @@ class RenameDialog(object):
 
     def populate_with_settings(self, settings):
         """presets the window with the last settings used in the plugin"""
+        log.debug("Previous settings recieved: {}".format(settings))
         combo_value_pairs = [
             (self.database_combo, settings["database"]),
             (self.rename_action_combo, settings["rename_action"]),
@@ -137,14 +138,22 @@ class RenameDialog(object):
                            if row[0] == value][0]
             combo.set_active(value_index)
 
-        self.format_string_entry.set_text(settings["format_string"])
-        self.encoding_entry.set_text(settings["encoding"])
-        self.language_code_entry.set_text(settings["language_code"])
-        self.query_entry.set_text(settings["query"])
+        entry_value_pairs = [
+            (self.format_string_entry, settings["format_string"]),
+            (self.encoding_entry, settings["encoding"]),
+            (self.language_code_entry, settings["language_code"]),
+            (self.query_entry, settings["query"])
+        ]
+
+        for entry, value in entry_value_pairs:
+            if value:
+                entry.set_text(value)
 
         advanced_options = self.glade.get_widget("advanced_options")
-        if advanced_options.get_visible != settings["show_advanced"]:
+        if advanced_options.get_visible() != settings["show_advanced"]:
             self.on_toggle_advanced()
+
+        #  database_checkbox :
 
     def build_treestore(self):
         """builds the treestore that will be used to hold the files info"""
