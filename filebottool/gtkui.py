@@ -53,7 +53,9 @@ class RenameDialog(object):
     """builds and runs the rename dialog.
     """
     def __init__(self, dialog_settings):
-        """sets up the dialog using the settings supplied by the server"""
+        """sets up the dialog using the settings supplied by the server
+        Also loads relevant glade widgets as members
+        """
         self.torrent_id = dialog_settings["torrent_id"]
         self.files = dialog_settings["files"]
         self.ui_settings = dialog_settings["rename_dialog_last_settings"]
@@ -73,7 +75,7 @@ class RenameDialog(object):
         self.language_code_entry = self.glade.get_widget("language_code_entry")
         self.encoding_entry = self.glade.get_widget("encoding_entry")
 
-        signal_dic = {}
+        signal_dic = {"on_toggle_advanced": self.on_toggle_advanced}
 
         self.glade.signal_autoconnect(signal_dic)
 
@@ -98,21 +100,21 @@ class RenameDialog(object):
         """builds the combo boxes for the dialog"""
         log.debug("building database combo box")
         databases = combo_data["valid_databases"]
-        self.build_list_store_combo(databases, self.database_combo)
+        self.inflate_list_store_combo(databases, self.database_combo)
 
         log.debug("building rename action combo box")
         rename_actions = combo_data["valid_rename_actions"]
-        self.build_list_store_combo(rename_actions, self.rename_action_combo)
+        self.inflate_list_store_combo(rename_actions, self.rename_action_combo)
 
         log.debug("building on conflict combo box")
         on_conflicts = combo_data["valid_on_conflicts"]
-        self.build_list_store_combo(on_conflicts, self.on_conflict_combo)
+        self.inflate_list_store_combo(on_conflicts, self.on_conflict_combo)
 
         log.debug("building episode order combo box")
         episode_orders = combo_data["valid_episode_orders"]
-        self.build_list_store_combo(episode_orders, self.episode_order_combo)
+        self.inflate_list_store_combo(episode_orders, self.episode_order_combo)
 
-    def build_list_store_combo(self, model_data, combo_widget):
+    def inflate_list_store_combo(self, model_data, combo_widget):
         """inflates an individual combo box"""
         list_store = gtk.ListStore(str)
         for datum in model_data:
@@ -137,7 +139,11 @@ class RenameDialog(object):
             combo_model = combo.get_model()
             value_index = [index for index, row in enumerate(combo_model)
                            if row[0] == value][0]
-            combo.set_active(value_index)
+            if not value_index:
+                log.warning("could not set {1} to value {2}, value {2} could "
+                            "not be found in {1}".format(combo, value))
+            else:
+                combo.set_active(value_index)
 
         entry_value_pairs = [
             (self.format_string_entry, settings["format_string"]),
@@ -160,11 +166,11 @@ class RenameDialog(object):
     def build_treestore(self):
         """builds the treestore that will be used to hold the files info"""
         model = gtk.TreeStore(int, str, str)
-
+        log.debug("loading treestore with files: {}".format(self.files))
         file_index_name_pairs = [(f["index"], f["path"]) for f in self.files]
         file_index_name_pairs = sorted(file_index_name_pairs)
         for index, file_path in file_index_name_pairs:
-            model.append([index, file_path, ''])
+            model.append(None, [index, file_path, ''])
         self.files_treeview.set_model(model)
         renderer = gtk.CellRendererText()
         original_files = gtk.TreeViewColumn("Original Files", renderer, text=1)
@@ -173,7 +179,8 @@ class RenameDialog(object):
         self.files_treeview.append_column(moved_files)
         self.files_treeview.expand_all()
 
-        #  TODO: add allow let tree track folder hierarchy
+        #  TODO: add allow let tree track folder hierarchy work in isoltation
+        #  for speed
 
     def load_treestore(self):
         """populates the treestore using the torrent data given to dialog"""
