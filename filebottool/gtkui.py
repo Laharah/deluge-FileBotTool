@@ -142,8 +142,8 @@ class RenameDialog(object):
             value_index = [index for index, row in enumerate(combo_model)
                            if row[0] == value][0]
             if not value_index:
-                log.warning("could not set {1} to value {2}, value {2} could "
-                            "not be found in {1}".format(combo, value))
+                log.warning("could not set {0} to value {1}, value {1} could "
+                            "not be found in {0}".format(combo, value))
             else:
                 combo.set_active(value_index)
 
@@ -169,7 +169,7 @@ class RenameDialog(object):
 
     def build_treestore(self):
         """builds the treestore that will be used to hold the files info"""
-        model = gtk.TreeStore(int, str, str)
+        model = gtk.TreeStore(str, str, str)
         self.files_treeview.set_model(model)
         renderer = gtk.CellRendererText()
         original_files = gtk.TreeViewColumn("Original Files", renderer, text=1)
@@ -177,11 +177,9 @@ class RenameDialog(object):
         self.files_treeview.append_column(original_files)
         self.files_treeview.append_column(moved_files)
 
-        #  TODO: add allow let tree track folder hierarchy work in isoltation
-        #  for speed
-
     def load_treestore(self):
         """populates the treestore using the torrent data given to dialog"""
+        # TODO: more extensive path testing
         index_path_pairs = [(f["index"], f["path"]) for f in self.files]
         model = self.files_treeview.get_model()
         folder_iterators = {}
