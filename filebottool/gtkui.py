@@ -39,6 +39,7 @@
 
 import gtk
 import webbrowser
+import os
 
 from deluge.log import LOG as log
 from deluge.ui.client import client
@@ -135,6 +136,7 @@ class RenameDialog(object):
             (self.episode_order_combo, settings["episode_order"])
         ]
 
+        log.debug("Setting combo boxes")
         for combo, value in combo_value_pairs:
             combo_model = combo.get_model()
             value_index = [index for index, row in enumerate(combo_model)
@@ -152,10 +154,12 @@ class RenameDialog(object):
             (self.query_entry, settings["query"])
         ]
 
+        log.debug("Setting entry widgets")
         for entry, value in entry_value_pairs:
             if value:
                 entry.set_text(value)
 
+        log.debug("Setting advanced and subs widgets")
         advanced_options = self.glade.get_widget("advanced_options")
         if advanced_options.get_visible() != settings["show_advanced"]:
             self.on_toggle_advanced()
@@ -166,25 +170,52 @@ class RenameDialog(object):
     def build_treestore(self):
         """builds the treestore that will be used to hold the files info"""
         model = gtk.TreeStore(int, str, str)
-        log.debug("loading treestore with files: {}".format(self.files))
-        file_index_name_pairs = [(f["index"], f["path"]) for f in self.files]
-        file_index_name_pairs = sorted(file_index_name_pairs)
-        for index, file_path in file_index_name_pairs:
-            model.append(None, [index, file_path, ''])
         self.files_treeview.set_model(model)
         renderer = gtk.CellRendererText()
         original_files = gtk.TreeViewColumn("Original Files", renderer, text=1)
         moved_files = gtk.TreeViewColumn("Moved Files", renderer, text=2)
         self.files_treeview.append_column(original_files)
         self.files_treeview.append_column(moved_files)
-        self.files_treeview.expand_all()
 
         #  TODO: add allow let tree track folder hierarchy work in isoltation
         #  for speed
 
     def load_treestore(self):
         """populates the treestore using the torrent data given to dialog"""
-        pass
+        index_path_pairs = [(f["index"], f["path"]) for f in self.files]
+        model = self.files_treeview.get_model()
+        folder_iterators = {}
+        folder_structure = {}
+        for index, path in index_path_pairs:
+            path_parts = path.split('/')
+            if len(path_parts) == 1:
+                model.append(None, [index, path, ""])
+
+            else:  #  not a single file, torrent is a folder.
+                for path_depth in range(len(path_parts)):
+                    try:
+                        folder_structure[path_depth]
+                    except KeyError:
+                        folder_structure[path_depth] = []
+
+                    if path_parts[path_depth] not in folder_structure[
+                                path_depth]:
+                        folder_structure[path_depth].append(path_parts[
+                            path_depth])
+
+                        try:
+                            parent = folder_iterators[path_depth - 1]
+                        except KeyError:
+                            parent = None
+
+                        if path_parts[path_depth] == os.path.basename(path):
+                            model.append(parent, [str(index), path, ""])
+                        else:
+                            folder_iterator = model.append(parent,
+                                            ['', path_parts[path_depth], ''])
+                            folder_iterators[path_depth] = folder_iterator
+
+        self.files_treeview.expand_all()
 
     #  Section: UI actions
 
