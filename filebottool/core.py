@@ -36,6 +36,7 @@
 #    this exception statement from your version. If you delete this exception
 #    statement from all source files in the program, then also delete it here.
 #
+import os
 
 from deluge.log import LOG as delugelog
 from deluge.plugins.pluginbase import CorePluginBase
@@ -78,9 +79,7 @@ DEFAULT_PREFS = {
         "download_subs": False,
         "language_code": None,
         "encoding": "UTF-8"
-    },
-
-
+    }
 }
 
 
@@ -109,9 +108,11 @@ class Core(CorePluginBase):
         returns: path
         """
         log.debug("getting top level for torrent {}".format(torrent_id))
-        torrent_files = self.torrent_manager[torrent_id].get_files()
-        log.debug("files recieved: {}".format(torrent_files))
-        # get dict info
+        torrent = self.torrent_manager.get_torrent(torrent_id)
+        target = os.path.join(torrent.get_status(["save_path"]),
+                                                 torrent.get_name())
+        log.debug("target found: {}".format(target))
+        return target
 
     def _file_movement_safty_check(self, torrent_id, target):
         """executes a dry run to see if a filebot run will be torrent-safe
@@ -122,9 +123,21 @@ class Core(CorePluginBase):
     def _translate_file_movements(self, torrent_id, filebot_moves):
         """translates a filebot run into deluge torrent info
 
-        returns: tuple(new_save_path, [(index, new file/folder name),...])
+        returns: tuple(new_path, [(index, new file/folder name),...])
         """
-        pass
+        torrent = self.torrent_manager.get_torrent(torrent_id)
+        torrent_top_level = ''
+        current_save_path = torrent.get_status(["save_path"])
+        current_files = torrent.get_files()
+
+        #  expand into full paths and assign indexes
+
+        #  check for easy case, no save path movement
+
+        #  calculate new save path
+
+        #
+
 
     def _redirect_torrent_paths(self, file_movements):
         """redirects a torrent's files and save paths to the new locations.
@@ -169,7 +182,7 @@ class Core(CorePluginBase):
     def get_rename_dialog_info(self, torrent_id):
         """returns the needed variables and torrent info needed to build a
         rename dialog"""
-        log.debug("dialog info requested, packing dialog.")
+        log.debug("dialog info requested, packing dialog info.")
         dialog_info = {}
 
         dialog_info["torrent_id"] = torrent_id

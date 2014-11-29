@@ -189,7 +189,7 @@ class RenameDialog(object):
             if len(path_parts) == 1:
                 model.append(None, [index, path, ""])
 
-            else:  #  not a single file, torrent is a folder.
+            else:  # not a single file, torrent is a folder.
                 for path_depth in range(len(path_parts)):
                     try:
                         folder_structure[path_depth]
