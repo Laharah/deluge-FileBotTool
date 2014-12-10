@@ -38,31 +38,16 @@
 #
 import os
 
-from deluge.log import LOG as delugelog
+
 from deluge.plugins.pluginbase import CorePluginBase
 import deluge.component as component
 import deluge.configmanager
 from deluge.core.rpcserver import export
+
+
 import pyfilebot
+from common import Log
 
-
-class Log(object):
-    """small wrapper class for formatting log outputs"""
-
-    def error(self, msg):
-        delugelog.error("[FilebotTool] {}".format(msg))
-
-    def info(self, msg):
-        delugelog.info("[FilebotTool] {}".format(msg))
-
-    def debug(self, msg):
-        delugelog.debug("[FilebotTool] {}".format(msg))
-
-    def critical(self, msg):
-        delugelog.critical("[FilebotTool] {}".format(msg))
-
-    def warning(self, msg):
-        delugelog.warning("[FilebotTool] {}".format(msg))
 
 log = Log()
 

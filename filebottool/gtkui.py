@@ -41,14 +41,15 @@ import gtk
 import webbrowser
 import os
 
-from deluge.log import LOG as log
 from deluge.ui.client import client
 from deluge.plugins.pluginbase import GtkPluginBase
 import deluge.component as component
 import deluge.common
 
+from common import Log
 from common import get_resource
 
+log = Log()
 
 class RenameDialog(object):
     """builds and runs the rename dialog.
@@ -164,7 +165,8 @@ class RenameDialog(object):
         if advanced_options.get_visible() != settings["show_advanced"]:
             self.on_toggle_advanced()
 
-        if self.download_subs_checkbox.get_active() != settings["download_subs"]:
+        if self.download_subs_checkbox.get_active() != settings[
+                "download_subs"]:
             self.on_download_subs_toggled()
 
     def build_treestore(self):
@@ -197,7 +199,7 @@ class RenameDialog(object):
                         folder_structure[path_depth] = []
 
                     if path_parts[path_depth] not in folder_structure[
-                                path_depth]:
+                            path_depth]:
                         folder_structure[path_depth].append(path_parts[
                             path_depth])
 
@@ -270,8 +272,10 @@ class GtkUI(GtkPluginBase):
 
     def disable(self):
         component.get("Preferences").remove_page("FileBotTool")
-        component.get("PluginManager").deregister_hook("on_apply_prefs", self.on_apply_prefs)
-        component.get("PluginManager").deregister_hook("on_show_prefs", self.on_show_prefs)
+        component.get("PluginManager").deregister_hook("on_apply_prefs",
+                                                       self.on_apply_prefs)
+        component.get("PluginManager").deregister_hook("on_show_prefs",
+                                                       self.on_show_prefs)
         component.get("MenuBar").torrentmenu.remove(self.menu_item)
 
     def on_format_help_clicked(self, *args):

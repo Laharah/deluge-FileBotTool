@@ -37,6 +37,28 @@
 #    statement from all source files in the program, then also delete it here.
 #
 
+from deluge.log import LOG as delugelog
+
+
 def get_resource(filename):
     import pkg_resources, os
     return pkg_resources.resource_filename("filebottool", os.path.join("data", filename))
+
+
+class Log(object):
+    """small wrapper class for formatting log outputs"""
+
+    def error(self, msg):
+        delugelog.error("[FilebotTool] {}".format(msg))
+
+    def info(self, msg):
+        delugelog.info("[FilebotTool] {}".format(msg))
+
+    def debug(self, msg):
+        delugelog.debug("[FilebotTool] {}".format(msg))
+
+    def critical(self, msg):
+        delugelog.critical("[FilebotTool] {}".format(msg))
+
+    def warning(self, msg):
+        delugelog.warning("[FilebotTool] {}".format(msg))
