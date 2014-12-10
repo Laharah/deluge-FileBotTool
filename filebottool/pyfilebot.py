@@ -699,7 +699,7 @@ class FilebotHandler(object):
     def get_settings(self):
         """returns a dict containing all the current handler settings"""
         handler_vars = vars(self).copy()
-        for var in handler_vars:
+        for var in handler_vars.keys():
             if var.startswith('_'):
                 handler_vars[var[1:]] = handler_vars[var]
                 del handler_vars[var]
