@@ -93,9 +93,9 @@ class Core(CorePluginBase):
         returns: path
         """
         log.debug("getting top level for torrent {}".format(torrent_id))
-        torrent = self.torrent_manager.get_torrent(torrent_id)
-        target = os.path.join(torrent.get_status(["save_path"]),
-                                                 torrent.get_name())
+        torrent = self.torrent_manager[torrent_id]
+        target = os.path.join(torrent.get_status(["save_path"])["save_path"],
+                              torrent.get_status(["name"])["name"])
         log.debug("target found: {}".format(target))
         return target
 
@@ -110,12 +110,13 @@ class Core(CorePluginBase):
 
         returns: tuple(new_path, new_toplevel, [(index, new file/), ...])
         """
-        torrent = self.torrent_manager.get_torrent(torrent_id)
-        current_save_path = torrent.get_status(["save_path"])
+        torrent = self.torrent_manager[torrent_id]
+        current_save_path = torrent.get_status(["save_path"])["save_path"]
         current_files = torrent.get_files()
         renames = {}
         for f in current_files:
-            renames[self._get_full_os_path(f["path"])] = {"index": f["index"]}
+            renames[self._get_full_os_path(current_save_path, f["path"])] = {
+                "index": f["index"]}
 
         #  check for easy case, no save path movement
 
@@ -191,7 +192,9 @@ class Core(CorePluginBase):
     def update(self):
         pass
 
+    #########
     #  Section: Public API
+    #########
 
     @export
     def set_config(self, config):
@@ -207,7 +210,15 @@ class Core(CorePluginBase):
     @export
     def do_dry_run(self, handler_settings, torrent_id):
         """does a dry run to get predicted renames"""
-        pass
+        #  TODO: use handler settings
+        self.handler.rename_action = "test"
+        target = self._get_filebot_target(torrent_id)
+        log.debug("running filbot for torrent: {} with target {}".format(
+            torrent_id, target))
+        filebot_results = self.handler.rename(target)
+        deluge_movements = self._translate_file_movements(torrent_id,
+                                                          filebot_results[1])
+        return deluge_movements
 
     @export
     def do_rename(self, handler_settings, torrent_id):

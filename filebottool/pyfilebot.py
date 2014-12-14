@@ -465,7 +465,7 @@ def _build_filebot_arguments(targets, format_string=None,
     if non_strict:
         process_arguments.append('-non-strict')
 
-    if isinstance(targets, str):
+    if isinstance(targets, basestring):
         process_arguments.append(targets)
     else:
         process_arguments += [target.decode("utf8") for target in targets]

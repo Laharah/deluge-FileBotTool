@@ -77,7 +77,10 @@ class RenameDialog(object):
         self.language_code_entry = self.glade.get_widget("language_code_entry")
         self.encoding_entry = self.glade.get_widget("encoding_entry")
 
-        signal_dic = {"on_toggle_advanced": self.on_toggle_advanced}
+        signal_dic = {
+            "on_toggle_advanced": self.on_toggle_advanced,
+            "on_do_dry_run_clicked": self.on_do_dry_run_clicked
+            }
 
         self.glade.signal_autoconnect(signal_dic)
 
@@ -239,6 +242,10 @@ class RenameDialog(object):
             advanced_options.show()
             advanced_lable.set_text("Hide Advanced")
             arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
+
+    def on_do_dry_run_clicked(self, *args):
+        client.filebottool.do_dry_run(None, self.torrent_id)
+        #  TODO: impolrment sending of user settings
 
 
 class GtkUI(GtkPluginBase):
