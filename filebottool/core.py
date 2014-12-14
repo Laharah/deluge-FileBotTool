@@ -108,20 +108,71 @@ class Core(CorePluginBase):
     def _translate_file_movements(self, torrent_id, filebot_moves):
         """translates a filebot run into deluge torrent info
 
-        returns: tuple(new_path, [(index, new file/folder name),...])
+        returns: tuple(new_path, new_toplevel, [(index, new file/), ...])
         """
         torrent = self.torrent_manager.get_torrent(torrent_id)
-        torrent_top_level = ''
         current_save_path = torrent.get_status(["save_path"])
         current_files = torrent.get_files()
-
-        #  expand into full paths and assign indexes
+        renames = {}
+        for f in current_files:
+            renames[self._get_full_os_path(f["path"])] = {"index": f["index"]}
 
         #  check for easy case, no save path movement
 
-        #  calculate new save path
+        #  compact the relative moves filebot returns into absolute paths
+        filebot_moves = [(m[0], os.path.abspath(os.path.join(
+                                                os.path.dirname(m[0]), m[1])))
+                         for m in filebot_moves]
+        #  cross-reference
+        for old, new in filebot_moves:
+            try:
+                renames[old]["new_path"] = new
+            except KeyError:
+                log.error("could not find index for {} in the torrent, problem "
+                          "with movement matching.".format(old))
+                raise
 
-        #
+        #  get new top level based on gcd of new paths
+        if len(current_files) > 1:
+            #  gcd = Greatest Common Directory, or a torrent's top level.
+            gcd = os.path.dirname(os.path.commonprefix([m[1] for m
+                                                        in filebot_moves]))
+            current_GCD = os.path.dirname(os.path.commonprefix([m[0]
+                                          for m in filebot_moves]))
+        else:
+            gcd = None
+            current_GCD = None
+
+        if gcd:
+            new_save_path = os.path.dirname(gcd)
+        else:
+            new_save_path = os.path.dirname(renames[renames.keys()[0]][
+                "new_path"])
+
+        #  build filemove tuples by striping out new_save_path
+        #  spliting on sep, and joining with '/'
+        deluge_moves = []
+        for old in renames:
+            if old == renames[old]["new_path"]:
+                #rename not needed
+                continue
+            index = renames[old]["index"]
+            new_deluge_path = renames[old]["new_path"].replace(new_save_path,
+                                                               "")[1:]
+            new_deluge_path = "/".join(new_deluge_path.split(os.path.sep))
+            deluge_moves.append((index, new_deluge_path))
+
+        if gcd == current_GCD:
+            gcd = None
+        if new_save_path == current_save_path:
+            new_save_path = None
+        return new_save_path, gcd, deluge_moves
+
+    def _get_full_os_path(self, save_path, deluge_path):
+        """given a save path and a deluge file path, return the actual os
+        path of a given file"""
+        return os.path.sep.join(save_path.split(os.path.sep) +
+                                deluge_path.split('/'))
 
 
     def _redirect_torrent_paths(self, file_movements):
