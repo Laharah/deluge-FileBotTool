@@ -220,6 +220,13 @@ class RenameDialog(object):
 
         self.files_treeview.expand_all()
 
+    def collect_dialog_settings(self):
+        """collects the settings on the widgets and serializes them for
+        sending to the server.
+        """
+        pass
+        #  TODO: implement collcetion
+
     #  Section: UI actions
 
     def on_download_subs_toggled(self, *args):
@@ -244,8 +251,8 @@ class RenameDialog(object):
             arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
 
     def on_do_dry_run_clicked(self, *args):
-        client.filebottool.do_dry_run(None, self.torrent_id)
-        #  TODO: impolrment sending of user settings
+        handler_settings = self.collect_dialog_settings()
+        client.filebottool.do_dry_run(handler_settings, self.torrent_id)
 
 
 class GtkUI(GtkPluginBase):

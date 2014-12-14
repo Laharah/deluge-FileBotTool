@@ -105,7 +105,7 @@ class Core(CorePluginBase):
         """
         pass
 
-    def _translate_file_movements(self, torrent_id, filebot_moves):
+    def _translate_filebot_movements(self, torrent_id, filebot_moves):
         """translates a filebot run into deluge torrent info
 
         returns: tuple(new_path, new_toplevel, [(index, new file/), ...])
@@ -138,8 +138,7 @@ class Core(CorePluginBase):
             #  gcd = Greatest Common Directory, or a torrent's top level.
             gcd = os.path.dirname(os.path.commonprefix([m[1] for m
                                                         in filebot_moves]))
-            current_GCD = os.path.dirname(os.path.commonprefix([m[0]
-                                          for m in filebot_moves]))
+            current_GCD = torrent.get_status(["name"])["name"]
         else:
             gcd = None
             current_GCD = None
@@ -174,7 +173,6 @@ class Core(CorePluginBase):
         path of a given file"""
         return os.path.sep.join(save_path.split(os.path.sep) +
                                 deluge_path.split('/'))
-
 
     def _redirect_torrent_paths(self, file_movements):
         """redirects a torrent's files and save paths to the new locations.
@@ -216,8 +214,8 @@ class Core(CorePluginBase):
         log.debug("running filbot for torrent: {} with target {}".format(
             torrent_id, target))
         filebot_results = self.handler.rename(target)
-        deluge_movements = self._translate_file_movements(torrent_id,
-                                                          filebot_results[1])
+        deluge_movements = self._translate_filebot_movements(torrent_id,
+                                                             filebot_results[1])
         return deluge_movements
 
     @export
@@ -247,10 +245,6 @@ class Core(CorePluginBase):
 
         log.debug("sending dialog info to client: {}".format(dialog_info))
         return dialog_info
-
-    @export
-    def get_filebot_databases(self):
-        return pyfilebot.FILEBOT_DATABASES
 
     @export
     def test_function(self):
