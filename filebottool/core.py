@@ -99,6 +99,42 @@ class Core(CorePluginBase):
         log.debug("target found: {}".format(target))
         return target
 
+    def _configure_filebot_handler(self, settings, handler=None):
+        """Configures a handler using the given settings dictionary.
+
+        If no handler is given a new handler is created. Invalid settings
+        will be skipped
+
+        *settings*: a dictionary in format {"setting": value, ...}
+        *handler*: the handler you want to use, defaults to new Handler
+
+        *returns*: a configured handler.
+        """
+        if not handler:
+            handler = pyfilebot.FilebotHandler()
+
+        valid_handler_attributes = [
+        "format_string",
+        "database",
+        "episode_order",
+        "rename_action",
+        "recursive",
+        "language_code",
+        "encoding",
+        "on_conflict",
+        "non_strict",
+        "mode"
+        ]
+        for attribute in valid_handler_attributes:
+            if attribute in settings:
+                try:
+                    handler.__setattr__(attribute, settings[attribute])
+                except pyfilebot.FilebotArgumentError:
+                    log.warning("{} is not a valid value for {}, "
+                                "skipping...".format(settings[attribute],
+                                                     attribute))
+        return handler
+
     def _file_movement_safty_check(self, torrent_id, target):
         """executes a dry run to see if a filebot run will be torrent-safe
         returns: True if torrent-safe, False if not
@@ -225,10 +261,11 @@ class Core(CorePluginBase):
         return self.fb_version
 
     @export
-    def do_dry_run(self, handler_settings, torrent_id):
+    def do_dry_run(self, torrent_id, handler_settings=None, handler=None):
         """does a dry run to get predicted renames"""
         #  TODO: use handler settings
-        original_rename_action = self.handler.rename_action
+        handler = self._configure_filebot_handler(handler_settings, handler)
+        original_rename_action = handler.rename_action
         self.handler.rename_action = "test"
         target = self._get_filebot_target(torrent_id)
         log.debug("running filbot dry run for torrent: {} with target {"

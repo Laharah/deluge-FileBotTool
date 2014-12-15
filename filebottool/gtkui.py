@@ -252,6 +252,7 @@ class RenameDialog(object):
         setting["download_subs"] = self.download_subs_checkbox.get_active()
 
         return settings
+
     #  Section: UI actions
 
     def on_download_subs_toggled(self, *args):
@@ -277,7 +278,7 @@ class RenameDialog(object):
 
     def on_do_dry_run_clicked(self, *args):
         handler_settings = self.collect_dialog_settings()
-        client.filebottool.do_dry_run(handler_settings, self.torrent_id)
+        client.filebottool.do_dry_run(self.torrent_id, handler_settings)
 
 
 class GtkUI(GtkPluginBase):
