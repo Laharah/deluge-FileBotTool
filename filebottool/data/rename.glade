@@ -192,6 +192,15 @@
           </packing>
         </child>
         <child>
+          <widget class="GtkLabel" id="new_save_location">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+          </widget>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
           <widget class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -207,7 +216,7 @@
             </child>
           </widget>
           <packing>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -298,7 +307,7 @@
             <property name="expand">False</property>
             <property name="fill">False</property>
             <property name="padding">8</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -350,7 +359,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
         <child>
@@ -531,7 +540,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">5</property>
+            <property name="position">6</property>
           </packing>
         </child>
       </widget>

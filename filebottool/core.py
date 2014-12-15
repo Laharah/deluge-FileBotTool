@@ -174,6 +174,25 @@ class Core(CorePluginBase):
         return os.path.sep.join(save_path.split(os.path.sep) +
                                 deluge_path.split('/'))
 
+    def _get_mockup_files_dictionary(self, torrent_id, translation):
+        """Given a translation from _translate_filebot_movements, return a
+        mock-up of what the new files will look like"""
+        torrent = self.torrent_manager[torrent_id]
+        new_files = torrent.get_files().copy()
+        _, new_top_level, new_paths = translation
+
+        if new_top_level:
+            for f in new_files:
+                old_top_level = f["path"].split("/")[0]
+                f["path"] = f["path"].replace(old_top_level, new_top_level, 1)
+
+        for index, new_path in new_paths:
+            for f in new_files:
+                if f["index"] == index:
+                    f["path"] = new_path
+
+        return new_files
+
     def _redirect_torrent_paths(self, file_movements):
         """redirects a torrent's files and save paths to the new locations.
         registers them to the listening dictionary"""
@@ -209,14 +228,16 @@ class Core(CorePluginBase):
     def do_dry_run(self, handler_settings, torrent_id):
         """does a dry run to get predicted renames"""
         #  TODO: use handler settings
+        original_rename_action = self.handler.rename_action
         self.handler.rename_action = "test"
         target = self._get_filebot_target(torrent_id)
-        log.debug("running filbot for torrent: {} with target {}".format(
-            torrent_id, target))
+        log.debug("running filbot dry run for torrent: {} with target {"
+                  "}".format(torrent_id, target))
         filebot_results = self.handler.rename(target)
+        self.handler.rename_action = original_rename_action
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
-        return deluge_movements
+        return self._get_mockup_files_dictionary(torrent_id, deluge_movements)
 
     @export
     def do_rename(self, handler_settings, torrent_id):
