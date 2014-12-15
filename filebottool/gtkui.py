@@ -221,12 +221,37 @@ class RenameDialog(object):
         self.files_treeview.expand_all()
 
     def collect_dialog_settings(self):
-        """collects the settings on the widgets and serializes them for
-        sending to the server.
+        """collects the settings on the widgets and serializes them into
+        a dict for sending to the server.
         """
-        pass
-        #  TODO: implement collcetion
+        settings = {}
 
+        combos = {
+            "database": self.database_combo,
+            "rename_action": self.rename_action_combo,
+            "on_conflict": self.on_conflict_combo,
+            "episode_order": self.episode_order_combo
+        }
+        for setting in combos:
+            combo_model = combos[setting].get_model()
+            iter = combos[setting].get_active_iter()
+            if iter:
+                settings[setting] = combo_model[iter][0]
+
+        entries = {
+            "format_string": self.format_string_entry,
+            "encoding": self.encoding_entry,
+            "language_code": self.language_code_entry,
+            "query": self.query_entry
+        }
+        for setting in entries:
+            settings[setting] = entries[setting].get_text()
+
+        settings["show_advanced"] = self.glade.get_widget(
+            "advanced_options").get_visible()
+        setting["download_subs"] = self.download_subs_checkbox.get_active()
+
+        return settings
     #  Section: UI actions
 
     def on_download_subs_toggled(self, *args):
