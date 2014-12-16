@@ -245,13 +245,13 @@ class RenameDialog(object):
             "query": self.query_entry
         }
         for setting in entries:
-            log.debug("loading value from entry {}...".format(setting))
             settings[setting] = entries[setting].get_text()
 
         settings["show_advanced"] = self.glade.get_widget(
             "advanced_options").get_visible()
         settings["download_subs"] = self.download_subs_checkbox.get_active()
 
+        log.debug("Sending settings to server: {}".format(settings))
         return settings
 
     #  Section: UI actions
