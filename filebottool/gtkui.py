@@ -71,7 +71,7 @@ class RenameDialog(object):
         self.episode_order_combo = self.glade.get_widget("episode_order_combo")
 
         self.format_string_entry = self.glade.get_widget("format_string_entry")
-        self.query_entry = self.glade.get_widget("query entry")
+        self.query_entry = self.glade.get_widget("query_entry")
         self.download_subs_checkbox = self.glade.get_widget(
             "download_subs_checkbox")
         self.language_code_entry = self.glade.get_widget("language_code_entry")
@@ -245,11 +245,12 @@ class RenameDialog(object):
             "query": self.query_entry
         }
         for setting in entries:
+            log.debug("loading value from entry {}...".format(setting))
             settings[setting] = entries[setting].get_text()
 
         settings["show_advanced"] = self.glade.get_widget(
             "advanced_options").get_visible()
-        setting["download_subs"] = self.download_subs_checkbox.get_active()
+        settings["download_subs"] = self.download_subs_checkbox.get_active()
 
         return settings
 
@@ -278,7 +279,12 @@ class RenameDialog(object):
 
     def on_do_dry_run_clicked(self, *args):
         handler_settings = self.collect_dialog_settings()
-        client.filebottool.do_dry_run(self.torrent_id, handler_settings)
+        client.filebottool.do_dry_run(self.torrent_id,
+                                      handler_settings).addCallback(
+                                      self.log_response)
+
+    def log_response(self, response):
+        log.debug("response from server: {}".format(response))
 
 
 class GtkUI(GtkPluginBase):
