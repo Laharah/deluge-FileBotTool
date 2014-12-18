@@ -146,6 +146,8 @@ class Core(CorePluginBase):
 
         returns: tuple(new_path, new_toplevel, [(index, new file/), ...])
         """
+        #  TODO: support for non-atomic torrents?
+
         torrent = self.torrent_manager[torrent_id]
         current_save_path = torrent.get_status(["save_path"])["save_path"]
         current_files = torrent.get_files()
