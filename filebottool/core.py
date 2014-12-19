@@ -216,7 +216,7 @@ class Core(CorePluginBase):
         """Given a translation from _translate_filebot_movements, return a
         mock-up of what the new files will look like"""
         torrent = self.torrent_manager[torrent_id]
-        new_files = torrent.get_files().copy()
+        new_files = list(torrent.get_files())
         _, new_top_level, new_paths = translation
 
         if new_top_level:
@@ -268,12 +268,11 @@ class Core(CorePluginBase):
         #  TODO: use handler settings
         handler = self._configure_filebot_handler(handler_settings, handler)
         original_rename_action = handler.rename_action
-        self.handler.rename_action = "test"
+        handler.rename_action = "test"
         target = self._get_filebot_target(torrent_id)
         log.debug("running filbot dry run for torrent: {} with target {"
                   "}".format(torrent_id, target))
-        filebot_results = self.handler.rename(target)
-        self.handler.rename_action = original_rename_action
+        filebot_results = handler.rename(target)
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
         return self._get_mockup_files_dictionary(torrent_id, deluge_movements)
