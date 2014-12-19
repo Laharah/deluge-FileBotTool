@@ -128,6 +128,8 @@ def rename(targets, format_string=None, database=None,
                                  query_override=query_override,
                                  non_strict=non_strict, recursive=recursive))
 
+    #  TODO:better error handling
+
     if exit_code != 0:
         return 0, "FILEBOT ERROR", 0
 
@@ -606,17 +608,25 @@ class FilebotHandler(object):
             handler settings and their values
     """
 
-    def __init__(self):
-        self.format_string = None
+    def __init__(self, format_string=None, database=None, episode_order=None,
+                 rename_action=None, recursive=True, language_code=None,
+                 encoding='UTF-8', on_conflict='skip', non_strict=True,
+                 mode='rename'):
+        self.format_string = format_string
         self._database = None
+        self.database = database
         self._episode_order = None
+        self.episode_order = episode_order
         self._rename_action = None
-        self.recursive = True
-        self.language_code = None
-        self.encoding = 'UTF-8'
+        self.rename_action = rename_action
+        self.recursive = recursive
+        self.language_code = language_code
+        self.encoding = encoding
         self._on_conflict = 'skip'
-        self.non_strict = True
+        self.on_conflict = on_conflict
+        self.non_strict = non_strict
         self._mode = 'rename'
+        self.mode = mode
 
         self._populate_methods()
 
