@@ -76,7 +76,7 @@ class FilebotFatalError(Error):
     pass
 
 
-def get_filebot_version():
+def get_version():
     """returns the filebot version string. Usefull for testing if filebot is
     installed."""
     return_code, output, error_data = _execute(['-version'], workaround=False)

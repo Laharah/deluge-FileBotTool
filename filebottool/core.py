@@ -76,7 +76,7 @@ class Core(CorePluginBase):
 
         self.handler = pyfilebot.FilebotHandler()
         try:
-            self.fb_version = pyfilebot.get_filebot_version()
+            self.fb_version = pyfilebot.get_version()
             log.info("Filebot Found with version {}".format(self.fb_version))
         except pyfilebot.FilebotFatalError:
             log.error("Filebot cannot be found!")
