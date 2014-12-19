@@ -10,6 +10,7 @@ import tempfile
 import inspect
 import sys
 from types import MethodType
+import functools
 
 
 FILEBOT_MODES = [
@@ -700,6 +701,7 @@ class FilebotHandler(object):
 
     def _add_function_as_method(self, func_name, func):
         """used to add a module function as a method for this class"""
+        @functools.wraps(func)
         def function_template(self, *args, **kwargs):
             """template for added methods"""
             return self._pass_to_function(func, *args, **kwargs)
