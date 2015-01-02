@@ -146,7 +146,6 @@ class Core(CorePluginBase):
 
         returns: tuple(new_path, new_toplevel, [(index, new file/), ...])
         """
-        #  TODO: support for non-atomic torrents?
 
         torrent = self.torrent_manager[torrent_id]
         current_save_path = torrent.get_status(["save_path"])["save_path"]
@@ -176,7 +175,9 @@ class Core(CorePluginBase):
             #  gcd = Greatest Common Directory, or a torrent's top level.
             gcd = os.path.dirname(os.path.commonprefix([m[1] for m
                                                         in filebot_moves]))
-            current_GCD = torrent.get_status(["name"])["name"]
+            current_GCD = os.path.join(
+                torrent.get_status(["save_path"])["save_path"],
+                torrent.get_status(["name"])["name"])
         else:
             gcd = None
             current_GCD = None
@@ -264,10 +265,10 @@ class Core(CorePluginBase):
 
     @export
     def do_dry_run(self, torrent_id, handler_settings=None, handler=None):
-        """does a dry run to get predicted renames"""
-        #  TODO: use handler settings
+        """does a dry run to get predicted renames.
+        *returns*: a mock Torrent.files dictionary showing predicted state
+        """
         handler = self._configure_filebot_handler(handler_settings, handler)
-        original_rename_action = handler.rename_action
         handler.rename_action = "test"
         target = self._get_filebot_target(torrent_id)
         log.debug("running filbot dry run for torrent: {} with target {"
