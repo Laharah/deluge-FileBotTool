@@ -64,7 +64,8 @@ class RenameDialog(object):
 
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
         self.window = self.glade.get_widget("rename_dialog")
-        self.files_treeview = self.glade.get_widget("files_treeview")
+        self.original_files_treeview = self.glade.get_widget("files_treeview")
+        self.new_files_treeview = self.glade.get_widget("new_files_treeview")
         self.database_combo = self.glade.get_widget("database_combo")
         self.rename_action_combo = self.glade.get_widget("rename_action_combo")
         self.on_conflict_combo = self.glade.get_widget("on_conflict_combo")
@@ -94,8 +95,10 @@ class RenameDialog(object):
 
         self.build_combo_boxes(combo_data)
         self.populate_with_settings(self.ui_settings)
-        self.build_treestore()
-        self.load_treestore()
+        self.init_treestore(self.original_files_treeview, "Original File "
+                                                          "Structure")
+        self.init_treestore(self.new_files_treeview, "New File Structure")
+        self.load_treestore(self.original_files_treeview, self.files)
 
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
@@ -172,27 +175,25 @@ class RenameDialog(object):
                 "download_subs"]:
             self.on_download_subs_toggled()
 
-    def build_treestore(self):
+    def init_treestore(self, treeview, header):
         """builds the treestore that will be used to hold the files info"""
-        model = gtk.TreeStore(str, str, str)
-        self.files_treeview.set_model(model)
+        model = gtk.TreeStore(str, str)
+        treeview.set_model(model)
         renderer = gtk.CellRendererText()
-        original_files = gtk.TreeViewColumn("Original Files", renderer, text=1)
-        moved_files = gtk.TreeViewColumn("Moved Files", renderer, text=2)
-        self.files_treeview.append_column(original_files)
-        self.files_treeview.append_column(moved_files)
+        column = gtk.TreeViewColumn(header, renderer, text=1)
+        treeview.append_column(column)
 
-    def load_treestore(self):
-        """populates the treestore using the torrent data given to dialog"""
-        # TODO: more extensive path testing
-        index_path_pairs = [(f["index"], f["path"]) for f in self.files]
-        model = self.files_treeview.get_model()
+    def load_treestore(self, treeview, file_data):
+        """populates a treestore using the torrent data given to dialog"""
+        # TODO: more extensive path testing, Allow for reformatting with moves!
+        index_path_pairs = [(f["index"], f["path"]) for f in file_data]
+        model = treeview.get_model()
         folder_iterators = {}
         folder_structure = {}
         for index, path in index_path_pairs:
             path_parts = path.split('/')
             if len(path_parts) == 1:
-                model.append(None, [index, path, ""])
+                model.append(None, [index, path])
 
             else:  # not a single file, torrent is a folder.
                 for path_depth in range(len(path_parts)):
@@ -212,13 +213,13 @@ class RenameDialog(object):
                             parent = None
 
                         if path_parts[path_depth] == os.path.basename(path):
-                            model.append(parent, [str(index), path, ""])
+                            model.append(parent, [str(index), path])
                         else:
                             folder_iterator = model.append(parent,
-                                            ['', path_parts[path_depth], ''])
+                                            ['', path_parts[path_depth]])
                             folder_iterators[path_depth] = folder_iterator
 
-        self.files_treeview.expand_all()
+        treeview.expand_all()
 
     def collect_dialog_settings(self):
         """collects the settings on the widgets and serializes them into
@@ -281,7 +282,7 @@ class RenameDialog(object):
         handler_settings = self.collect_dialog_settings()
         client.filebottool.do_dry_run(self.torrent_id,
                                       handler_settings).addCallback(
-                                      self.log_response)
+            self.load_treestore, self.new_files_treeview)
 
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
