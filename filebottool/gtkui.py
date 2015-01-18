@@ -98,7 +98,7 @@ class RenameDialog(object):
         self.init_treestore(self.original_files_treeview, "Original File "
                                                           "Structure")
         self.init_treestore(self.new_files_treeview, "New File Structure")
-        self.load_treestore(self.original_files_treeview, self.files)
+        self.load_treestore(self.files, self.original_files_treeview)
 
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
@@ -183,7 +183,7 @@ class RenameDialog(object):
         column = gtk.TreeViewColumn(header, renderer, text=1)
         treeview.append_column(column)
 
-    def load_treestore(self, treeview, file_data):
+    def load_treestore(self, file_data, treeview):
         """populates a treestore using the torrent data given to dialog"""
         # TODO: more extensive path testing, Allow for reformatting with moves!
         index_path_pairs = [(f["index"], f["path"]) for f in file_data]
@@ -252,7 +252,7 @@ class RenameDialog(object):
             "advanced_options").get_visible()
         settings["download_subs"] = self.download_subs_checkbox.get_active()
 
-        log.debug("Sending settings to server: {}".format(settings))
+        log.debug("Collected settings for server: {}".format(settings))
         return settings
 
     #  Section: UI actions
@@ -280,6 +280,8 @@ class RenameDialog(object):
 
     def on_do_dry_run_clicked(self, *args):
         handler_settings = self.collect_dialog_settings()
+        log.info("sending dry run request to server for torrent {}".format(
+            self.torrent_id))
         client.filebottool.do_dry_run(self.torrent_id,
                                       handler_settings).addCallback(
             self.load_treestore, self.new_files_treeview)
