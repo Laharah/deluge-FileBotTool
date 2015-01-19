@@ -76,7 +76,6 @@ class Core(CorePluginBase):
     def enable(self):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
 
-        self.handler = pyfilebot.FilebotHandler()
         try:
             self.fb_version = pyfilebot.get_version()
             log.info("Filebot Found with version {}".format(self.fb_version))
@@ -91,7 +90,7 @@ class Core(CorePluginBase):
 
     def _get_filebot_target(self, torrent_id):
         """returns the path of the file or folder that filebot should target
-
+        Args: torrent_id: torrent_id
         returns: path
         """
         log.debug("getting top level for torrent {}".format(torrent_id))
@@ -146,8 +145,10 @@ class Core(CorePluginBase):
 
     def _translate_filebot_movements(self, torrent_id, filebot_moves):
         """translates a filebot run into deluge torrent info
-
-        returns: tuple(new_path, new_toplevel, [(index, new file/), ...])
+        Args:
+          torrent_id
+          filebot_moves: a list of movements made by filebot
+        returns: tuple(new_path, new_toplevel, [(index, new file path), ...])
         """
 
         torrent = self.torrent_manager[torrent_id]
@@ -157,8 +158,6 @@ class Core(CorePluginBase):
         for f in current_files:
             renames[self._get_full_os_path(current_save_path, f["path"])] = {
                 "index": f["index"]}
-
-        #  check for easy case, no save path movement
 
         #  compact the relative moves filebot returns into absolute paths
         filebot_moves = [(m[0], os.path.abspath(os.path.join(
@@ -272,7 +271,8 @@ class Core(CorePluginBase):
     @defer.inlineCallbacks
     def do_dry_run(self, torrent_id, handler_settings=None, handler=None):
         """does a dry run to get predicted renames.
-        *returns*: a mock Torrent.files dictionary showing predicted state
+        *returns*: a tuple containing the new save path and a mock
+          Torrent.files dictionary showing predicted state
         """
         handler = self._configure_filebot_handler(handler_settings, handler)
         handler.rename_action = "test"
@@ -311,6 +311,7 @@ class Core(CorePluginBase):
         torrent = self.torrent_manager[torrent_id]
         dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])['save_path']
         dialog_info["files"] = torrent.get_files()
+        dialog_info["filebot_version"] = self.filebot_version
 
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]
         dialog_info["rename_dialog_last_settings"] = rename_dialog_last_settings

@@ -57,6 +57,9 @@ class RenameDialog(object):
     def __init__(self, dialog_settings):
         """sets up the dialog using the settings supplied by the server
         Also loads relevant glade widgets as members
+
+        Args:
+         dialog_settings: A dictionary containing the settings to populate.
         """
         self.torrent_id = dialog_settings["torrent_id"]
         self.files = dialog_settings["files"]
@@ -65,8 +68,10 @@ class RenameDialog(object):
 
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
         self.window = self.glade.get_widget("rename_dialog")
+
         self.original_files_treeview = self.glade.get_widget("files_treeview")
         self.new_files_treeview = self.glade.get_widget("new_files_treeview")
+
         self.database_combo = self.glade.get_widget("database_combo")
         self.rename_action_combo = self.glade.get_widget("rename_action_combo")
         self.on_conflict_combo = self.glade.get_widget("on_conflict_combo")
@@ -112,7 +117,10 @@ class RenameDialog(object):
         tree_pane.set_position(tree_pane.allocation.width/2)
 
     def build_combo_boxes(self, combo_data):
-        """builds the combo boxes for the dialog"""
+        """builds the combo boxes for the dialog
+        Args:
+          combo_data: dict of data to be loaded into combo boxes
+        """
         log.debug("building database combo box")
         databases = combo_data["valid_databases"]
         self.inflate_list_store_combo(databases, self.database_combo)
@@ -130,7 +138,11 @@ class RenameDialog(object):
         self.inflate_list_store_combo(episode_orders, self.episode_order_combo)
 
     def inflate_list_store_combo(self, model_data, combo_widget):
-        """inflates an individual combo box"""
+        """inflates an individual combo box
+        Args:
+          model_data: data to be loaded into a list store (list)
+          combo_widget: the widget to load data into.
+        """
         list_store = gtk.ListStore(str)
         for datum in model_data:
             list_store.append([datum])
@@ -141,7 +153,10 @@ class RenameDialog(object):
         combo_widget.add_attribute(renderer, "text", 0)
 
     def populate_with_settings(self, settings):
-        """presets the window with the last settings used in the plugin"""
+        """presets the window with the last settings used in the plugin
+        Args:
+          settings: The settings dict given by the server.
+        """
         log.debug("Previous settings received: {}".format(settings))
         combo_value_pairs = [
             (self.database_combo, settings["database"]),
@@ -184,22 +199,31 @@ class RenameDialog(object):
             self.on_download_subs_toggled()
 
     def init_treestore(self, treeview, header):
-        """builds the treestore that will be used to hold the files info"""
+        """builds the treestore that will be used to hold the files info
+        Args:
+          treeview: treeview widget to initialize.
+          header: the column Header to use.
+        """
         model = gtk.TreeStore(str, str)
         treeview.set_model(model)
         renderer = gtk.CellRendererText()
         column = gtk.TreeViewColumn(header, renderer, text=1)
         treeview.append_column(column)
 
-    def load_treestore(self, (new_header, file_data), treeview, clear=False):
-        """populates a treestore using the torrent data given to dialog"""
+    def load_treestore(self, (save_path, file_data), treeview, clear=False):
+        """populates a treestore using a torrents filedata and savepath
+        Args:
+          (save_path, file_data): tuple conting the save path and files dict.
+          treeview: the treeview widget you would like to load data into.
+          clear: a bool to notify clearing of treeview widget before writing.
+        """
         # TODO: more extensive path testing, Allow for reformatting with moves!
         if clear:
-            if new_header:
+            if save_path:
                 for column in treeview.get_columns():
                     treeview.remove_column(column)
                 self.init_treestore(treeview, "New File Structure at {"
-                                              "}".format(new_header))
+                                              "}".format(save_path))
             model = gtk.TreeStore(str, str)
             treeview.set_model(model)
 
@@ -242,6 +266,7 @@ class RenameDialog(object):
     def collect_dialog_settings(self):
         """collects the settings on the widgets and serializes them into
         a dict for sending to the server.
+        returns: a dictionary containing the user's setting values
         """
         settings = {}
 
@@ -277,6 +302,9 @@ class RenameDialog(object):
     #  Section: UI actions
 
     def on_download_subs_toggled(self, *args):
+        """download subs has been toggled.
+        toggles "greying out" of subs options.
+        """
         subs_options = self.glade.get_widget("subs_options")
         if subs_options.get_sensitive():
             subs_options.set_sensitive(False)
@@ -284,6 +312,8 @@ class RenameDialog(object):
             subs_options.set_sensitive(True)
 
     def on_toggle_advanced(self, *args):
+        """Advanced dropdown has been toggled, Show or hide options
+        """
         advanced_options = self.glade.get_widget("advanced_options")
         arrow = self.glade.get_widget("advanced_arrow")
         advanced_lable = self.glade.get_widget("show_advanced_lable")
@@ -312,6 +342,9 @@ class RenameDialog(object):
 
 class GtkUI(GtkPluginBase):
     def enable(self):
+        """actions to take on plugin enabled.
+        loads preference page, and context menu.
+        """
         self.glade = gtk.glade.XML(get_resource("config.glade"))
 
         component.get("Preferences").add_page("FileBotTool",
@@ -332,6 +365,8 @@ class GtkUI(GtkPluginBase):
         torrentmenu.show_all()
 
     def get_torrent_info(self, *args):
+        """context menu has been selected on a specific torrent.
+        asks server for torrent info and builds rename dialog on reply"""
         torrent_id = component.get("TorrentView").get_selected_torrent()
         client.filebottool.get_rename_dialog_info(torrent_id).addCallback(
             self.build_rename_dialog)
@@ -340,6 +375,8 @@ class GtkUI(GtkPluginBase):
         rename_dialog = RenameDialog(dialog_info)
 
     def disable(self):
+        """cleanup actions for when plugin is disabled.
+        """
         component.get("Preferences").remove_page("FileBotTool")
         component.get("PluginManager").deregister_hook("on_apply_prefs",
                                                        self.on_apply_prefs)
