@@ -96,15 +96,19 @@ class RenameDialog(object):
 
         self.build_combo_boxes(combo_data)
         self.populate_with_settings(self.ui_settings)
+
         self.init_treestore(self.original_files_treeview,
                             "Original File Structure at {}".format(
                                 self.current_torrent_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
         self.load_treestore((None, self.files), self.original_files_treeview)
-
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
+
         self.window.show()
+
+        tree_pane = self.glade.get_widget("tree_pane")
+        tree_pane.set_position(tree_pane.allocation.width/2)
 
     def build_combo_boxes(self, combo_data):
         """builds the combo boxes for the dialog"""
@@ -192,7 +196,7 @@ class RenameDialog(object):
             if new_header:
                 for column in treeview.get_columns():
                     treeview.remove_column(column)
-                self.init_treestore(treeview, "New structure at {"
+                self.init_treestore(treeview, "New File Structure at {"
                                               "}".format(new_header))
             model = gtk.TreeStore(str, str)
             treeview.set_model(model)
