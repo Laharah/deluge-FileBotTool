@@ -43,6 +43,7 @@ from deluge.plugins.pluginbase import CorePluginBase
 import deluge.component as component
 import deluge.configmanager
 from deluge.core.rpcserver import export
+from twisted.internet import threads, defer
 
 
 import pyfilebot
@@ -264,6 +265,7 @@ class Core(CorePluginBase):
         return self.fb_version
 
     @export
+    @defer.inlineCallbacks
     def do_dry_run(self, torrent_id, handler_settings=None, handler=None):
         """does a dry run to get predicted renames.
         *returns*: a mock Torrent.files dictionary showing predicted state
@@ -273,10 +275,11 @@ class Core(CorePluginBase):
         target = self._get_filebot_target(torrent_id)
         log.debug("running filbot dry run for torrent: {} with target {"
                   "}".format(torrent_id, target))
-        filebot_results = handler.rename(target)
+        filebot_results = yield threads.deferToThread(handler.rename, target)
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
-        return self._get_mockup_files_dictionary(torrent_id, deluge_movements)
+        defer.returnValue(self._get_mockup_files_dictionary(torrent_id,
+                                                            deluge_movements))
 
     @export
     def do_rename(self, handler_settings, torrent_id):
