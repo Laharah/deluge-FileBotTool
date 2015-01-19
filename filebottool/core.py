@@ -286,7 +286,11 @@ class Core(CorePluginBase):
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
         log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
-        defer.returnValue((deluge_movements[0],
+        new_save_path = deluge_movements[0]
+        if not new_save_path:
+            new_save_path = self.torrent_manager[torrent_id].get_status(
+                ["save_path"])["save_path"]
+        defer.returnValue((new_save_path,
                            self._get_mockup_files_dictionary(torrent_id,
                                                              deluge_movements)))
     @export
