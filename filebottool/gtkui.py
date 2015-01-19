@@ -183,9 +183,12 @@ class RenameDialog(object):
         column = gtk.TreeViewColumn(header, renderer, text=1)
         treeview.append_column(column)
 
-    def load_treestore(self, file_data, treeview):
+    def load_treestore(self, file_data, treeview, clear=False):
         """populates a treestore using the torrent data given to dialog"""
         # TODO: more extensive path testing, Allow for reformatting with moves!
+        if clear:
+            model = gtk.TreeStore(str, str)
+            treeview.set_model(model)
         index_path_pairs = [(f["index"], f["path"]) for f in file_data]
         model = treeview.get_model()
         folder_iterators = {}
@@ -282,12 +285,13 @@ class RenameDialog(object):
         handler_settings = self.collect_dialog_settings()
         log.info("sending dry run request to server for torrent {}".format(
             self.torrent_id))
-        client.filebottool.do_dry_run(self.torrent_id,
-                                      handler_settings).addCallback(
-            self.load_treestore, self.new_files_treeview)
+        d = client.filebottool.do_dry_run(self.torrent_id, handler_settings)
+        d.addCallback(self.log_response)
+        d.addCallback(self.load_treestore, self.new_files_treeview, clear=True)
 
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
+        return response
 
 
 class GtkUI(GtkPluginBase):

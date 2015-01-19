@@ -283,6 +283,7 @@ class Core(CorePluginBase):
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
+        log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
         defer.returnValue(self._get_mockup_files_dictionary(torrent_id,
                                                             deluge_movements))
 
