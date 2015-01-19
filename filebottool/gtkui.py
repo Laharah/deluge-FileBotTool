@@ -261,7 +261,8 @@ class RenameDialog(object):
             "format_string": self.format_string_entry,
             "encoding": self.encoding_entry,
             "language_code": self.language_code_entry,
-            "query": self.query_entry
+            "query": self.query_entry,
+            "output": self.output_entry
         }
         for setting in entries:
             settings[setting] = entries[setting].get_text()
