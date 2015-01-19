@@ -64,7 +64,8 @@ DEFAULT_PREFS = {
         "episode_order": None,
         "download_subs": False,
         "language_code": None,
-        "encoding": "UTF-8"
+        "encoding": "UTF-8",
+        "output": None
     }
 }
 
@@ -117,6 +118,7 @@ class Core(CorePluginBase):
         valid_handler_attributes = [
         "format_string",
         "database",
+        "output",
         "episode_order",
         "rename_action",
         "recursive",

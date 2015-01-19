@@ -78,6 +78,7 @@ class RenameDialog(object):
             "download_subs_checkbox")
         self.language_code_entry = self.glade.get_widget("language_code_entry")
         self.encoding_entry = self.glade.get_widget("encoding_entry")
+        self.output_entry = self.glade.get_widget("output_entry")
 
         signal_dic = {
             "on_toggle_advanced": self.on_toggle_advanced,
@@ -164,7 +165,8 @@ class RenameDialog(object):
             (self.format_string_entry, settings["format_string"]),
             (self.encoding_entry, settings["encoding"]),
             (self.language_code_entry, settings["language_code"]),
-            (self.query_entry, settings["query"])
+            (self.query_entry, settings["query"]),
+            (self.output_entry, settings["output"])
         ]
 
         log.debug("Setting entry widgets")
