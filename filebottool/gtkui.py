@@ -216,7 +216,8 @@ class RenameDialog(object):
                             parent = None
 
                         if path_parts[path_depth] == os.path.basename(path):
-                            model.append(parent, [str(index), path])
+                            model.append(parent, [str(index), path_parts[
+                                path_depth]])
                         else:
                             folder_iterator = model.append(parent,
                                             ['', path_parts[path_depth]])
