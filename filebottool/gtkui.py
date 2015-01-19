@@ -60,6 +60,7 @@ class RenameDialog(object):
         """
         self.torrent_id = dialog_settings["torrent_id"]
         self.files = dialog_settings["files"]
+        self.current_torrent_save_path = dialog_settings["torrent_save_path"]
         self.ui_settings = dialog_settings["rename_dialog_last_settings"]
 
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
@@ -95,10 +96,11 @@ class RenameDialog(object):
 
         self.build_combo_boxes(combo_data)
         self.populate_with_settings(self.ui_settings)
-        self.init_treestore(self.original_files_treeview, "Original File "
-                                                          "Structure")
+        self.init_treestore(self.original_files_treeview,
+                            "Original File Structure at {}".format(
+                                self.current_torrent_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
-        self.load_treestore(self.files, self.original_files_treeview)
+        self.load_treestore((None, self.files), self.original_files_treeview)
 
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
@@ -183,12 +185,18 @@ class RenameDialog(object):
         column = gtk.TreeViewColumn(header, renderer, text=1)
         treeview.append_column(column)
 
-    def load_treestore(self, file_data, treeview, clear=False):
+    def load_treestore(self, (new_header, file_data), treeview, clear=False):
         """populates a treestore using the torrent data given to dialog"""
         # TODO: more extensive path testing, Allow for reformatting with moves!
         if clear:
+            if new_header:
+                for column in treeview.get_columns():
+                    treeview.remove_column(column)
+                self.init_treestore(treeview, "New structure at {"
+                                              "}".format(new_header))
             model = gtk.TreeStore(str, str)
             treeview.set_model(model)
+
         index_path_pairs = [(f["index"], f["path"]) for f in file_data]
         model = treeview.get_model()
         folder_iterators = {}

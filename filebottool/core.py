@@ -286,9 +286,9 @@ class Core(CorePluginBase):
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
         log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
-        defer.returnValue(self._get_mockup_files_dictionary(torrent_id,
-                                                            deluge_movements))
-
+        defer.returnValue((deluge_movements[0],
+                           self._get_mockup_files_dictionary(torrent_id,
+                                                             deluge_movements)))
     @export
     def do_rename(self, handler_settings, torrent_id):
         """executes a filebot run"""
@@ -303,7 +303,7 @@ class Core(CorePluginBase):
 
         dialog_info["torrent_id"] = torrent_id
         torrent = self.torrent_manager[torrent_id]
-        dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])
+        dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])['save_path']
         dialog_info["files"] = torrent.get_files()
 
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]
