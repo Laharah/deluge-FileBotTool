@@ -2,6 +2,7 @@
 FilebotHandler convenience class.
 """
 __author__ = 'Lunchbox'
+__version__ = 0.2
 
 import subprocess
 import re
@@ -39,7 +40,9 @@ FILEBOT_DATABASES = [
     'AniDB',
     'OpenSubtitles',
     'TheMovieDB',
-    'IMDB'
+    'OMDb',
+    'AccoustID',
+    'ID3 Tags'
 ]
 
 
@@ -88,7 +91,7 @@ def get_version():
         return output.strip()
 
 
-def rename(targets, format_string=None, database=None,
+def rename(targets, format_string=None, database=None, output=None,
            rename_action='move', episode_order=None, on_conflict=None,
            query_override=None, non_strict=True, recursive=True):
     """Renames file or files from *targets* using the current settings
@@ -104,6 +107,7 @@ def rename(targets, format_string=None, database=None,
             move.
         episode_order: (dvd | airdate | absolute). None uses filebot's
             default season:episode order
+        output: The directory filebot should output files to.
         on_conflict: (override, skip, fail). what to do when filebot
             encounters a naming conflict. Defaults to skip.
         query_override: sets the query filebot should match against rather
@@ -120,9 +124,12 @@ def rename(targets, format_string=None, database=None,
             -number of skipped files
     """
 
+    if output:
+        output = os.path.abspath(os.path.expandvars(os.path.expanduser(output)))
+
     exit_code, data, filebot_error = (
         _build_filebot_arguments(targets, format_string=format_string,
-                                 database=database,
+                                 database=database, output=output,
                                  rename_action=rename_action,
                                  episode_order=episode_order,
                                  on_confilct=on_conflict,
@@ -208,7 +215,7 @@ def test_format_string(format_string=None,
 
 
 def get_subtitles(target, language_code=None, encoding=None,
-                  force=False):
+                  force=False, output=None):
     """Gets subtitles for a given *target*
 
     Will use filebot to download subtitles from OpenSubtitles.org using
@@ -232,9 +239,15 @@ def get_subtitles(target, language_code=None, encoding=None,
     if force:
         mode = "-get-subtitles"
 
+    if output:
+        output = output.lower().strip
+        if output != 'srt':
+            raise FilebotArgumentError("Only None and srt are valid output "
+                                       "arguments for subtitle mode.")
+
     _, data, _ = _build_filebot_arguments(target, mode=mode,
                                           language_code=language_code,
-                                          encoding=encoding)
+                                          encoding=encoding, output=None)
     _, downloads, _ = parse_filebot(data)
     return [name[1] for name in downloads]
 
@@ -386,7 +399,7 @@ def _on_conflict_is_valid(on_conflict_string):
 
 
 def _build_filebot_arguments(targets, format_string=None,
-                             database=None, rename_action='move',
+                             database=None, output=None, rename_action='move',
                              episode_order=None, mode='-rename',
                              recursive=True, language_code=None,
                              encoding=None, query_override=None,
@@ -402,6 +415,8 @@ def _build_filebot_arguments(targets, format_string=None,
         format_string; the format string you would like to use
             defaults to instance format string.
         database: the database filebot should match against.
+        output: The output directory for rename, srt|none for subtitles,
+        sfv|md5|sha1 for checking
         rename_action; the argument for the filebotCLI '--action' flag. See
             *rename_action_is_valid* for details.
         episode_order: the episode ordering scheme filebot should use. see
@@ -445,6 +460,9 @@ def _build_filebot_arguments(targets, format_string=None,
     if database:
         process_arguments.append("--db")
         process_arguments.append(database)
+    if output:
+        process_arguments.append("--output")
+        process_arguments.append(output)
     if rename_action:
         process_arguments.append("--action")
         process_arguments.append(rename_action)
@@ -583,6 +601,9 @@ class FilebotHandler(object):
         database: the database filebot should match against.
             (TVRage | TheTVDB | IMDB | TheMovieDB | AniDB | OpenSubtitles).
             Leave None to allow filebot to decide for you.
+        output: for rename, the output location for files.
+            for checking, sfv|md5|sha1. (filebot defaults to sfv)
+            for subtitles: None|srt (re-encode subtitles)
         episode_order: (dvd | airdate | absolute). None uses filebot's
             default season:episode order
         rename_action: (move | copy | keeplink | symlink | hardlink | test)
@@ -609,13 +630,15 @@ class FilebotHandler(object):
             handler settings and their values
     """
 
-    def __init__(self, format_string=None, database=None, episode_order=None,
-                 rename_action=None, recursive=True, language_code=None,
-                 encoding='UTF-8', on_conflict='skip', non_strict=True,
-                 mode='rename'):
+    def __init__(self, format_string=None, database=None, output=None,
+                 episode_order=None, rename_action=None, recursive=True,
+                 language_code=None, encoding='UTF-8', on_conflict='skip',
+                 non_strict=True, mode='rename'):
+
         self.format_string = format_string
         self._database = None
         self.database = database
+        self.output = output
         self._episode_order = None
         self.episode_order = episode_order
         self._rename_action = None
