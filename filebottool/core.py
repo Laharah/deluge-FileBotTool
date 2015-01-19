@@ -204,6 +204,8 @@ class Core(CorePluginBase):
 
         if gcd == current_GCD:
             gcd = None
+        else:
+            gcd = os.path.basename(gcd)
         if new_save_path == current_save_path:
             new_save_path = None
         return new_save_path, gcd, deluge_moves
