@@ -275,7 +275,12 @@ class Core(CorePluginBase):
         target = self._get_filebot_target(torrent_id)
         log.debug("running filbot dry run for torrent: {} with target {"
                   "}".format(torrent_id, target))
-        filebot_results = yield threads.deferToThread(handler.rename, target)
+        try:
+            filebot_results = yield threads.deferToThread(handler.rename,
+                                                          target)
+        except Exception, err:
+            log.error("FILEBOT ERROR: {}".format(err))
+        log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
         defer.returnValue(self._get_mockup_files_dictionary(torrent_id,
