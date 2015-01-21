@@ -56,6 +56,7 @@ log = Log()
 DEFAULT_PREFS = {
     "rename_dialog_last_settings": {
         "database": None,
+        "output": None,
         "format_string": None,
         "rename_action": None,
         "show_advanced": False,
@@ -64,8 +65,7 @@ DEFAULT_PREFS = {
         "episode_order": None,
         "download_subs": False,
         "language_code": None,
-        "encoding": "UTF-8",
-        "output": None
+        "encoding": "UTF-8"
     }
 }
 
@@ -85,57 +85,76 @@ class Core(CorePluginBase):
 
         self.torrent_manager = component.get("TorrentManager")
         self.listening_dictionary = {}
-        #  a dictionary of specific events to listen for (generally
-        # file/folder movement events)
 
-    def _get_filebot_target(self, torrent_id):
-        """returns the path of the file or folder that filebot should target
-        Args: torrent_id: torrent_id
-        returns: path
+        #register events:
+        self.event_manager = component.get("EventManager")
+        self.event_manager.register_event_handler("TorrentStorageMovedEvent",
+                                                  self._on_storage_moved)
+        self.event_manager.register_event_handler("TorrentFolderRenamedEvent",
+                                                  self._on_folder_renamed)
+        self.event_manager.register_event_handler("TorrentFileRenamedEvent",
+                                                  self._on_file_renamed)
+
+    def disable(self):
+        self.event_manager.deregister_event_handler("TorrentStorageMovedEvent",
+                                                    self._on_storage_moved)
+        self.event_manager.deregister_event_handler("TorrentFolderRenamedEvent",
+                                                    self._on_folder_renamed)
+        self.event_manager.deregister_event_handler("TorrentFileRenamedEvent",
+                                                    self._on_file_renamed)
+
+    def update(self):
+        pass
+
+    #########
+    #  Section: Event Handlers
+    #########
+
+    def _on_storage_moved(self, torrent_id, path):
+        """handler for storage movements, Checks listening dictionary if it's
+         a relevant movement"""
+        if torrent_id not in self.listening_dictionary:
+            return
+
+        if self.listening_dictionary[torrent_id]["move_storage"] == path:
+            del self.listening_dictionary[torrent_id]["move_storage"]
+
+        self._check_listening_dictionary(torrent_id)
+
+    def _on_folder_renamed(self, torrent_id, old, new):
+        """handler for folder renames, Checks plugin listening dictionary and
+        takes appropriate action.
         """
-        log.debug("getting top level for torrent {}".format(torrent_id))
-        torrent = self.torrent_manager[torrent_id]
-        target = os.path.join(torrent.get_status(["save_path"])["save_path"],
-                              torrent.get_status(["name"])["name"])
-        log.debug("target found: {}".format(target))
-        return target
+        if torrent_id not in self.listening_dictionary:
+            return
 
-    def _configure_filebot_handler(self, settings, handler=None):
-        """Configures a handler using the given settings dictionary.
+        if self.listening_dictionary[torrent_id]["folder_rename"] == (old, new):
+            del self.listening_dictionary[torrent_id]["folder_rename"]
 
-        If no handler is given a new handler is created. Invalid settings
-        will be skipped
+        self._check_listening_dictionary(torrent_id)
 
-        *settings*: a dictionary in format {"setting": value, ...}
-        *handler*: the handler you want to use, defaults to new Handler
+    def _on_file_renamed(self, torrent_id, index, name):
+        """handler for file renames, Checks plugin listening dictionary and
+        takes appropriate action."""
+        if torrent_id not in self.listening_dictionary:
+            return
 
-        *returns*: a configured handler.
-        """
-        if not handler:
-            handler = pyfilebot.FilebotHandler()
+        if (index, name) in self.listening_dictionary[torrent_id]:
+            del self.listening_dictionary[torrent_id][(index, name)]
 
-        valid_handler_attributes = [
-        "format_string",
-        "database",
-        "output",
-        "episode_order",
-        "rename_action",
-        "recursive",
-        "language_code",
-        "encoding",
-        "on_conflict",
-        "non_strict",
-        "mode"
-        ]
-        for attribute in valid_handler_attributes:
-            if attribute in settings:
-                try:
-                    handler.__setattr__(attribute, settings[attribute])
-                except pyfilebot.FilebotArgumentError:
-                    log.warning("{} is not a valid value for {}, "
-                                "skipping...".format(settings[attribute],
-                                                     attribute))
-        return handler
+        self._check_listening_dictionary(torrent_id)
+
+    def _check_listening_dictionary(self, torrent_id):
+        """called after events, checks if the plugin has been waiting for the
+        event and decides what to do."""
+        if torrent_id in self.listening_dictionary:
+            if not self.listening_dictionary[torrent_id]:
+                del self.listening_dictionary[torrent_id]
+                self.torrent_manager[torrent_id].resume()
+
+    #########
+    #  Section: Filebot interaction
+    #########
 
     def _file_movement_safty_check(self, torrent_id, target):
         """executes a dry run to see if a filebot run will be torrent-safe
@@ -160,9 +179,9 @@ class Core(CorePluginBase):
                 "index": f["index"]}
 
         #  compact the relative moves filebot returns into absolute paths
-        filebot_moves = [(m[0], os.path.abspath(os.path.join(
-                                                os.path.dirname(m[0]), m[1])))
-                         for m in filebot_moves]
+        filebot_moves = [(m[0], os.path.abspath(os.path.join(os.path.dirname(
+            m[0]), m[1]))) for m in filebot_moves]
+
         #  cross-reference
         for old, new in filebot_moves:
             try:
@@ -211,11 +230,90 @@ class Core(CorePluginBase):
             new_save_path = None
         return new_save_path, gcd, deluge_moves
 
+    def _redirect_torrent_paths(self, torrent_id, (new_save_path, new_top_lvl,
+    new_file_paths)):
+        """redirects a torrent's files and save paths to the new locations.
+        registers them to the listening dictionary
+        Args:
+            torrent_id
+            a tuple from _translate_filebot_movements
+        """
+        torrent = self.torrent_manager[torrent_id]
+        if any([new_save_path, new_top_lvl, new_file_paths]):
+            self.listening_dictionary[torrent_id] = {}
+        if new_save_path:
+            self.listening_dictionary[torrent_id]["move_storage"] = (
+                new_save_path)
+            torrent.move_storage(new_save_path)
+        if new_top_lvl:
+            current_top_lvl = torrent.get_files()[0]["path"].split("/")[0]
+            self.listening_dictionary[torrent_id]["folder_rename"] = (
+                current_top_lvl, new_top_lvl)
+            torrent.rename_folder(current_top_lvl, new_top_lvl)
+        if new_file_paths:
+            for index, path in new_file_paths:
+                self.listening_dictionary[torrent_id][(index, path)] = True
+            torrent.rename_files(new_file_paths)
+
+    #########
+    #  Section: Utilities
+    #########
+
+    def _get_filebot_target(self, torrent_id):
+        """returns the path of the file or folder that filebot should target
+        Args: torrent_id: torrent_id
+        returns: path
+        """
+        log.debug("getting top level for torrent {}".format(torrent_id))
+        torrent = self.torrent_manager[torrent_id]
+        target = os.path.join(torrent.get_status(["save_path"])["save_path"],
+                              torrent.get_status(["name"])["name"])
+        log.debug("target found: {}".format(target))
+        return target
+
+
     def _get_full_os_path(self, save_path, deluge_path):
         """given a save path and a deluge file path, return the actual os
         path of a given file"""
         return os.path.sep.join(save_path.split(os.path.sep) +
                                 deluge_path.split('/'))
+
+    def _configure_filebot_handler(self, settings, handler=None):
+        """Configures a handler using the given settings dictionary.
+
+        If no handler is given a new handler is created. Invalid settings
+        will be skipped
+
+        *settings*: a dictionary in format {"setting": value, ...}
+        *handler*: the handler you want to use, defaults to new Handler
+
+        *returns*: a configured handler.
+        """
+        if not handler:
+            handler = pyfilebot.FilebotHandler()
+
+        valid_handler_attributes = [
+            "format_string",
+            "database",
+            "output",
+            "episode_order",
+            "rename_action",
+            "recursive",
+            "language_code",
+            "encoding",
+            "on_conflict",
+            "non_strict",
+            "mode"
+        ]
+        for attribute in valid_handler_attributes:
+            if attribute in settings:
+                try:
+                    handler.__setattr__(attribute, settings[attribute])
+                except pyfilebot.FilebotArgumentError:
+                    log.warning("{} is not a valid value for {}, "
+                                "skipping...".format(settings[attribute],
+                                                     attribute))
+        return handler
 
     def _get_mockup_files_dictionary(self, torrent_id, translation):
         """Given a translation from _translate_filebot_movements, return a
@@ -235,22 +333,6 @@ class Core(CorePluginBase):
                     f["path"] = new_path
 
         return new_files
-
-    def _redirect_torrent_paths(self, file_movements):
-        """redirects a torrent's files and save paths to the new locations.
-        registers them to the listening dictionary"""
-        pass
-
-    def _check_listening_dictionary(self, event):
-        """called on events, checks if the plugin has been waiting for the
-        event and decides what to do."""
-        pass
-
-    def disable(self):
-        pass
-
-    def update(self):
-        pass
 
     #########
     #  Section: Public API
@@ -274,7 +356,13 @@ class Core(CorePluginBase):
         *returns*: a tuple containing the new save path and a mock
           Torrent.files dictionary showing predicted state
         """
-        handler = self._configure_filebot_handler(handler_settings, handler)
+        if not handler:
+            if handler_settings:
+                handler = self._configure_filebot_handler(handler_settings,
+                                                          handler)
+            else:
+                handler = pyfilebot.FilebotHandler()
+
         handler.rename_action = "test"
         target = self._get_filebot_target(torrent_id)
         log.debug("running filbot dry run for torrent: {} with target {"
@@ -295,10 +383,46 @@ class Core(CorePluginBase):
         defer.returnValue((new_save_path,
                            self._get_mockup_files_dictionary(torrent_id,
                                                              deluge_movements)))
+
     @export
-    def do_rename(self, handler_settings, torrent_id):
-        """executes a filebot run"""
-        pass
+    @defer.inlineCallbacks
+    def do_rename(self, torrent_id, handler_settings=None, handler=None):
+        """executes a filebot run.
+        Args:
+            torrent_id: id of torrent to execute against
+            handler_settings: an optional dictionary of settings build a filebot
+                handler from
+            handler: an optional FilebotHandler to use (overrides
+                handler_settings)
+        returns:
+            True if successful, False with "msg" kwarg if some error occurred.
+        """
+        if not handler:
+            if handler_settings:
+                handler = self._configure_filebot_handler(handler_settings,
+                                                          handler)
+            else:
+                handler = pyfilebot.FilebotHandler()
+
+        target = self._get_filebot_target(torrent_id)
+        log.debug("beginning filebot run on torrent {}, with target {"
+                  "}".format(torrent_id, target))
+        self.torrent_manager[torrent_id].pause()
+        try:
+            filebot_results = yield threads.deferToThread(handler.rename,
+                                                          target)
+        except Exception, err:
+            log.error("FILEBOT ERROR{}".format(err))
+            defer.returnValue(False, msg=err)
+        log.debug("recieved results from filebot: {}".format(filebot_results))
+        deluge_movements = self._translate_filebot_movements(torrent_id,
+                                                             filebot_results[1])
+        self._redirect_torrent_paths(torrent_id, deluge_movements)
+        defer.returnValue(True)
+
+    @export
+    def save_rename_dialog_settings(self, settings):
+        self.config["rename_dialog_last_settings"] = settings
 
     @export
     def get_rename_dialog_info(self, torrent_id):
@@ -332,4 +456,4 @@ class Core(CorePluginBase):
     @export
     def get_config(self):
         """Returns the config dictionary"""
-        return self.config.config
+        return self.config

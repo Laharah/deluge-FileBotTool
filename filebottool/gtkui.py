@@ -85,12 +85,14 @@ class RenameDialog(object):
         self.encoding_entry = self.glade.get_widget("encoding_entry")
         self.output_entry = self.glade.get_widget("output_entry")
 
-        signal_dic = {
+        signal_dictionary = {
             "on_toggle_advanced": self.on_toggle_advanced,
-            "on_do_dry_run_clicked": self.on_do_dry_run_clicked
-            }
+            "on_do_dry_run_clicked": self.on_do_dry_run_clicked,
+            "on_format_help_clicked": self.on_format_help_clicked,
+            "on_execute_filebot_clicked": self.on_execute_filebot_clicked
+        }
 
-        self.glade.signal_autoconnect(signal_dic)
+        self.glade.signal_autoconnect(signal_dictionary)
 
         combo_data = {}
         for key in dialog_settings:
@@ -195,7 +197,7 @@ class RenameDialog(object):
             self.on_toggle_advanced()
 
         if self.download_subs_checkbox.get_active() != settings[
-                "download_subs"]:
+            "download_subs"]:
             self.on_download_subs_toggled()
 
     def init_treestore(self, treeview, header):
@@ -244,7 +246,7 @@ class RenameDialog(object):
                         folder_structure[path_depth] = []
 
                     if path_parts[path_depth] not in folder_structure[
-                            path_depth]:
+                        path_depth]:
                         folder_structure[path_depth].append(path_parts[
                             path_depth])
 
@@ -258,7 +260,7 @@ class RenameDialog(object):
                                 path_depth]])
                         else:
                             folder_iterator = model.append(parent,
-                                            ['', path_parts[path_depth]])
+                                                           ['', path_parts[path_depth]])
                             folder_iterators[path_depth] = folder_iterator
 
         treeview.expand_all()
@@ -328,6 +330,10 @@ class RenameDialog(object):
             arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
 
     def on_do_dry_run_clicked(self, *args):
+        """
+        executes a dry run to show the user how the torrent is expected to
+        look after filebot run.
+        """
         handler_settings = self.collect_dialog_settings()
         log.info("sending dry run request to server for torrent {}".format(
             self.torrent_id))
@@ -335,12 +341,38 @@ class RenameDialog(object):
         d.addCallback(self.log_response)
         d.addCallback(self.load_treestore, self.new_files_treeview, clear=True)
 
+    def on_execute_filebot_clicked(self, *args):
+        """collects and sends settings, and tells server to execute run using
+         them.
+        """
+        handler_settings = self.collect_dialog_settings()
+        log.info("Sending execute request to server for torrent {}".format(
+            self.torrent_id))
+        log.debug("Using settings: {}".format(handler_settings))
+        client.filebottool.save_rename_dialog_settings(handler_settings)
+        d = client.filebottool.do_rename(self.torrent_id, handler_settings)
+        d.addCallback(self.log_response)
+        d.addCallback(self.rename_complete)
+
+    def on_format_help_clicked(self, *args):
+        webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
+        log.debug('Format expression info button was clicked')
+
+    def rename_complete(self, success, msg=None):
+        if success:
+            del self.window
+        else:
+            log.warning("rename failed with message: {}".format(msg))
+
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
         return response
 
 
+
 class GtkUI(GtkPluginBase):
+
+
     def enable(self):
         """actions to take on plugin enabled.
         loads preference page, and context menu.
@@ -383,10 +415,6 @@ class GtkUI(GtkPluginBase):
         component.get("PluginManager").deregister_hook("on_show_prefs",
                                                        self.on_show_prefs)
         component.get("MenuBar").torrentmenu.remove(self.menu_item)
-
-    def on_format_help_clicked(self, *args):
-        webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
-        log.debug('Format expression info button was clicked')
 
     def on_apply_prefs(self):
         log.debug("applying prefs for FileBotTool")
