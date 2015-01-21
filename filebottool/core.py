@@ -87,21 +87,23 @@ class Core(CorePluginBase):
         self.listening_dictionary = {}
 
         #register events:
-        self.event_manager = component.get("EventManager")
-        self.event_manager.register_event_handler("TorrentStorageMovedEvent",
-                                                  self._on_storage_moved)
-        self.event_manager.register_event_handler("TorrentFolderRenamedEvent",
-                                                  self._on_folder_renamed)
-        self.event_manager.register_event_handler("TorrentFileRenamedEvent",
-                                                  self._on_file_renamed)
+        # TODO: Troubleshoot event listening.
+        event_manager = component.get("EventManager")
+        event_manager.register_event_handler("TorrentStorageMovedEvent",
+                                             self._on_storage_moved)
+        event_manager.register_event_handler("TorrentFolderRenamedEvent",
+                                             self._on_folder_renamed)
+        event_manager.register_event_handler("TorrentFileRenamedEvent",
+                                             self._on_file_renamed)
 
     def disable(self):
-        self.event_manager.deregister_event_handler("TorrentStorageMovedEvent",
-                                                    self._on_storage_moved)
-        self.event_manager.deregister_event_handler("TorrentFolderRenamedEvent",
-                                                    self._on_folder_renamed)
-        self.event_manager.deregister_event_handler("TorrentFileRenamedEvent",
-                                                    self._on_file_renamed)
+        event_manager = component.get("EventManager")
+        event_manager.deregister_event_handler("TorrentStorageMovedEvent",
+                                               self._on_storage_moved)
+        event_manager.deregister_event_handler("TorrentFolderRenamedEvent",
+                                               self._on_folder_renamed)
+        event_manager.deregister_event_handler("TorrentFileRenamedEvent",
+                                               self._on_file_renamed)
 
     def update(self):
         pass
@@ -113,6 +115,7 @@ class Core(CorePluginBase):
     def _on_storage_moved(self, torrent_id, path):
         """handler for storage movements, Checks listening dictionary if it's
          a relevant movement"""
+        log.debug("_on_storage_moved({},{})".format(torrent_id, path))
         if torrent_id not in self.listening_dictionary:
             return
 
@@ -125,6 +128,7 @@ class Core(CorePluginBase):
         """handler for folder renames, Checks plugin listening dictionary and
         takes appropriate action.
         """
+        log.debug("_on_folder_moved({},{}, {})".format(torrent_id, old, new))
         if torrent_id not in self.listening_dictionary:
             return
 
@@ -136,6 +140,7 @@ class Core(CorePluginBase):
     def _on_file_renamed(self, torrent_id, index, name):
         """handler for file renames, Checks plugin listening dictionary and
         takes appropriate action."""
+        log.debug("on_file_renamed({},{}, {})".format(torrent_id, index, name))
         if torrent_id not in self.listening_dictionary:
             return
 
@@ -151,6 +156,10 @@ class Core(CorePluginBase):
             if not self.listening_dictionary[torrent_id]:
                 del self.listening_dictionary[torrent_id]
                 self.torrent_manager[torrent_id].resume()
+
+        log.debug("listning dictionary updated: {}".format(
+            self.listening_dictionary))
+
 
     #########
     #  Section: Filebot interaction
@@ -417,6 +426,8 @@ class Core(CorePluginBase):
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
+        log.debug("Attempting to re-reoute torrent: {}".format(
+            deluge_movements))
         self._redirect_torrent_paths(torrent_id, deluge_movements)
         defer.returnValue(True)
 
