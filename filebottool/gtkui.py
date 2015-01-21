@@ -65,6 +65,7 @@ class RenameDialog(object):
         self.files = dialog_settings["files"]
         self.current_torrent_save_path = dialog_settings["torrent_save_path"]
         self.ui_settings = dialog_settings["rename_dialog_last_settings"]
+        self.server_filebot_version = dialog_settings["filebot_version"]
 
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
         self.window = self.glade.get_widget("rename_dialog")
@@ -160,6 +161,9 @@ class RenameDialog(object):
           settings: The settings dict given by the server.
         """
         log.debug("Previous settings received: {}".format(settings))
+        self.glade.get_widget("filebot_version").set_text(
+            self.server_filebot_version)
+
         combo_value_pairs = [
             (self.database_combo, settings["database"]),
             (self.rename_action_combo, settings["rename_action"]),

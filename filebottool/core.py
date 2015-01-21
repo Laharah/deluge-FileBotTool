@@ -77,8 +77,8 @@ class Core(CorePluginBase):
         self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
 
         try:
-            self.fb_version = pyfilebot.get_version()
-            log.info("Filebot Found with version {}".format(self.fb_version))
+            self.filebot_version = pyfilebot.get_version()
+            log.info("Filebot Found with version {}".format(self.filebot_version))
         except pyfilebot.FilebotFatalError:
             log.error("Filebot cannot be found!")
             self.filebot_version = None
@@ -347,7 +347,7 @@ class Core(CorePluginBase):
 
     @export
     def get_filebot_version(self):
-        return self.fb_version
+        return self.filebot_version
 
     @export
     @defer.inlineCallbacks
@@ -456,4 +456,4 @@ class Core(CorePluginBase):
     @export
     def get_config(self):
         """Returns the config dictionary"""
-        return self.config
+        return self.config.config
