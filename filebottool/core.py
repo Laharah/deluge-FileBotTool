@@ -432,8 +432,14 @@ class Core(CorePluginBase):
         defer.returnValue(True)
 
     @export
-    def save_rename_dialog_settings(self, settings):
-        self.config["rename_dialog_last_settings"] = settings
+    def save_rename_dialog_settings(self, new_settings):
+        for setting in self.config["rename_dialog_last_settings"]:
+            if new_settings[setting]:
+                self.config["rename_dialog_last_settings"][setting] = (
+                    new_settings[setting])
+            else:
+                self.config["rename_dialog_last_settings"][setting] = None
+
 
     @export
     def get_rename_dialog_info(self, torrent_id):
