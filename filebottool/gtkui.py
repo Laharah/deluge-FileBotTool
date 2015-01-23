@@ -364,6 +364,7 @@ class RenameDialog(object):
 
     def rename_complete(self, success, msg=None):
         if success:
+            log.debug("Rename Completed.")
             del self.window
         else:
             log.warning("rename failed with message: {}".format(msg))

@@ -88,18 +88,17 @@ class Core(CorePluginBase):
 
         #register events:
         # TODO: Troubleshoot event listening.
+        component.get("AlertManager").register_handler("storage_moved_alert",
+                                                       self._on_storage_moved)
         event_manager = component.get("EventManager")
-        event_manager.register_event_handler("TorrentStorageMovedEvent",
-                                             self._on_storage_moved)
         event_manager.register_event_handler("TorrentFolderRenamedEvent",
                                              self._on_folder_renamed)
         event_manager.register_event_handler("TorrentFileRenamedEvent",
                                              self._on_file_renamed)
 
     def disable(self):
+        component.get("AlertManager").deregister_handler(self._on_storage_moved)
         event_manager = component.get("EventManager")
-        event_manager.deregister_event_handler("TorrentStorageMovedEvent",
-                                               self._on_storage_moved)
         event_manager.deregister_event_handler("TorrentFolderRenamedEvent",
                                                self._on_folder_renamed)
         event_manager.deregister_event_handler("TorrentFileRenamedEvent",
@@ -112,14 +111,15 @@ class Core(CorePluginBase):
     #  Section: Event Handlers
     #########
 
-    def _on_storage_moved(self, torrent_id, path):
+    def _on_storage_moved(self, alert):
         """handler for storage movements, Checks listening dictionary if it's
          a relevant movement"""
-        log.debug("_on_storage_moved({},{})".format(torrent_id, path))
+        torrent_id = str(alert.handle.info_hash())
+        log.debug("_on_storage_moved({})".format(torrent_id))
         if torrent_id not in self.listening_dictionary:
             return
 
-        if self.listening_dictionary[torrent_id]["move_storage"] == path:
+        if self.listening_dictionary[torrent_id]["move_storage"]:
             del self.listening_dictionary[torrent_id]["move_storage"]
 
         self._check_listening_dictionary(torrent_id)
@@ -257,7 +257,7 @@ class Core(CorePluginBase):
         if new_top_lvl:
             current_top_lvl = torrent.get_files()[0]["path"].split("/")[0]
             self.listening_dictionary[torrent_id]["folder_rename"] = (
-                current_top_lvl, new_top_lvl)
+                current_top_lvl, new_top_lvl+"/")
             torrent.rename_folder(current_top_lvl, new_top_lvl)
         if new_file_paths:
             for index, path in new_file_paths:
@@ -433,12 +433,19 @@ class Core(CorePluginBase):
 
     @export
     def save_rename_dialog_settings(self, new_settings):
+        log.debug("recieved settings from client: {}".format(new_settings))
         for setting in self.config["rename_dialog_last_settings"]:
-            if new_settings[setting]:
-                self.config["rename_dialog_last_settings"][setting] = (
-                    new_settings[setting])
-            else:
-                self.config["rename_dialog_last_settings"][setting] = None
+            try:
+                if new_settings[setting]:
+                    self.config["rename_dialog_last_settings"][setting] = (
+                        new_settings[setting])
+                    log.debug("setting saved: {} : {}".format(setting,
+                        new_settings[setting]))
+                else:
+                    self.config["rename_dialog_last_settings"][setting] = None
+            except KeyError:
+                pass
+        self.config.save()
 
 
     @export
