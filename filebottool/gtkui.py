@@ -186,7 +186,7 @@ class RenameDialog(object):
             (self.format_string_entry, settings["format_string"]),
             (self.encoding_entry, settings["encoding"]),
             (self.language_code_entry, settings["language_code"]),
-            (self.query_entry, settings["query"]),
+            (self.query_entry, settings["query_override"]),
             (self.output_entry, settings["output"])
         ]
 
@@ -232,7 +232,8 @@ class RenameDialog(object):
                                               "}".format(save_path))
             model = gtk.TreeStore(str, str)
             treeview.set_model(model)
-
+        if not file_data:
+            return
         index_path_pairs = [(f["index"], f["path"]) for f in file_data]
         model = treeview.get_model()
         folder_iterators = {}
@@ -292,7 +293,7 @@ class RenameDialog(object):
             "format_string": self.format_string_entry,
             "encoding": self.encoding_entry,
             "language_code": self.language_code_entry,
-            "query": self.query_entry,
+            "query_override": self.query_entry,
             "output": self.output_entry
         }
         for setting in entries:
@@ -362,7 +363,7 @@ class RenameDialog(object):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
         log.debug('Format expression info button was clicked')
 
-    def rename_complete(self, success, msg=None):
+    def rename_complete(self, (success, msg)):
         if success:
             log.debug("Rename Completed.")
             self.window.destroy()

@@ -79,6 +79,8 @@ class FilebotFatalError(Error):
     """raise on a non-recoverable error, such as filebot not found"""
     pass
 
+class FilebotRuntimeError(Error):
+    pass
 
 def get_version():
     """returns the filebot version string. Usefull for testing if filebot is
@@ -97,7 +99,8 @@ def rename(targets, format_string=None, database=None, output=None,
     """Renames file or files from *targets* using the current settings
 
     Args:
-        target: the file or folder you want filebot to execute against
+        target: the file/folder or list of files/folders you want filebot to
+            execute against.
         format_string: The filename formatting string you want filebot to use.
              Defaults to None which will use the filebot defaut format.
         database: the database filebot should match against. leave None to
@@ -139,7 +142,8 @@ def rename(targets, format_string=None, database=None, output=None,
     #  TODO:better error handling
 
     if exit_code != 0:
-        return 0, "FILEBOT ERROR", 0
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP: {}".format(
+            data.encode("UTF-8")))
 
     return parse_filebot(data)
 
@@ -633,7 +637,7 @@ class FilebotHandler(object):
     def __init__(self, format_string=None, database=None, output=None,
                  episode_order=None, rename_action=None, recursive=True,
                  language_code=None, encoding='UTF-8', on_conflict='skip',
-                 non_strict=True, mode='rename'):
+                 query_override=None, non_strict=True, mode='rename'):
 
         self.format_string = format_string
         self._database = None
@@ -649,6 +653,7 @@ class FilebotHandler(object):
         self._on_conflict = 'skip'
         self.on_conflict = on_conflict
         self.non_strict = non_strict
+        self.query_override = query_override
         self._mode = 'rename'
         self.mode = mode
 

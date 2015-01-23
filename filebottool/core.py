@@ -60,7 +60,7 @@ DEFAULT_PREFS = {
         "format_string": None,
         "rename_action": None,
         "show_advanced": False,
-        "query": None,
+        "query_override": None,
         "on_conflict": None,
         "episode_order": None,
         "download_subs": False,
@@ -242,7 +242,7 @@ class Core(CorePluginBase):
         return new_save_path, gcd, deluge_moves
 
     def _redirect_torrent_paths(self, torrent_id, (new_save_path, new_top_lvl,
-    new_file_paths)):
+    new_file_paths), original_state=None):
         """redirects a torrent's files and save paths to the new locations.
         registers them to the listening dictionary
         Args:
@@ -266,6 +266,10 @@ class Core(CorePluginBase):
                 self.listening_dictionary[torrent_id][(index, path)] = True
             torrent.rename_files(new_file_paths)
 
+        #prefent resume if torrent was originally paused
+        if original_state == "Paused":
+            del self.listening_dictionary[torrent_id]
+
     #########
     #  Section: Utilities
     #########
@@ -275,12 +279,13 @@ class Core(CorePluginBase):
         Args: torrent_id: torrent_id
         returns: path
         """
-        log.debug("getting top level for torrent {}".format(torrent_id))
+        log.debug("targets list for torrent {}".format(torrent_id))
         torrent = self.torrent_manager[torrent_id]
-        target = os.path.join(torrent.get_status(["save_path"])["save_path"],
-                              torrent.get_status(["name"])["name"])
-        log.debug("target found: {}".format(target))
-        return target
+        save_path = torrent.get_status(["save_path"])["save_path"]
+        targets = [self._get_full_os_path(save_path, f["path"]) for f in
+                   torrent.get_files()]
+        log.debug("targets found: {}".format(targets))
+        return targets
 
 
     def _get_full_os_path(self, save_path, deluge_path):
@@ -313,6 +318,7 @@ class Core(CorePluginBase):
             "language_code",
             "encoding",
             "on_conflict",
+            "query_override",
             "non_strict",
             "mode"
         ]
@@ -383,6 +389,7 @@ class Core(CorePluginBase):
                                                           target)
         except Exception, err:
             log.error("FILEBOT ERROR: {}".format(err))
+            defer.returnValue(("FILEBOT ERROR", None))
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
@@ -436,20 +443,21 @@ class Core(CorePluginBase):
                                                           target)
         except Exception, err:
             log.error("FILEBOT ERROR{}".format(err))
-            defer.returnValue(False, msg=err)
+            defer.returnValue((False, err))
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
-        log.debug("Attempting to re-reoute torrent: {}".format(
-            deluge_movements))
 
         if not deluge_movements:
             if original_torrent_state == "Seeding":
                 self.torrent_manager[torrent_id].resume()
-            defer.returnValue(True)
+            defer.returnValue((True, None))
 
-        self._redirect_torrent_paths(torrent_id, deluge_movements)
-        defer.returnValue(True)
+        log.debug("Attempting to re-reoute torrent: {}".format(
+            deluge_movements))
+        self._redirect_torrent_paths(torrent_id, deluge_movements,
+                                     original_state=original_torrent_state)
+        defer.returnValue((True, None))
 
     @export
     def save_rename_dialog_settings(self, new_settings):
