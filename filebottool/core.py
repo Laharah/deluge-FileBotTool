@@ -178,7 +178,9 @@ class Core(CorePluginBase):
           filebot_moves: a list of movements made by filebot
         returns: tuple(new_path, new_toplevel, [(index, new file path), ...])
         """
-
+        if not filebot_moves:
+            log.info("No movements for {}".format(torrent_id))
+            return
         torrent = self.torrent_manager[torrent_id]
         current_save_path = torrent.get_status(["save_path"])["save_path"]
         current_files = torrent.get_files()
@@ -384,8 +386,17 @@ class Core(CorePluginBase):
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
+        if not deluge_movements:
+            new_save_path = self.torrent_manager[torrent_id].get_status(
+                ["save_path"])["save_path"]
+            defer.returnValue((new_save_path, self.torrent_manager[
+                torrent_id].get_files()))
+
         log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
         new_save_path = deluge_movements[0]
+        if not new_save_path:
+            new_save_path = None
+
         if not new_save_path:
             new_save_path = self.torrent_manager[torrent_id].get_status(
                 ["save_path"])["save_path"]
@@ -416,7 +427,10 @@ class Core(CorePluginBase):
         target = self._get_filebot_target(torrent_id)
         log.debug("beginning filebot run on torrent {}, with target {"
                   "}".format(torrent_id, target))
+
+        original_torrent_state = self.torrent_manager[torrent_id].state
         self.torrent_manager[torrent_id].pause()
+
         try:
             filebot_results = yield threads.deferToThread(handler.rename,
                                                           target)
@@ -428,6 +442,12 @@ class Core(CorePluginBase):
                                                              filebot_results[1])
         log.debug("Attempting to re-reoute torrent: {}".format(
             deluge_movements))
+
+        if not deluge_movements:
+            if original_torrent_state == "Seeding":
+                self.torrent_manager[torrent_id].resume()
+            defer.returnValue(True)
+
         self._redirect_torrent_paths(torrent_id, deluge_movements)
         defer.returnValue(True)
 
