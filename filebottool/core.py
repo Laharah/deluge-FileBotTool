@@ -445,6 +445,8 @@ class Core(CorePluginBase):
             log.error("FILEBOT ERROR{}".format(err))
             defer.returnValue((False, err))
         log.debug("recieved results from filebot: {}".format(filebot_results))
+
+        # TODO: deluge safety check
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
 
@@ -473,6 +475,9 @@ class Core(CorePluginBase):
                     self.config["rename_dialog_last_settings"][setting] = None
             except KeyError:
                 pass
+
+        #query_override should not be saved between runs
+        self.config["rename_dialog_last_settings"]["query_override"] = None
         self.config.save()
 
 
