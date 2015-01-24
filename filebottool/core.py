@@ -223,6 +223,8 @@ class Core(CorePluginBase):
         #  spliting on sep, and joining with '/'
         deluge_moves = []
         for old in renames:
+            if "new_path" not in renames[old]:
+                continue
             if old == renames[old]["new_path"]:
                 #rename not needed
                 continue
@@ -256,7 +258,7 @@ class Core(CorePluginBase):
                 new_save_path)
             torrent.move_storage(new_save_path)
         if new_top_lvl:
-            current_top_lvl = torrent.get_files()[0]["path"].split("/")[0]
+            current_top_lvl = torrent.get_files()[0]["path"].split("/")[0]+"/"
             self.listening_dictionary[torrent_id]["folder_rename"] = (
                 current_top_lvl, new_top_lvl+"/")
             torrent.rename_folder(current_top_lvl, new_top_lvl)
@@ -269,7 +271,8 @@ class Core(CorePluginBase):
         if original_state == "Paused":
             del self.listening_dictionary[torrent_id]
 
-    def _torrent_safety_check(self, torrent_id, filebot_translation):
+    def _torrent_safety_check(self, torrent_id, filebot_translation,
+                              skipped_files):
         """
         Ensures that minimum safety is met (movements are possible)
         :param torrent_id:
@@ -280,19 +283,30 @@ class Core(CorePluginBase):
 
         original_files = torrent.get_files()
         original_save_path = torrent.get_status(["save_path"])["save_path"]
-        new_files = self._get_mockup_files_dictionary(torrent_id,
-                                                      filebot_translation)
+        mockup = self._get_mockup_files_dictionary(torrent_id,
+                                                   filebot_translation)
+        new_files = mockup
         new_save_path = filebot_translation[0]
+        if not new_save_path:
+            new_save_path = original_save_path
 
         original_files = [(f["index"], f["path"]) for f in original_files]
         new_files = [(f["index"], f["path"]) for f in new_files]
         original_paths = [self._get_full_os_path(original_save_path, f[1])
-                          for f in original_files.sort()]
+                          for f in sorted(original_files)]
         new_paths = [self._get_full_os_path(new_save_path, f[1]) for
-                     f in new_files.sort()]
+                     f in sorted(new_files)]
+
+        extra_files = []
+        for f in mockup:
+            if f["index"] not in [x[0] for x in filebot_translation[2]]:
+                extra_files.append(
+                    self._get_full_os_path(new_save_path, f["path"]))
 
         for original_path, new_path in zip(original_paths, new_paths):
             if new_path == original_path:
+                continue
+            if original_path not in skipped_files and new_path not in extra_files:
                 continue
             if os.path.exists(new_path):
                 return False
@@ -300,14 +314,16 @@ class Core(CorePluginBase):
         return True
 
     @defer.inlineCallbacks
-    def _rollback(self, filebot_movements):
+    def _rollback(self, filebot_movements, torrent_id):
         targets = [pair[1] for pair in filebot_movements[1]]
         try:
-            results = yield threads.deferToThread(pyfilebot.revert(targets))
-        except Exception, err:
+            results = yield threads.deferToThread(pyfilebot.revert, targets)
+        except pyfilebot.FilebotRuntimeError, err:
             log.error("FILEBOT ERROR: {}".format(err))
             defer.returnValue(None)
         log.info("Successfully rolled back files: {}".format(results[1]))
+        log.info("forcing recheck on {}".format(torrent_id))
+        self.torrent_manager[torrent_id].force_recheck()
 
     #########
     #  Section: Utilities
@@ -493,11 +509,11 @@ class Core(CorePluginBase):
                 self.torrent_manager[torrent_id].resume()
             defer.returnValue((True, None))
 
-        if not self._torrent_safety_check(torrent_id, deluge_movements):
+        if not self._torrent_safety_check(torrent_id, deluge_movements,
+                                          filebot_results[2]):
             log.warning("Raname is not safe on torrent {}. Rolling "
                         "Back and recheking".format(torrent_id))
-            self._rollback(filebot_results)
-            self.torrent_manager[torrent_id].force_recheck()
+            self._rollback(filebot_results, torrent_id)
             defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
 
         log.debug("Attempting to re-reoute torrent: {}".format(
