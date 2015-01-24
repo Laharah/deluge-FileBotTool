@@ -50,6 +50,7 @@ FILEBOT_RENAME_ACTIONS = [
     None,
     'move',
     'copy',
+    'duplicate',
     'keeplink',
     'symlink',
     'hardlink',
@@ -142,7 +143,7 @@ def rename(targets, format_string=None, database=None, output=None,
     #  TODO:better error handling
 
     if exit_code != 0:
-        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP: {}".format(
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{}".format(
             data.encode("UTF-8")))
 
     return parse_filebot(data)
@@ -269,6 +270,10 @@ def get_history(targets):
     Returns:
         list of tuples in format (current_filename, previous_filename)
     """
+    if isinstance(targets, basestring):
+        targets = [targets]
+    targets = [os.path.expanduser(os.path.expandvars(target))
+               for target in targets]
     _, data, _ = _build_script_arguments("fn:history", targets)
     _, file_moves, _ = parse_filebot(data)
     file_moves = [(x[1], x[0]) for x in file_moves]  # swaps entries for
@@ -289,6 +294,10 @@ def revert(targets):
     Returns:
         a list of tuples containing the file movements in format (old, new).
     """
+    if isinstance(targets, basestring):
+        targets = [targets]
+    targets = [os.path.expanduser(os.path.expandvars(target))
+               for target in targets]
     _, data, _ = _build_script_arguments("fn:revert", targets)
     _, file_moves, _ = parse_filebot(data)
 
@@ -491,8 +500,11 @@ def _build_filebot_arguments(targets, format_string=None,
         process_arguments.append('-non-strict')
 
     if isinstance(targets, basestring):
+        targets = os.path.expanduser((os.path.expandvars(targets)))
         process_arguments.append(targets)
     else:
+        targets = [os.path.expanduser(os.path.expandvars(target))
+                   for target in targets]
         process_arguments += [target.decode("utf8") for target in targets]
 
     return _execute(process_arguments)
