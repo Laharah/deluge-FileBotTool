@@ -269,6 +269,46 @@ class Core(CorePluginBase):
         if original_state == "Paused":
             del self.listening_dictionary[torrent_id]
 
+    def _torrent_safety_check(self, torrent_id, filebot_translation):
+        """
+        Ensures that minimum safety is met (movements are possible)
+        :param torrent_id:
+        :param filebot_renames:
+        :return: true or false
+        """
+        torrent = self.torrent_manager[torrent_id]
+
+        original_files = torrent.get_files()
+        original_save_path = torrent.get_status(["save_path"])["save_path"]
+        new_files = self._get_mockup_files_dictionary(torrent_id,
+                                                      filebot_translation)
+        new_save_path = filebot_translation[0]
+
+        original_files = [(f["index"], f["path"]) for f in original_files]
+        new_files = [(f["index"], f["path"]) for f in new_files]
+        original_paths = [self._get_full_os_path(original_save_path, f[1])
+                          for f in original_files.sort()]
+        new_paths = [self._get_full_os_path(new_save_path, f[1]) for
+                     f in new_files.sort()]
+
+        for original_path, new_path in zip(original_paths, new_paths):
+            if new_path == original_path:
+                continue
+            if os.path.exists(new_path):
+                return False
+
+        return True
+
+    @defer.inlineCallbacks
+    def _rollback(self, filebot_movements):
+        targets = [pair[1] for pair in filebot_movements[1]]
+        try:
+            results = yield threads.deferToThread(pyfilebot.revert(targets))
+        except Exception, err:
+            log.error("FILEBOT ERROR: {}".format(err))
+            defer.returnValue(None)
+        log.info("Successfully rolled back files: {}".format(results[1]))
+
     #########
     #  Section: Utilities
     #########
@@ -443,16 +483,22 @@ class Core(CorePluginBase):
         except Exception, err:
             log.error("FILEBOT ERROR{}".format(err))
             defer.returnValue((False, err))
+            filebot_results = "ERROR"
         log.debug("recieved results from filebot: {}".format(filebot_results))
 
-        # TODO: deluge safety check
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
-
         if not deluge_movements:
             if original_torrent_state == "Seeding":
                 self.torrent_manager[torrent_id].resume()
             defer.returnValue((True, None))
+
+        if not self._torrent_safety_check(torrent_id, deluge_movements):
+            log.warning("Raname is not safe on torrent {}. Rolling "
+                        "Back and recheking".format(torrent_id))
+            self._rollback(filebot_results)
+            self.torrent_manager[torrent_id].force_recheck()
+            defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
 
         log.debug("Attempting to re-reoute torrent: {}".format(
             deluge_movements))
