@@ -86,8 +86,7 @@ class Core(CorePluginBase):
         self.torrent_manager = component.get("TorrentManager")
         self.listening_dictionary = {}
 
-        #register events:
-        # TODO: Troubleshoot event listening.
+        #register event/alert hooks:
         component.get("AlertManager").register_handler("storage_moved_alert",
                                                        self._on_storage_moved)
         event_manager = component.get("EventManager")

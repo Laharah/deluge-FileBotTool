@@ -517,7 +517,7 @@ def _build_script_arguments(script_name, script_arguments):
         script_name
     ]
     if script_arguments:
-        if isinstance(script_arguments, str):
+        if isinstance(script_arguments, basestring):
             script_arguments = [script_arguments]
         process_arguments += [arg.decode("utf8") for arg in script_arguments]
 
