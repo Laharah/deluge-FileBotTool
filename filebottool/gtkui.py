@@ -379,8 +379,12 @@ class RenameDialog(object):
         log.debug("response from server: {}".format(response))
         return response
 
-    def toggle_button(self, button_widget):
-        """toggles the sensitivity of a given button widget """
+    def toggle_button(self, *args):
+        """
+        toggles the sensitivity of a given button widget.
+        NOTE: The final argument passed is the button widget to toggle!!!
+        """
+        button_widget = args[-1] # workaround for deferd argument passing
         if button_widget.get_sensitive():
             button_widget.set_sensitive(False)
         else:
