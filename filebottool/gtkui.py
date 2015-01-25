@@ -361,8 +361,8 @@ class RenameDialog(object):
         client.filebottool.save_rename_dialog_settings(handler_settings)
         d = client.filebottool.do_rename(self.torrent_id, handler_settings)
         d.addCallback(self.log_response)
-        d.addCallback(self.toggle_button, button)
         d.addCallback(self.rename_complete)
+        d.addCallback(self.toggle_button, button)
 
     def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
