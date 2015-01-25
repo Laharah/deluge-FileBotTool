@@ -334,7 +334,7 @@ class RenameDialog(object):
             advanced_lable.set_text("Hide Advanced")
             arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
 
-    def on_do_dry_run_clicked(self, *args):
+    def on_do_dry_run_clicked(self, button):
         """
         executes a dry run to show the user how the torrent is expected to
         look after filebot run.
@@ -342,11 +342,13 @@ class RenameDialog(object):
         handler_settings = self.collect_dialog_settings()
         log.info("sending dry run request to server for torrent {}".format(
             self.torrent_id))
+        self.toggle_button(button)
         d = client.filebottool.do_dry_run(self.torrent_id, handler_settings)
         d.addCallback(self.log_response)
         d.addCallback(self.load_treestore, self.new_files_treeview, clear=True)
+        d.addCallback(self.toggle_button, button)
 
-    def on_execute_filebot_clicked(self, *args):
+    def on_execute_filebot_clicked(self, button):
         """collects and sends settings, and tells server to execute run using
          them.
         """
@@ -354,9 +356,12 @@ class RenameDialog(object):
         log.info("Sending execute request to server for torrent {}".format(
             self.torrent_id))
         log.debug("Using settings: {}".format(handler_settings))
+        self.toggle_button(button)
+
         client.filebottool.save_rename_dialog_settings(handler_settings)
         d = client.filebottool.do_rename(self.torrent_id, handler_settings)
         d.addCallback(self.log_response)
+        d.addCallback(self.toggle_button, button)
         d.addCallback(self.rename_complete)
 
     def on_format_help_clicked(self, *args):
@@ -373,6 +378,13 @@ class RenameDialog(object):
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
         return response
+
+    def toggle_button(self, button_widget):
+        """toggles the sensitivity of a given button widget """
+        if button_widget.get_sensitive():
+            button_widget.set_sensitive(False)
+        else:
+            button_widget.set_sensitive(True)
 
 
 
