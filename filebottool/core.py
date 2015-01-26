@@ -446,9 +446,9 @@ class Core(CorePluginBase):
         try:
             filebot_results = yield threads.deferToThread(handler.rename,
                                                           target)
-        except Exception, err:
-            log.error("FILEBOT ERROR: {}".format(err))
-            defer.returnValue(("FILEBOT ERROR", None))
+        except pyfilebot.FilebotRuntimeError, err:
+            log.error("FILEBOT ERROR: {}".format(err.msg))
+            defer.returnValue(("FILEBOT ERROR", err.msg))
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
@@ -504,7 +504,7 @@ class Core(CorePluginBase):
                                                               target)
             except Exception, err:
                 log.error("FILEBOT ERROR{}".format(err))
-                errors[torrent_id] = err
+                errors[torrent_id] = (str(err), err.msg)
                 filebot_results = ["", {}, {}]
             log.debug("recieved results from filebot: {}".format(filebot_results))
 
@@ -574,7 +574,7 @@ class Core(CorePluginBase):
         log.debug("recieved settings from client: {}".format(new_settings))
         for setting in self.config["rename_dialog_last_settings"]:
             try:
-                if new_settings[setting]:
+                if new_settings[setting] != None:
                     self.config["rename_dialog_last_settings"][setting] = (
                         new_settings[setting])
                     log.debug("setting saved: {} : {}".format(setting,

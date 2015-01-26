@@ -86,6 +86,8 @@ class RenameDialog(object):
             self.glade.get_widget("tree_pane").hide()
             self.glade.get_widget("dialog_notebook").set_show_tabs(False)
             self.glade.get_widget("do_dry_run").hide()
+            self.glade.get_widget("query_entry").set_sensitive(False)
+            self.glade.get_widget("query_label").set_sensitive(False)
 
         self.database_combo = self.glade.get_widget("database_combo")
         self.rename_action_combo = self.glade.get_widget("rename_action_combo")
@@ -359,15 +361,15 @@ class RenameDialog(object):
         """
         advanced_options = self.glade.get_widget("advanced_options")
         arrow = self.glade.get_widget("advanced_arrow")
-        advanced_lable = self.glade.get_widget("show_advanced_lable")
+        advanced_label = self.glade.get_widget("show_advanced_label")
 
         if advanced_options.get_visible():
             advanced_options.hide()
-            advanced_lable.set_text("Show Advanced")
+            advanced_label.set_text("Show Advanced")
             arrow.set(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
         else:
             advanced_options.show()
-            advanced_lable.set_text("Hide Advanced")
+            advanced_label.set_text("Hide Advanced")
             arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
 
     def on_do_dry_run_clicked(self, button):
@@ -378,6 +380,7 @@ class RenameDialog(object):
         handler_settings = self.collect_dialog_settings()
         log.info("sending dry run request to server for torrent {}".format(
             self.torrent_id))
+        log.debug("using settings: {}".format(handler_settings))
         self.toggle_button(button)
         d = client.filebottool.do_dry_run(self.torrent_id, handler_settings)
         d.addCallback(self.log_response)

@@ -68,7 +68,8 @@ FILEBOT_ON_CONFLICT = [
 
 class Error(Exception):
     """Error baseclass for module"""
-    pass
+    def __init__(self, msg=None):
+        self.msg = msg
 
 
 class FilebotArgumentError(Error):
