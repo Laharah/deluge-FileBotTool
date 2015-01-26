@@ -7,7 +7,7 @@
     <property name="default_width">800</property>
     <property name="default_height">500</property>
     <child>
-      <widget class="GtkNotebook" id="notebook1">
+      <widget class="GtkNotebook" id="dialog_notebook">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="homogeneous">True</property>

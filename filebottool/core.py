@@ -280,6 +280,8 @@ class Core(CorePluginBase):
         :return: true or false
         """
         torrent = self.torrent_manager[torrent_id]
+        if not filebot_translation:
+            return True
 
         original_files = torrent.get_files()
         original_save_path = torrent.get_status(["save_path"])["save_path"]
@@ -392,6 +394,8 @@ class Core(CorePluginBase):
         mock-up of what the new files will look like"""
         torrent = self.torrent_manager[torrent_id]
         new_files = list(torrent.get_files())
+        if not translation:
+            return new_files
         _, new_top_level, new_paths = translation
 
         if new_top_level:
@@ -468,7 +472,7 @@ class Core(CorePluginBase):
 
     @export
     @defer.inlineCallbacks
-    def do_rename(self, torrent_id, handler_settings=None, handler=None):
+    def do_rename(self, torrent_ids, handler_settings=None, handler=None):
         """executes a filebot run.
         Args:
             torrent_id: id of torrent to execute against
@@ -486,41 +490,45 @@ class Core(CorePluginBase):
             else:
                 handler = pyfilebot.FilebotHandler()
 
-        target = self._get_filebot_target(torrent_id)
-        log.debug("beginning filebot run on torrent {}, with target {"
-                  "}".format(torrent_id, target))
+        errors = {}
+        for torrent_id in torrent_ids:
+            target = self._get_filebot_target(torrent_id)
+            log.debug("beginning filebot run on torrent {}, with target {"
+                      "}".format(torrent_id, target))
 
-        original_torrent_state = self.torrent_manager[torrent_id].state
-        self.torrent_manager[torrent_id].pause()
+            original_torrent_state = self.torrent_manager[torrent_id].state
+            self.torrent_manager[torrent_id].pause()
 
-        try:
-            filebot_results = yield threads.deferToThread(handler.rename,
-                                                          target)
-        except Exception, err:
-            log.error("FILEBOT ERROR{}".format(err))
-            defer.returnValue((False, err))
-            filebot_results = "ERROR"
-        log.debug("recieved results from filebot: {}".format(filebot_results))
+            try:
+                filebot_results = yield threads.deferToThread(handler.rename,
+                                                              target)
+            except Exception, err:
+                log.error("FILEBOT ERROR{}".format(err))
+                errors[torrent_id] = err
+                filebot_results = ["", {}, {}]
+            log.debug("recieved results from filebot: {}".format(filebot_results))
 
-        deluge_movements = self._translate_filebot_movements(torrent_id,
-                                                             filebot_results[1])
-        if not deluge_movements:
-            if original_torrent_state == "Seeding":
-                self.torrent_manager[torrent_id].resume()
+            deluge_movements = self._translate_filebot_movements(torrent_id,
+                                                                 filebot_results[1])
+            if not deluge_movements:
+                if original_torrent_state == "Seeding":
+                    self.torrent_manager[torrent_id].resume()
+
+            if not self._torrent_safety_check(torrent_id, deluge_movements,
+                                              filebot_results[2]):
+                log.warning("Raname is not safe on torrent {}. Rolling "
+                            "Back and recheking".format(torrent_id))
+                self._rollback(filebot_results, torrent_id)
+                defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
+            if deluge_movements:
+                log.debug("Attempting to re-reoute torrent: {}".format(
+                    deluge_movements))
+                self._redirect_torrent_paths(torrent_id, deluge_movements,
+                    original_state=original_torrent_state)
+        if errors:
+            defer.returnValue((False, errors))
+        else:
             defer.returnValue((True, None))
-
-        if not self._torrent_safety_check(torrent_id, deluge_movements,
-                                          filebot_results[2]):
-            log.warning("Raname is not safe on torrent {}. Rolling "
-                        "Back and recheking".format(torrent_id))
-            self._rollback(filebot_results, torrent_id)
-            defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
-
-        log.debug("Attempting to re-reoute torrent: {}".format(
-            deluge_movements))
-        self._redirect_torrent_paths(torrent_id, deluge_movements,
-                                     original_state=original_torrent_state)
-        defer.returnValue((True, None))
 
     @export
     @defer.inlineCallbacks
@@ -582,16 +590,18 @@ class Core(CorePluginBase):
 
 
     @export
-    def get_rename_dialog_info(self, torrent_id):
+    def get_rename_dialog_info(self, torrent_ids):
         """returns the needed variables and torrent info needed to build a
         rename dialog"""
         log.debug("dialog info requested, packing dialog info.")
         dialog_info = {}
 
-        dialog_info["torrent_id"] = torrent_id
-        torrent = self.torrent_manager[torrent_id]
-        dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])['save_path']
-        dialog_info["files"] = torrent.get_files()
+        dialog_info["torrent_ids"] = torrent_ids
+        if len(torrent_ids) == 1:
+            torrent = self.torrent_manager[torrent_ids[0]]
+            dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])['save_path']
+            dialog_info["files"] = torrent.get_files()
+
         dialog_info["filebot_version"] = self.filebot_version
 
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]

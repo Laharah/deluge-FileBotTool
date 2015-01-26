@@ -62,9 +62,15 @@ class RenameDialog(object):
         Args:
          dialog_settings: A dictionary containing the settings to populate.
         """
-        self.torrent_id = dialog_settings["torrent_id"]
-        self.files = dialog_settings["files"]
-        self.current_torrent_save_path = dialog_settings["torrent_save_path"]
+        self.torrent_ids = dialog_settings["torrent_ids"]
+        self.torrent_id = None
+        self.files = []
+        self.current_torrent_save_path = ""
+        if len(dialog_settings["torrent_ids"]) == 1:
+            self.torrent_id = dialog_settings["torrent_ids"][0]
+            self.files = dialog_settings["files"]
+            self.current_torrent_save_path = dialog_settings["torrent_save_path"]
+
         self.ui_settings = dialog_settings["rename_dialog_last_settings"]
         self.server_filebot_version = dialog_settings["filebot_version"]
 
@@ -75,6 +81,11 @@ class RenameDialog(object):
         self.new_files_treeview = self.glade.get_widget("new_files_treeview")
         self.history_files_treeview = self.glade.get_widget(
             "history_files_treeview")
+
+        if not self.torrent_id:
+            self.glade.get_widget("tree_pane").hide()
+            self.glade.get_widget("dialog_notebook").set_show_tabs(False)
+            self.glade.get_widget("do_dry_run").hide()
 
         self.database_combo = self.glade.get_widget("database_combo")
         self.rename_action_combo = self.glade.get_widget("rename_action_combo")
@@ -378,13 +389,13 @@ class RenameDialog(object):
          them.
         """
         handler_settings = self.collect_dialog_settings()
-        log.info("Sending execute request to server for torrent {}".format(
-            self.torrent_id))
+        log.info("Sending execute request to server for torrents {}".format(
+            self.torrent_ids))
         log.debug("Using settings: {}".format(handler_settings))
         self.toggle_button(button)
 
         client.filebottool.save_rename_dialog_settings(handler_settings)
-        d = client.filebottool.do_rename(self.torrent_id, handler_settings)
+        d = client.filebottool.do_rename(self.torrent_ids, handler_settings)
         d.addCallback(self.log_response)
         d.addCallback(self.rename_complete)
         d.addCallback(self.toggle_button, button)
@@ -457,8 +468,8 @@ class GtkUI(GtkPluginBase):
     def get_torrent_info(self, *args):
         """context menu has been selected on a specific torrent.
         asks server for torrent info and builds rename dialog on reply"""
-        torrent_id = component.get("TorrentView").get_selected_torrent()
-        client.filebottool.get_rename_dialog_info(torrent_id).addCallback(
+        torrent_ids = component.get("TorrentView").get_selected_torrents()
+        client.filebottool.get_rename_dialog_info(torrent_ids).addCallback(
             self.build_rename_dialog)
 
     def build_rename_dialog(self, dialog_info):
