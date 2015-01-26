@@ -90,7 +90,8 @@ class RenameDialog(object):
             "on_toggle_advanced": self.on_toggle_advanced,
             "on_do_dry_run_clicked": self.on_do_dry_run_clicked,
             "on_format_help_clicked": self.on_format_help_clicked,
-            "on_execute_filebot_clicked": self.on_execute_filebot_clicked
+            "on_execute_filebot_clicked": self.on_execute_filebot_clicked,
+            "on_revert_button_clicked": self.on_revert_button_clicked
         }
 
         self.glade.signal_autoconnect(signal_dictionary)
@@ -118,6 +119,8 @@ class RenameDialog(object):
 
         tree_pane = self.glade.get_widget("tree_pane")
         tree_pane.set_position(tree_pane.allocation.width/2)
+        history_pane = self.glade.get_widget("history_pane")
+        history_pane.set_position(history_pane.allocation.width/2)
 
     def build_combo_boxes(self, combo_data):
         """builds the combo boxes for the dialog
@@ -363,6 +366,16 @@ class RenameDialog(object):
         d.addCallback(self.log_response)
         d.addCallback(self.rename_complete)
         d.addCallback(self.toggle_button, button)
+
+    def on_revert_button_clicked(self, button):
+        log.info("Sending revert request to server for torrent {}".format(
+            self.torrent_id))
+        self.toggle_button(button)
+
+        d = client.filebottool.do_revert(self.torrent_id)
+        d.addCallback(self.log_response)
+        d.addCallback(self.toggle_button, button)
+
 
     def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)

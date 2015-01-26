@@ -299,7 +299,7 @@ def revert(targets):
     targets = [os.path.expanduser(os.path.expandvars(target))
                for target in targets]
     _, data, _ = _build_script_arguments("fn:revert", targets)
-    _, file_moves, _ = parse_filebot(data)
+    file_moves = parse_filebot(data)
 
     return file_moves
 

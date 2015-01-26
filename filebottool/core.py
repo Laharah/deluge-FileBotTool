@@ -523,6 +523,45 @@ class Core(CorePluginBase):
         defer.returnValue((True, None))
 
     @export
+    @defer.inlineCallbacks
+    def do_revert(self, torrent_id):
+        targets = self._get_filebot_target(torrent_id)
+        log.debug("reverting torrent {} with targets {}".format(torrent_id,
+                                                                targets))
+        original_torrent_state = self.torrent_manager[torrent_id].state
+        self.torrent_manager[torrent_id].pause()
+        handler = pyfilebot.FilebotHandler()
+        try:
+            filebot_results = yield threads.deferToThread(handler.revert,
+                                                          targets)
+        except Exception, err:
+            log.error("FILEBOT ERROR {}".format(err))
+            defer.returnValue((False, err))
+
+        deluge_movements = self._translate_filebot_movements(torrent_id,
+                                                             filebot_results[1])
+
+        if not deluge_movements:
+            if original_torrent_state == "Seeding":
+                self.torrent_manager[torrent_id].resume()
+            defer.returnValue((True, None))
+
+        if not self._torrent_safety_check(torrent_id, deluge_movements,
+                                          filebot_results[2]):
+            log.warning("Raname is not safe on torrent {}. Rolling "
+                        "Back and recheking".format(torrent_id))
+            self._rollback(filebot_results, torrent_id)
+            defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
+
+        log.debug("Attempting to re-reoute torrent: {}".format(
+            deluge_movements))
+        self._redirect_torrent_paths(torrent_id, deluge_movements,
+                                     original_state=original_torrent_state)
+        defer.returnValue((True, None))
+
+
+
+    @export
     def save_rename_dialog_settings(self, new_settings):
         log.debug("recieved settings from client: {}".format(new_settings))
         for setting in self.config["rename_dialog_last_settings"]:
