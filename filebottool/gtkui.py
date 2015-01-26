@@ -45,6 +45,7 @@ from deluge.ui.client import client
 from deluge.plugins.pluginbase import GtkPluginBase
 import deluge.component as component
 import deluge.common
+from twisted.internet import defer
 
 from common import Log
 from common import get_resource
@@ -72,6 +73,8 @@ class RenameDialog(object):
 
         self.original_files_treeview = self.glade.get_widget("files_treeview")
         self.new_files_treeview = self.glade.get_widget("new_files_treeview")
+        self.history_files_treeview = self.glade.get_widget(
+            "history_files_treeview")
 
         self.database_combo = self.glade.get_widget("database_combo")
         self.rename_action_combo = self.glade.get_widget("rename_action_combo")
@@ -111,7 +114,10 @@ class RenameDialog(object):
                             "Original File Structure at {}".format(
                                 self.current_torrent_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
+        self.init_treestore(self.history_files_treeview, "Current File "
+            "Structure at {}".format(self.current_torrent_save_path))
         self.load_treestore((None, self.files), self.original_files_treeview)
+        self.load_treestore((None, self.files), self.history_files_treeview)
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
 
@@ -119,8 +125,6 @@ class RenameDialog(object):
 
         tree_pane = self.glade.get_widget("tree_pane")
         tree_pane.set_position(tree_pane.allocation.width/2)
-        history_pane = self.glade.get_widget("history_pane")
-        history_pane.set_position(history_pane.allocation.width/2)
 
     def build_combo_boxes(self, combo_data):
         """builds the combo boxes for the dialog
@@ -273,6 +277,24 @@ class RenameDialog(object):
 
         treeview.expand_all()
 
+    @defer.inlineCallbacks
+    def refresh_files(self, *args):
+        """
+        Refreshes the file data from the server and updates the treestore model
+        """
+        log.debug("refreshing filedata for torrent {}".format(self.torrent_id))
+
+        torrent_data = yield client.core.get_torrent_status(self.torrent_id,
+            ["save_path", "files"])
+        log.debug("recieved response from server{}".format(torrent_data))
+        save_path = torrent_data["save_path"]
+        files = torrent_data["files"]
+        self.load_treestore((save_path, files), self.original_files_treeview,
+                            clear=True)
+        self.load_treestore((save_path, files), self.history_files_treeview,
+                            clear=True)
+
+
     def collect_dialog_settings(self):
         """collects the settings on the widgets and serializes them into
         a dict for sending to the server.
@@ -375,6 +397,7 @@ class RenameDialog(object):
         d = client.filebottool.do_revert(self.torrent_id)
         d.addCallback(self.log_response)
         d.addCallback(self.toggle_button, button)
+        d.addCallback(self.refresh_files)
 
 
     def on_format_help_clicked(self, *args):
@@ -460,7 +483,3 @@ class GtkUI(GtkPluginBase):
 
     def on_get_config(self, config):
         self.config = config
-
-    def on_get_version(self, version):
-        "callback for on show_prefs"
-        self.glade.get_widget("filebot_version").set_text(version)
