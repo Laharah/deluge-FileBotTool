@@ -558,10 +558,17 @@ def _execute(process_arguments, workaround=True):
     process_arguments = (["filebot", "--log-file", file_temp.name] +
                          process_arguments)
 
+    if os.name == "nt":  # used to hide cmd window popup
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess._subprocess.STARTF_USESHOWWINDOW
+    else:
+        startupinfo = None
+
     try:
         process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
-                                   stdin=subprocess.PIPE)
+                                   stdin=subprocess.PIPE,
+                                   startupinfo=startupinfo)
     except OSError:
         raise FilebotFatalError("Filebot could not be found!")
 
