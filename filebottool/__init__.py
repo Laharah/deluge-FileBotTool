@@ -47,7 +47,7 @@ class CorePlugin(PluginInitBase):
 
 class GtkUIPlugin(PluginInitBase):
     def __init__(self, plugin_name):
-        from gtkui import GtkUI as _plugin_cls
+        from gtkui.gtkui import GtkUI as _plugin_cls
         self._plugin_cls = _plugin_cls
         super(GtkUIPlugin, self).__init__(plugin_name)
 
