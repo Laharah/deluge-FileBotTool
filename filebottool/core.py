@@ -606,14 +606,24 @@ class Core(CorePluginBase):
 
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]
         dialog_info["rename_dialog_last_settings"] = rename_dialog_last_settings
-
-        dialog_info["valid_databases"] = pyfilebot.FILEBOT_DATABASES
-        dialog_info["valid_rename_actions"] = pyfilebot.FILEBOT_RENAME_ACTIONS
-        dialog_info["valid_on_conflicts"] = pyfilebot.FILEBOT_ON_CONFLICT
-        dialog_info["valid_episode_orders"] = pyfilebot.FILEBOT_ORDERS
+        dialog_info.update(self.get_filebot_valid_values())
 
         log.debug("sending dialog info to client: {}".format(dialog_info))
         return dialog_info
+
+    @export
+    def get_filebot_valid_values(self):
+        """gathers valid arguments to filebot from pyfilebot.
+
+        returns: dictionary of lists in format {"valid_databases": [
+            'imdb'...]...}
+        """
+        valid_args = {}
+        valid_args["valid_databases"] = pyfilebot.FILEBOT_DATABASES
+        valid_args["valid_rename_actions"] = pyfilebot.FILEBOT_RENAME_ACTIONS
+        valid_args["valid_on_conflicts"] = pyfilebot.FILEBOT_ON_CONFLICT
+        valid_args["valid_episode_orders"] = pyfilebot.FILEBOT_ORDERS
+        return valid_args
 
     @export
     def test_function(self):
