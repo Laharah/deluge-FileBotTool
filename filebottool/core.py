@@ -383,7 +383,7 @@ class Core(CorePluginBase):
             if attribute in settings:
                 try:
                     handler.__setattr__(attribute, settings[attribute])
-                except pyfilebot.FilebotArgumentError:
+                except pyfilebot.ValueError:
                     log.warning("{} is not a valid value for {}, "
                                 "skipping...".format(settings[attribute],
                                                      attribute))

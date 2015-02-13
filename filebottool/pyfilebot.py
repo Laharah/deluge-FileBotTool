@@ -71,17 +71,12 @@ class Error(Exception):
     def __init__(self, msg=None):
         self.msg = msg
 
-
-class FilebotArgumentError(Error):
-    """raised when filebot is attempted to run with invalid argument"""
-    pass
-
-
 class FilebotFatalError(Error):
     """raise on a non-recoverable error, such as filebot not found"""
     pass
 
 class FilebotRuntimeError(Error):
+    """raised when filebot has a non-zero exit code"""
     pass
 
 def get_version():
@@ -248,7 +243,7 @@ def get_subtitles(target, language_code=None, encoding=None,
     if output:
         output = output.lower().strip
         if output != 'srt':
-            raise FilebotArgumentError("Only None and srt are valid output "
+            raise ValueError("Only None and srt are valid output "
                                        "arguments for subtitle mode.")
 
     _, data, _ = _build_filebot_arguments(target, mode=mode,
@@ -449,19 +444,19 @@ def _build_filebot_arguments(targets, format_string=None,
         tuple in format '(exit_code, stdoutput, stderr)'
     """
     if not _rename_action_is_valid(rename_action):
-        raise FilebotArgumentError("'{}' is not a valid rename action".format(
+        raise ValueError("'{}' is not a valid rename action".format(
             rename_action))
     if not _order_is_valid(episode_order):
-        raise FilebotArgumentError("'{}' is not a valid episode order".format(
+        raise ValueError("'{}' is not a valid episode order".format(
             episode_order))
     if not _database_is_valid(database):
-        raise FilebotArgumentError("'{}' is not a valid filebot database"
+        raise ValueError("'{}' is not a valid filebot database"
                                    .format(database))
     if not _mode_is_valid(mode):
-        raise FilebotArgumentError("'{}' is not a valid filebot mode".format(
+        raise ValueError("'{}' is not a valid filebot mode".format(
             mode))
     if not _on_conflict_is_valid(on_confilct):
-        raise FilebotArgumentError("'{}' is not a valid conflict resolution."
+        raise ValueError("'{}' is not a valid conflict resolution."
                                    .format(on_confilct))
 
     if not mode.startswith('-'):
@@ -688,7 +683,7 @@ class FilebotHandler(object):
         if _mode_is_valid(value):
             self._mode = value
         else:
-            raise FilebotArgumentError('"{}" is not a valid filebot mode.'
+            raise ValueError('"{}" is not a valid filebot mode.'
                                        .format(value))
 
     @property
@@ -700,7 +695,7 @@ class FilebotHandler(object):
         if _database_is_valid(value):
             self._database = value
         else:
-            raise FilebotArgumentError('"{}" is not a valid filebot database'
+            raise ValueError('"{}" is not a valid filebot database'
                                        .format(value))
 
     @property
@@ -712,7 +707,7 @@ class FilebotHandler(object):
         if _order_is_valid(order):
             self._episode_order = order
         else:
-            raise FilebotArgumentError('"{}" is not a valid episode order'
+            raise ValueError('"{}" is not a valid episode order'
                                        .format(order))
 
     @property
@@ -724,7 +719,7 @@ class FilebotHandler(object):
         if _rename_action_is_valid(action):
             self._rename_action = action
         else:
-            raise FilebotArgumentError('"{}" is not a valid rename action.'
+            raise ValueError('"{}" is not a valid rename action.'
                                        .format(action))
 
     @property
@@ -736,7 +731,7 @@ class FilebotHandler(object):
         if _on_conflict_is_valid(value):
             self._on_conflict = value
         else:
-            raise FilebotArgumentError('"{}" is not a valid conflict '
+            raise ValueError('"{}" is not a valid conflict '
                                        'resolution'.format(value))
 
     def _populate_methods(self):
