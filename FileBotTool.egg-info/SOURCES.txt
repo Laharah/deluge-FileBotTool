@@ -7,9 +7,12 @@ FileBotTool.egg-info/top_level.txt
 filebottool/__init__.py
 filebottool/common.py
 filebottool/core.py
-filebottool/gtkui.py
 filebottool/pyfilebot.py
 filebottool/webui.py
 filebottool/data/config.glade
 filebottool/data/filebottool.js
 filebottool/data/rename.glade
+filebottool/gtkui/__init__.py
+filebottool/gtkui/config_ui.py
+filebottool/gtkui/gtkui.py
+filebottool/gtkui/rename_dialog.py

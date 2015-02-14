@@ -9,7 +9,7 @@ class ConfigUI(object):
     """handles the UI portion of getting and setting preferences"""
     def __init__(self):
         self.glade = gtk.glade.XML(get_resource("config.glade"))
-        self.config_page = self.glade.get_widget("pref_box")
+        self.config_page = self.glade.get_widget("prefs_box")
 
     def populate_settings(self, settings):
         """populates the UI widgets with the given settings"""

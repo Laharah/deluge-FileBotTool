@@ -100,11 +100,12 @@ class GtkUI(GtkPluginBase):
 
     def on_apply_prefs(self):
         log.debug("applying prefs for FileBotTool")
-        self.config = self.config_ui.gather_settings()
+        #self.config.update(self.config_ui.gather_settings())
         client.filebottool.set_config(self.config)
 
     def on_show_prefs(self):
         client.filebottool.get_config().addCallback(self.on_get_config)
 
     def on_get_config(self, config):
+        self.config = config
         self.config_ui.populate_settings(config)
