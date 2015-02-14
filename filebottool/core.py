@@ -452,7 +452,7 @@ class Core(CorePluginBase):
         try:
             filebot_results = yield threads.deferToThread(handler.rename,
                                                           target)
-        except pyfilebot.FilebotRuntimeError, err:
+        except pyfilebot.FilebotRuntimeError as err:
             log.error("FILEBOT ERROR: {}".format(err.msg))
             defer.returnValue(("FILEBOT ERROR", err.msg))
         log.debug("recieved results from filebot: {}".format(filebot_results))
@@ -508,7 +508,7 @@ class Core(CorePluginBase):
             try:
                 filebot_results = yield threads.deferToThread(handler.rename,
                                                               target)
-            except Exception, err:
+            except pyfilebot.FilebotRuntimeError as err:
                 log.error("FILEBOT ERROR{}".format(err))
                 errors[torrent_id] = (str(err), err.msg)
                 filebot_results = ["", {}, {}]

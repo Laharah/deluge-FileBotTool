@@ -12,6 +12,8 @@ from twisted.internet import defer
 from filebottool.common import Log
 from filebottool.common import get_resource
 from filebottool.gtkui.handler_ui import HandlerUI
+import info_dialog
+
 
 log = Log()
 
@@ -256,6 +258,8 @@ class RenameDialog(object):
             self.window.destroy()
         else:
             log.warning("rename failed with message: {}".format(msg))
+            error_warning = info_dialog.InfoDialog("Filebot Error", msg)
+
 
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
