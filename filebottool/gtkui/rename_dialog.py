@@ -11,6 +11,7 @@ from twisted.internet import defer
 
 from filebottool.common import Log
 from filebottool.common import get_resource
+from filebottool.gtkui.handler_ui import HandlerUI
 
 log = Log()
 
@@ -37,6 +38,7 @@ class RenameDialog(object):
         self.server_filebot_version = dialog_settings["filebot_version"]
 
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
+        self.handler_ui = HandlerUI(self.glade, self.ui_settings)
         self.window = self.glade.get_widget("rename_dialog")
 
         self.original_files_treeview = self.glade.get_widget("files_treeview")
@@ -51,19 +53,6 @@ class RenameDialog(object):
             self.glade.get_widget("query_entry").set_sensitive(False)
             self.glade.get_widget("query_label").set_sensitive(False)
 
-        self.database_combo = self.glade.get_widget("database_combo")
-        self.rename_action_combo = self.glade.get_widget("rename_action_combo")
-        self.on_conflict_combo = self.glade.get_widget("on_conflict_combo")
-        self.episode_order_combo = self.glade.get_widget("episode_order_combo")
-
-        self.format_string_entry = self.glade.get_widget("format_string_entry")
-        self.query_entry = self.glade.get_widget("query_entry")
-        self.download_subs_checkbox = self.glade.get_widget(
-            "download_subs_checkbox")
-        self.language_code_entry = self.glade.get_widget("language_code_entry")
-        self.encoding_entry = self.glade.get_widget("encoding_entry")
-        self.output_entry = self.glade.get_widget("output_entry")
-
         signal_dictionary = {
             "on_toggle_advanced": self.on_toggle_advanced,
             "on_do_dry_run_clicked": self.on_do_dry_run_clicked,
@@ -74,16 +63,18 @@ class RenameDialog(object):
 
         self.glade.signal_autoconnect(signal_dictionary)
 
-        combo_data = {}
-        for key in dialog_settings:
-            try:
-                if key.startswith('valid_'):
-                    combo_data[key] = dialog_settings[key]
-            except KeyError:
-                pass
+        self.glade.get_widget("filebot_version").set_text(
+            self.server_filebot_version)
 
-        self.build_combo_boxes(combo_data)
-        self.populate_with_settings(self.ui_settings)
+        advanced_options = self.glade.get_widget("advanced_options")
+        if advanced_options.get_visible() != dialog_settings[
+            "rename_dialog_last_settings"]["show_advanced"]:
+            self.on_toggle_advanced()
+
+        download_subs = self.handler_ui.download_subs_checkbox
+        if download_subs.get_active() != dialog_settings[
+            "rename_dialog_last_settings"]["download_subs"]:
+            self.on_download_subs_toggled()
 
         self.init_treestore(self.original_files_treeview,
                             "Original File Structure at {}".format(
@@ -100,91 +91,6 @@ class RenameDialog(object):
 
         tree_pane = self.glade.get_widget("tree_pane")
         tree_pane.set_position(tree_pane.allocation.width/2)
-
-    def build_combo_boxes(self, combo_data):
-        """builds the combo boxes for the dialog
-        Args:
-          combo_data: dict of data to be loaded into combo boxes
-        """
-        log.debug("building database combo box")
-        databases = combo_data["valid_databases"]
-        self.inflate_list_store_combo(databases, self.database_combo)
-
-        log.debug("building rename action combo box")
-        rename_actions = combo_data["valid_rename_actions"]
-        self.inflate_list_store_combo(rename_actions, self.rename_action_combo)
-
-        log.debug("building on conflict combo box")
-        on_conflicts = combo_data["valid_on_conflicts"]
-        self.inflate_list_store_combo(on_conflicts, self.on_conflict_combo)
-
-        log.debug("building episode order combo box")
-        episode_orders = combo_data["valid_episode_orders"]
-        self.inflate_list_store_combo(episode_orders, self.episode_order_combo)
-
-    def inflate_list_store_combo(self, model_data, combo_widget):
-        """inflates an individual combo box
-        Args:
-          model_data: data to be loaded into a list store (list)
-          combo_widget: the widget to load data into.
-        """
-        list_store = gtk.ListStore(str)
-        for datum in model_data:
-            list_store.append([datum])
-
-        combo_widget.set_model(list_store)
-        renderer = gtk.CellRendererText()
-        combo_widget.pack_start(renderer, expand=True)
-        combo_widget.add_attribute(renderer, "text", 0)
-
-    def populate_with_settings(self, settings):
-        """presets the window with the last settings used in the plugin
-        Args:
-          settings: The settings dict given by the server.
-        """
-        log.debug("Previous settings received: {}".format(settings))
-        self.glade.get_widget("filebot_version").set_text(
-            self.server_filebot_version)
-
-        combo_value_pairs = [
-            (self.database_combo, settings["database"]),
-            (self.rename_action_combo, settings["rename_action"]),
-            (self.on_conflict_combo, settings["on_conflict"]),
-            (self.episode_order_combo, settings["episode_order"])
-        ]
-
-        log.debug("Setting combo boxes")
-        for combo, value in combo_value_pairs:
-            combo_model = combo.get_model()
-            value_index = [index for index, row in enumerate(combo_model)
-                           if row[0] == value][0]
-            if not value_index:
-                log.warning("could not set {0} to value {1}, value {1} could "
-                            "not be found in {0}".format(combo, value))
-            else:
-                combo.set_active(value_index)
-
-        entry_value_pairs = [
-            (self.format_string_entry, settings["format_string"]),
-            (self.encoding_entry, settings["encoding"]),
-            (self.language_code_entry, settings["language_code"]),
-            (self.query_entry, settings["query_override"]),
-            (self.output_entry, settings["output"])
-        ]
-
-        log.debug("Setting entry widgets")
-        for entry, value in entry_value_pairs:
-            if value:
-                entry.set_text(value)
-
-        log.debug("Setting advanced and subs widgets")
-        advanced_options = self.glade.get_widget("advanced_options")
-        if advanced_options.get_visible() != settings["show_advanced"]:
-            self.on_toggle_advanced()
-
-        if self.download_subs_checkbox.get_active() != settings[
-            "download_subs"]:
-            self.on_download_subs_toggled()
 
     def init_treestore(self, treeview, header):
         """builds the treestore that will be used to hold the files info
@@ -269,43 +175,6 @@ class RenameDialog(object):
         self.load_treestore((save_path, files), self.history_files_treeview,
                             clear=True)
 
-
-    def collect_dialog_settings(self):
-        """collects the settings on the widgets and serializes them into
-        a dict for sending to the server.
-        returns: a dictionary containing the user's setting values
-        """
-        settings = {}
-
-        combos = {
-            "database": self.database_combo,
-            "rename_action": self.rename_action_combo,
-            "on_conflict": self.on_conflict_combo,
-            "episode_order": self.episode_order_combo
-        }
-        for setting in combos:
-            combo_model = combos[setting].get_model()
-            iter = combos[setting].get_active_iter()
-            if iter:
-                settings[setting] = combo_model[iter][0]
-
-        entries = {
-            "format_string": self.format_string_entry,
-            "encoding": self.encoding_entry,
-            "language_code": self.language_code_entry,
-            "query_override": self.query_entry,
-            "output": self.output_entry
-        }
-        for setting in entries:
-            settings[setting] = entries[setting].get_text()
-
-        settings["show_advanced"] = self.glade.get_widget(
-            "advanced_options").get_visible()
-        settings["download_subs"] = self.download_subs_checkbox.get_active()
-
-        log.debug("Collected settings for server: {}".format(settings))
-        return settings
-
     #  Section: UI actions
 
     def on_download_subs_toggled(self, *args):
@@ -339,7 +208,7 @@ class RenameDialog(object):
         executes a dry run to show the user how the torrent is expected to
         look after filebot run.
         """
-        handler_settings = self.collect_dialog_settings()
+        handler_settings = self.handler_ui.collect_dialog_settings()
         log.info("sending dry run request to server for torrent {}".format(
             self.torrent_id))
         log.debug("using settings: {}".format(handler_settings))
@@ -353,7 +222,7 @@ class RenameDialog(object):
         """collects and sends settings, and tells server to execute run using
          them.
         """
-        handler_settings = self.collect_dialog_settings()
+        handler_settings = self.handler_ui.collect_dialog_settings()
         log.info("Sending execute request to server for torrents {}".format(
             self.torrent_ids))
         log.debug("Using settings: {}".format(handler_settings))
