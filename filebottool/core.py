@@ -526,8 +526,9 @@ class Core(CorePluginBase):
                 log.warning("Raname is not safe on torrent {}. "
                             "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
-                defer.returnValue((False,
-                                   "Rename is not torrent safe. Rechecking"))
+                errors[torrent_id] = ("Rollback", "problem with moving "
+                                                  "torrent, rolling back.")
+                continue
             if deluge_movements:
                 log.debug("Attempting to re-reoute torrent: {}".format(
                     deluge_movements))
