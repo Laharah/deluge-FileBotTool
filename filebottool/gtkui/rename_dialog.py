@@ -28,11 +28,11 @@ class RenameDialog(object):
         self.torrent_ids = dialog_settings["torrent_ids"]
         self.torrent_id = None
         self.files = []
-        self.current_torrent_save_path = ""
+        self.current_save_path = ""
         if len(dialog_settings["torrent_ids"]) == 1:
             self.torrent_id = dialog_settings["torrent_ids"][0]
             self.files = dialog_settings["files"]
-            self.current_torrent_save_path = dialog_settings["torrent_save_path"]
+            self.current_save_path = dialog_settings["torrent_save_path"]
 
         self.ui_settings = dialog_settings["rename_dialog_last_settings"]
         self.server_filebot_version = dialog_settings["filebot_version"]
@@ -79,10 +79,10 @@ class RenameDialog(object):
 
         self.init_treestore(self.original_files_treeview,
                             "Original File Structure at {}".format(
-                                self.current_torrent_save_path))
+                                self.current_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
         self.init_treestore(self.history_files_treeview, "Current File "
-            "Structure at {}".format(self.current_torrent_save_path))
+            "Structure at {}".format(self.current_save_path))
         self.load_treestore((None, self.files), self.original_files_treeview)
         self.load_treestore((None, self.files), self.history_files_treeview)
         treeview = self.glade.get_widget("files_treeview")
@@ -150,11 +150,11 @@ class RenameDialog(object):
                             parent = None
 
                         if path_parts[path_depth] == os.path.basename(path):
-                            model.append(parent, [str(index), path_parts[
-                                path_depth]])
+                            model.append(
+                                parent, [str(index), path_parts[path_depth]])
                         else:
-                            folder_iterator = model.append(parent,
-                                                           ['', path_parts[path_depth]])
+                            folder_iterator = model.append(
+                                parent,['', path_parts[path_depth]])
                             folder_iterators[path_depth] = folder_iterator
 
         treeview.expand_all()

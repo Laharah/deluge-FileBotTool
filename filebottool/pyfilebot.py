@@ -683,8 +683,7 @@ class FilebotHandler(object):
         if _mode_is_valid(value):
             self._mode = value
         else:
-            raise ValueError('"{}" is not a valid filebot mode.'
-                                       .format(value))
+            raise ValueError('"{}" is not a valid filebot mode.'.format(value))
 
     @property
     def database(self):
@@ -695,8 +694,8 @@ class FilebotHandler(object):
         if _database_is_valid(value):
             self._database = value
         else:
-            raise ValueError('"{}" is not a valid filebot database'
-                                       .format(value))
+            raise ValueError('"{}" is not a valid filebot database'.format(
+                value))
 
     @property
     def episode_order(self):
@@ -707,8 +706,7 @@ class FilebotHandler(object):
         if _order_is_valid(order):
             self._episode_order = order
         else:
-            raise ValueError('"{}" is not a valid episode order'
-                                       .format(order))
+            raise ValueError('"{}" is not a valid episode order'.format(order))
 
     @property
     def rename_action(self):
@@ -719,8 +717,8 @@ class FilebotHandler(object):
         if _rename_action_is_valid(action):
             self._rename_action = action
         else:
-            raise ValueError('"{}" is not a valid rename action.'
-                                       .format(action))
+            raise ValueError('"{}" is not a valid rename action.'.format(
+                action))
 
     @property
     def on_conflict(self):
@@ -731,8 +729,8 @@ class FilebotHandler(object):
         if _on_conflict_is_valid(value):
             self._on_conflict = value
         else:
-            raise ValueError('"{}" is not a valid conflict '
-                                       'resolution'.format(value))
+            raise ValueError('"{}" is not a valid conflict resolution'.format(
+                value))
 
     def _populate_methods(self):
         """populates the class methods with public functions from the module"""

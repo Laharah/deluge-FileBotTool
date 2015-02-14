@@ -66,7 +66,9 @@ DEFAULT_PREFS = {
         "download_subs": False,
         "language_code": None,
         "encoding": "UTF-8"
-    }
+    },
+    "saved_handlers": {},
+    "plugin_preferences": {}
 }
 
 
@@ -74,11 +76,13 @@ class Core(CorePluginBase):
     """The Plugin Core"""
 
     def enable(self):
-        self.config = deluge.configmanager.ConfigManager("filebottool.conf", DEFAULT_PREFS)
+        self.config = deluge.configmanager.ConfigManager(
+            "filebottool.conf", DEFAULT_PREFS)
 
         try:
             self.filebot_version = pyfilebot.get_version()
-            log.info("Filebot Found with version {}".format(self.filebot_version))
+            log.info("Filebot Found with version {}".format(
+                self.filebot_version))
         except pyfilebot.FilebotFatalError:
             log.error("Filebot cannot be found!")
             self.filebot_version = None
@@ -186,11 +190,12 @@ class Core(CorePluginBase):
         renames = {}
         for f in current_files:
             renames[self._get_full_os_path(current_save_path, f["path"])] = {
-                "index": f["index"]}
+                "index": f["index"]
+            }
 
         #  compact the relative moves filebot returns into absolute paths
-        filebot_moves = [(m[0], os.path.abspath(os.path.join(os.path.dirname(
-            m[0]), m[1]))) for m in filebot_moves]
+        filebot_moves = [(m[0], os.path.abspath(os.path.join(
+            os.path.dirname(m[0]), m[1]))) for m in filebot_moves]
 
         #  cross-reference
         for old, new in filebot_moves:
@@ -216,8 +221,8 @@ class Core(CorePluginBase):
         if gcd:
             new_save_path = os.path.dirname(gcd)
         else:
-            new_save_path = os.path.dirname(renames[renames.keys()[0]][
-                "new_path"])
+            new_save_path = os.path.dirname(
+                renames[renames.keys()[0]]["new_path"])
 
         #  build filemove tuples by striping out new_save_path
         #  spliting on sep, and joining with '/'
@@ -308,7 +313,8 @@ class Core(CorePluginBase):
         for original_path, new_path in zip(original_paths, new_paths):
             if new_path == original_path:
                 continue
-            if original_path not in skipped_files and new_path not in extra_files:
+            if (original_path not in skipped_files and
+                    new_path not in extra_files):
                 continue
             if os.path.exists(new_path):
                 return False
@@ -456,7 +462,7 @@ class Core(CorePluginBase):
             new_save_path = self.torrent_manager[torrent_id].get_status(
                 ["save_path"])["save_path"]
             defer.returnValue((new_save_path, self.torrent_manager[
-                torrent_id].get_files()))
+                               torrent_id].get_files()))
 
         log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
         new_save_path = deluge_movements[0]
@@ -506,20 +512,22 @@ class Core(CorePluginBase):
                 log.error("FILEBOT ERROR{}".format(err))
                 errors[torrent_id] = (str(err), err.msg)
                 filebot_results = ["", {}, {}]
-            log.debug("recieved results from filebot: {}".format(filebot_results))
+            log.debug("recieved results from filebot: {}".format(
+                filebot_results))
 
-            deluge_movements = self._translate_filebot_movements(torrent_id,
-                                                                 filebot_results[1])
+            deluge_movements = self._translate_filebot_movements(
+                torrent_id, filebot_results[1])
             if not deluge_movements:
                 if original_torrent_state == "Seeding":
                     self.torrent_manager[torrent_id].resume()
 
             if not self._torrent_safety_check(torrent_id, deluge_movements,
                                               filebot_results[2]):
-                log.warning("Raname is not safe on torrent {}. Rolling "
-                            "Back and recheking".format(torrent_id))
+                log.warning("Raname is not safe on torrent {}. "
+                            "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
-                defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
+                defer.returnValue((False,
+                                   "Rename is not torrent safe. Rechecking"))
             if deluge_movements:
                 log.debug("Attempting to re-reoute torrent: {}".format(
                     deluge_movements))
@@ -556,8 +564,8 @@ class Core(CorePluginBase):
 
         if not self._torrent_safety_check(torrent_id, deluge_movements,
                                           filebot_results[2]):
-            log.warning("Raname is not safe on torrent {}. Rolling "
-                        "Back and recheking".format(torrent_id))
+            log.warning("Raname is not safe on torrent {}. "
+                        "Rolling Back and recheking".format(torrent_id))
             self._rollback(filebot_results, torrent_id)
             defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
 
@@ -577,8 +585,8 @@ class Core(CorePluginBase):
                 if new_settings[setting] != None:
                     self.config["rename_dialog_last_settings"][setting] = (
                         new_settings[setting])
-                    log.debug("setting saved: {} : {}".format(setting,
-                        new_settings[setting]))
+                    log.debug("setting saved: {} : {}".format(
+                        setting, new_settings[setting]))
                 else:
                     self.config["rename_dialog_last_settings"][setting] = None
             except KeyError:
@@ -599,7 +607,8 @@ class Core(CorePluginBase):
         dialog_info["torrent_ids"] = torrent_ids
         if len(torrent_ids) == 1:
             torrent = self.torrent_manager[torrent_ids[0]]
-            dialog_info["torrent_save_path"] = torrent.get_status(['save_path'])['save_path']
+            dialog_info["torrent_save_path"] = torrent.get_status(
+                ['save_path'])['save_path']
             dialog_info["files"] = torrent.get_files()
 
         dialog_info["filebot_version"] = self.filebot_version
