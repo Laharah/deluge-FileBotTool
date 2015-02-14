@@ -58,7 +58,8 @@ class RenameDialog(object):
             "on_do_dry_run_clicked": self.on_do_dry_run_clicked,
             "on_format_help_clicked": self.on_format_help_clicked,
             "on_execute_filebot_clicked": self.on_execute_filebot_clicked,
-            "on_revert_button_clicked": self.on_revert_button_clicked
+            "on_revert_button_clicked": self.on_revert_button_clicked,
+            "on_download_subs_toggled": self.on_download_subs_toggled,
         }
 
         self.glade.signal_autoconnect(signal_dictionary)
@@ -72,8 +73,8 @@ class RenameDialog(object):
             self.on_toggle_advanced()
 
         download_subs = self.handler_ui.download_subs_checkbox
-        if download_subs.get_active() != dialog_settings[
-            "rename_dialog_last_settings"]["download_subs"]:
+        if download_subs.get_active() != self.glade.get_widget(
+                "subs_options").get_sensitive():
             self.on_download_subs_toggled()
 
         self.init_treestore(self.original_files_treeview,

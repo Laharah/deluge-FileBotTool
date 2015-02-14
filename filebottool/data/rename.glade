@@ -174,7 +174,7 @@
                             <child>
                               <widget class="GtkComboBox" id="database_combo">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -202,7 +202,7 @@
                                 <child>
                                   <widget class="GtkComboBox" id="rename_action_combo">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can_focus">True</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
@@ -312,7 +312,7 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkHBox" id="hbox8">
+                  <widget class="GtkHBox" id="buttons_hbox">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
@@ -469,7 +469,7 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkAlignment" id="alignment2">
+                  <widget class="GtkAlignment" id="advanced_aligment">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="left_padding">15</property>
@@ -525,7 +525,7 @@
                             <child>
                               <widget class="GtkComboBox" id="episode_order_combo">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
                               </widget>
                               <packing>
                                 <property name="expand">True</property>
@@ -563,7 +563,7 @@
                             <child>
                               <widget class="GtkComboBox" id="on_conflict_combo">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
