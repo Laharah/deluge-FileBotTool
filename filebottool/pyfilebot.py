@@ -217,7 +217,8 @@ def test_format_string(format_string=None,
 
 def get_subtitles(target, language_code=None, encoding=None,
                   force=False, output=None):
-    """Gets subtitles for a given *target*
+    """
+    convenience function, Gets subtitles for a given *target*
 
     Will use filebot to download subtitles from OpenSubtitles.org using
     the file hash. By default, it will only download subtitles if the
