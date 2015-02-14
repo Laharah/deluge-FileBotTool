@@ -17,4 +17,5 @@ filebottool/gtkui/common.py
 filebottool/gtkui/config_ui.py
 filebottool/gtkui/gtkui.py
 filebottool/gtkui/handler_ui.py
+filebottool/gtkui/info_dialog.py
 filebottool/gtkui/rename_dialog.py

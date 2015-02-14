@@ -10,7 +10,7 @@ class InfoDialog(gtk.Dialog):
     """
     def __init__(self, title, message, parent=None, modal=False):
         gtk.Dialog.__init__(self, title, parent, 0,
-                            (gtk.STOCK_OK, gtk.ResponseType.OK))
+                            (gtk.STOCK_OK, 1))
         self.message = message
         label = gtk.Label(message)
         self.get_content_area().add(label)
