@@ -512,11 +512,13 @@ class Core(CorePluginBase):
                 log.error("FILEBOT ERROR{}".format(err))
                 errors[torrent_id] = (str(err), err.msg)
                 filebot_results = ["", {}, {}]
+
             log.debug("recieved results from filebot: {}".format(
                 filebot_results))
 
             deluge_movements = self._translate_filebot_movements(
                 torrent_id, filebot_results[1])
+
             if not deluge_movements:
                 if original_torrent_state == "Seeding":
                     self.torrent_manager[torrent_id].resume()
@@ -526,13 +528,16 @@ class Core(CorePluginBase):
                 log.warning("Raname is not safe on torrent {}. "
                             "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
-                errors[torrent_id] = ("Rollback", "problem with moving "
-                                                  "torrent, rolling back.")
+                errors[torrent_id] = (
+                    "Rollback", "Problem with moving torrent {}. Rolling back "
+                    "to previous state and rechecking.".format(
+                        self.torrent_manager[torrent_id].get_name()))
                 continue
             if deluge_movements:
                 log.debug("Attempting to re-reoute torrent: {}".format(
                     deluge_movements))
-                self._redirect_torrent_paths(torrent_id, deluge_movements,
+                self._redirect_torrent_paths(
+                    torrent_id, deluge_movements,
                     original_state=original_torrent_state)
         if errors:
             defer.returnValue((False, errors))
@@ -542,6 +547,8 @@ class Core(CorePluginBase):
     @export
     @defer.inlineCallbacks
     def do_revert(self, torrent_id):
+        """calls filebottool.revert() on files in a torrent. Will only allow
+        one torrent at a time"""
         targets = self._get_filebot_target(torrent_id)
         log.debug("reverting torrent {} with targets {}".format(torrent_id,
                                                                 targets))
