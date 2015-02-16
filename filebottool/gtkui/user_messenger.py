@@ -1,9 +1,14 @@
+"""
+Classes and functions for displaying error/warning/info dialogs to the user.
+"""
 __author__ = 'jaredanderson'
+
 
 import gtk
 from filebottool.common import Log
 
 log = Log()
+
 
 class UserMessenger(object):
     """
@@ -17,14 +22,15 @@ class UserMessenger(object):
         Given a dictionary of errors, display them as a dialog for the user.
         :param errors:dictionary in format {torrent_id; (error, error_message)
             OR tuple in format (errortype, error_message)
+        :param parent: Optional parent of the new dialog displayed.
+        :param modal: Make dialog modal
         :return:
         """
         if isinstance(errors, tuple):
             errors = {0: errors}
 
-
         message = ("One or more errors occurred in FileBotTool. Click \"Show"
-            " Details\" for more info.")
+                   " Details\" for more info.")
         dialog = InfoDialog("FilebotTool Error", message, parent, modal)
         dialog.error_details = self.format_errors(errors)
 
@@ -32,7 +38,7 @@ class UserMessenger(object):
 
         def _show_details(button):
             detail_dialog = DetailDialog("FilebotTool Errors",
-                                        dialog.error_details)
+                                         dialog.error_details)
             detail_dialog.run()
             detail_dialog.destroy()
 
@@ -47,17 +53,23 @@ class UserMessenger(object):
         dialog.destroy()
         return response
 
-    def format_errors(self, errors):
-        """formats errors into human_readable text."""
+    @staticmethod
+    def format_errors(errors):
+        """
+        formats errors into human_readable text.
+
+        :param errors: dictionary in format {torrent_id: (error, error_msg),...}
+        """
         error_list = []
 
-        for id in errors:
-            if id != 0:
-                text = "{} error on torrent {}:\n".format(errors[id][0], id)
+        for torrent_id in errors:
+            if torrent_id != 0:
+                text = "{} error on torrent {}:\n".format(
+                    errors[torrent_id][0], torrent_id)
             else:
-                text = "{} error:\n".format(errors[id][0])
+                text = "{} error:\n".format(errors[torrent_id][0])
 
-            text += "    {}".format(errors[id][1])
+            text += "    {}".format(errors[torrent_id][1])
             error_list.append(text)
 
         return '\n'.join(error_list)
@@ -79,6 +91,7 @@ class InfoDialog(gtk.Dialog):
         label = gtk.Label(message)
         self.get_content_area().add(label)
         self.show_all()
+
 
 class DetailDialog(gtk.Dialog):
     """A version of dialog that has a text field for displaying details"""
