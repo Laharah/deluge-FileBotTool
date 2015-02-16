@@ -12,7 +12,7 @@ from twisted.internet import defer
 from filebottool.common import Log
 from filebottool.common import get_resource
 from filebottool.gtkui.handler_ui import HandlerUI
-import info_dialog
+import user_messenger
 
 
 log = Log()
@@ -27,6 +27,7 @@ class RenameDialog(object):
         Args:
          dialog_settings: A dictionary containing the settings to populate.
         """
+        self.messanger = user_messenger.UserMessenger()
         self.torrent_ids = dialog_settings["torrent_ids"]
         self.torrent_id = None
         self.files = []
@@ -253,12 +254,16 @@ class RenameDialog(object):
         log.debug('Format expression info button was clicked')
 
     def rename_complete(self, (success, msg)):
+        """
+        Executed when do_rename has returned from server. Reports errors as
+        well.
+        """
         if success:
             log.debug("Rename Completed.")
             self.window.destroy()
         else:
             log.warning("rename failed with message: {}".format(msg))
-            error_warning = info_dialog.InfoDialog("Filebot Error", msg)
+            error_warning = self.messanger.display_error(msg)
 
 
     def log_response(self, response):
