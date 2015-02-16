@@ -24,14 +24,12 @@ FILEBOT_MODES = [
     'mediainfo'
 ]
 
-
 FILEBOT_ORDERS = [
     None,
     "dvd",
     "airdate",
     "absolute"
 ]
-
 
 FILEBOT_DATABASES = [
     None,
@@ -45,7 +43,6 @@ FILEBOT_DATABASES = [
     'ID3 Tags'
 ]
 
-
 FILEBOT_RENAME_ACTIONS = [
     None,
     'move',
@@ -57,7 +54,6 @@ FILEBOT_RENAME_ACTIONS = [
     'test'
 ]
 
-
 FILEBOT_ON_CONFLICT = [
     None,
     'override',
@@ -68,16 +64,20 @@ FILEBOT_ON_CONFLICT = [
 
 class Error(Exception):
     """Error baseclass for module"""
+
     def __init__(self, msg=None):
         self.msg = msg
+
 
 class FilebotFatalError(Error):
     """raise on a non-recoverable error, such as filebot not found"""
     pass
 
+
 class FilebotRuntimeError(Error):
     """raised when filebot has a non-zero exit code"""
     pass
+
 
 def get_version():
     """returns the filebot version string. Usefull for testing if filebot is
@@ -136,7 +136,7 @@ def rename(targets, format_string=None, database=None, output=None,
                                  query_override=query_override,
                                  non_strict=non_strict, recursive=recursive))
 
-    #  TODO:better error handling
+    # TODO:better error handling
 
     if exit_code != 0:
         raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{}".format(
@@ -245,7 +245,7 @@ def get_subtitles(target, language_code=None, encoding=None,
         output = output.lower().strip
         if output != 'srt':
             raise ValueError("Only None and srt are valid output "
-                                       "arguments for subtitle mode.")
+                             "arguments for subtitle mode.")
 
     _, data, _ = _build_filebot_arguments(target, mode=mode,
                                           language_code=language_code,
@@ -452,13 +452,13 @@ def _build_filebot_arguments(targets, format_string=None,
             episode_order))
     if not _database_is_valid(database):
         raise ValueError("'{}' is not a valid filebot database"
-                                   .format(database))
+                         .format(database))
     if not _mode_is_valid(mode):
         raise ValueError("'{}' is not a valid filebot mode".format(
             mode))
     if not _on_conflict_is_valid(on_confilct):
         raise ValueError("'{}' is not a valid conflict resolution."
-                                   .format(on_confilct))
+                         .format(on_confilct))
 
     if not mode.startswith('-'):
         mode = '-' + mode
@@ -743,10 +743,12 @@ class FilebotHandler(object):
 
     def _add_function_as_method(self, func_name, func):
         """used to add a module function as a method for this class"""
+
         @functools.wraps(func)
         def function_template(self, *args, **kwargs):
             """template for added methods"""
             return self._pass_to_function(func, *args, **kwargs)
+
         setattr(FilebotHandler, func_name, MethodType(function_template, None,
                                                       FilebotHandler))
 

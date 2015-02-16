@@ -21,7 +21,7 @@ class UserMessenger(object):
         """
         Given a dictionary of errors, display them as a dialog for the user.
         :param errors:dictionary in format {torrent_id; (error, error_message)
-            OR tuple in format (errortype, error_message)
+            OR tuple in format (error, error_message)
         :param parent: Optional parent of the new dialog displayed.
         :param modal: Make dialog modal
         :return:
