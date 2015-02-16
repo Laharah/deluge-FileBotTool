@@ -263,7 +263,7 @@ class RenameDialog(object):
             self.window.destroy()
         else:
             log.warning("rename failed with message: {}".format(msg))
-            error_warning = self.messanger.display_error(msg)
+            self.messanger.display_error(msg)
 
 
     def log_response(self, response):

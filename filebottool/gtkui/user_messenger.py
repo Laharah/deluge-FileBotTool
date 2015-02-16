@@ -1,6 +1,9 @@
 __author__ = 'jaredanderson'
 
 import gtk
+from filebottool.common import Log
+
+log = Log()
 
 class UserMessenger(object):
     """
@@ -20,16 +23,29 @@ class UserMessenger(object):
             errors = {0: errors}
 
 
-        message = """One or more errors occurred in FileBotTool. Click
-                  \"Show Details\" for more info."""
+        message = ("One or more errors occurred in FileBotTool. Click \"Show"
+            " Details\" for more info.")
         dialog = InfoDialog("FilebotTool Error", message, parent, modal)
         dialog.error_details = self.format_errors(errors)
 
         info_button = gtk.Button("Show Details")
-        info_button.connect("clicked", self._show_details)
+
+        def _show_details(button):
+            detail_dialog = DetailDialog("FilebotTool Errors",
+                                        dialog.error_details)
+            detail_dialog.run()
+            detail_dialog.destroy()
+
+        info_button.connect("clicked", _show_details)
         dialog.action_area.pack_start(info_button)
+        dialog.action_area.reorder_child(info_button, 0)
         info_button.show()
-        return dialog.run()
+
+        response = None
+        while response not in [gtk.RESPONSE_OK, gtk.RESPONSE_DELETE_EVENT]:
+            response = dialog.run()
+        dialog.destroy()
+        return response
 
     def format_errors(self, errors):
         """formats errors into human_readable text."""
@@ -37,7 +53,7 @@ class UserMessenger(object):
 
         for id in errors:
             if id != 0:
-                text = "{} error on torrent{}:\n".format(errors[id][0], id)
+                text = "{} error on torrent {}:\n".format(errors[id][0], id)
             else:
                 text = "{} error:\n".format(errors[id][0])
 
@@ -46,10 +62,6 @@ class UserMessenger(object):
 
         return '\n'.join(error_list)
 
-    def _show_details(self, button):
-        dialog = button.get_parent_window()
-        DetailDialog("FilebotTool Errors", dialog.error_details)
-        dialog.destroy()
 
 class InfoDialog(gtk.Dialog):
     """
@@ -77,9 +89,10 @@ class DetailDialog(gtk.Dialog):
             modal = 0
         gtk.Dialog.__init__(self, title, parent, modal,
                             (gtk.STOCK_OK, gtk.RESPONSE_OK))
-        self.details = gtk.TextBuffer().set_text(details)
-        self.text_view = gtk.TextView(details)
-        scrolled_window = gtk.ScrolledWindow()
-        scrolled_window.add(self.text_view)
-        self.get_content_area().add(scrolled_window)
+        self.text_view = gtk.TextView()
+        log.debug("setting details text to:".format(details))
+        self.text_view.get_buffer().set_text(details)
+        self.text_view.set_editable(False)
+        self.text_view.set_cursor_visible(False)
+        self.get_content_area().add(self.text_view)
         self.show_all()

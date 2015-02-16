@@ -529,9 +529,10 @@ class Core(CorePluginBase):
                             "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
                 errors[torrent_id] = (
-                    "Rollback", "Problem with moving torrent {}. Rolling back "
-                    "to previous state and rechecking.".format(
-                        self.torrent_manager[torrent_id].get_name()))
+                    "Rollback", "Problem with moving torrent \"{}\". Rolling "
+                "back to previous state and rechecking.".format(
+                        self.torrent_manager[torrent_id].get_status(
+                            ["name"])["name"]))
                 continue
             if deluge_movements:
                 log.debug("Attempting to re-reoute torrent: {}".format(
