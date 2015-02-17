@@ -56,7 +56,7 @@ class UserMessenger(object):
     @staticmethod
     def format_errors(errors):
         """
-        formats errors into human_readable text.
+        formats errors into a human readable text blob.
 
         :param errors: dictionary in format {torrent_id: (error, error_msg),...}
         """
@@ -103,7 +103,6 @@ class DetailDialog(gtk.Dialog):
         gtk.Dialog.__init__(self, title, parent, modal,
                             (gtk.STOCK_OK, gtk.RESPONSE_OK))
         self.text_view = gtk.TextView()
-        log.debug("setting details text to:".format(details))
         self.text_view.get_buffer().set_text(details)
         self.text_view.set_editable(False)
         self.text_view.set_cursor_visible(False)

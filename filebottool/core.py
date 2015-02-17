@@ -350,14 +350,15 @@ class Core(CorePluginBase):
         log.debug("targets found: {}".format(targets))
         return targets
 
-
-    def _get_full_os_path(self, save_path, deluge_path):
+    @staticmethod
+    def _get_full_os_path(save_path, deluge_path):
         """given a save path and a deluge file path, return the actual os
         path of a given file"""
         return os.path.sep.join(save_path.split(os.path.sep) +
                                 deluge_path.split('/'))
 
-    def _configure_filebot_handler(self, settings, handler=None):
+    @staticmethod
+    def _configure_filebot_handler(settings, handler=None):
         """Configures a handler using the given settings dictionary.
 
         If no handler is given a new handler is created. Invalid settings
