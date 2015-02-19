@@ -1,10 +1,12 @@
 __author__ = 'jaredanderson'
 
 
+# noinspection PyUnresolvedReferences
 import gtk
 import webbrowser
 import os
 
+# noinspection PyUnresolvedReferences
 from deluge.ui.client import client
 
 from twisted.internet import defer
@@ -17,9 +19,11 @@ import user_messenger
 
 log = Log()
 
+
 class RenameDialog(object):
     """builds and runs the rename dialog.
     """
+
     def __init__(self, dialog_settings):
         """sets up the dialog using the settings supplied by the server
         Also loads relevant glade widgets as members
@@ -72,7 +76,7 @@ class RenameDialog(object):
 
         advanced_options = self.glade.get_widget("advanced_options")
         if advanced_options.get_visible() != dialog_settings[
-            "rename_dialog_last_settings"]["show_advanced"]:
+                "rename_dialog_last_settings"]["show_advanced"]:
             self.on_toggle_advanced()
 
         download_subs = self.handler_ui.download_subs_checkbox
@@ -84,8 +88,9 @@ class RenameDialog(object):
                             "Original File Structure at {}".format(
                                 self.current_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
-        self.init_treestore(self.history_files_treeview, "Current File "
-            "Structure at {}".format(self.current_save_path))
+        self.init_treestore(self.history_files_treeview,
+                            "Current File Structure at {}".format(
+                            self.current_save_path))
         self.load_treestore((None, self.files), self.original_files_treeview)
         self.load_treestore((None, self.files), self.history_files_treeview)
         treeview = self.glade.get_widget("files_treeview")
@@ -94,7 +99,7 @@ class RenameDialog(object):
         self.window.show()
 
         tree_pane = self.glade.get_widget("tree_pane")
-        tree_pane.set_position(tree_pane.allocation.width/2)
+        tree_pane.set_position(tree_pane.allocation.width / 2)
 
     def init_treestore(self, treeview, header):
         """builds the treestore that will be used to hold the files info
@@ -143,7 +148,7 @@ class RenameDialog(object):
                         folder_structure[path_depth] = []
 
                     if path_parts[path_depth] not in folder_structure[
-                        path_depth]:
+                            path_depth]:
                         folder_structure[path_depth].append(path_parts[
                             path_depth])
 
@@ -157,7 +162,7 @@ class RenameDialog(object):
                                 parent, [str(index), path_parts[path_depth]])
                         else:
                             folder_iterator = model.append(
-                                parent,['', path_parts[path_depth]])
+                                parent, ['', path_parts[path_depth]])
                             folder_iterators[path_depth] = folder_iterator
 
         treeview.expand_all()
@@ -170,7 +175,8 @@ class RenameDialog(object):
         log.debug("refreshing filedata for torrent {}".format(self.torrent_id))
 
         torrent_data = yield client.core.get_torrent_status(self.torrent_id,
-            ["save_path", "files"])
+                                                            ["save_path",
+                                                             "files"])
         log.debug("recieved response from server{}".format(torrent_data))
         save_path = torrent_data["save_path"]
         files = torrent_data["files"]
@@ -179,7 +185,7 @@ class RenameDialog(object):
         self.load_treestore((save_path, files), self.history_files_treeview,
                             clear=True)
 
-    #  Section: UI actions
+    # Section: UI actions
 
     def on_download_subs_toggled(self, *args):
         """download subs has been toggled.
@@ -248,7 +254,6 @@ class RenameDialog(object):
         d.addCallback(self.toggle_button, button)
         d.addCallback(self.refresh_files)
 
-
     def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
         log.debug('Format expression info button was clicked')
@@ -265,7 +270,6 @@ class RenameDialog(object):
             log.warning("rename failed with message: {}".format(msg))
             self.messanger.display_error(msg)
 
-
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
         return response
@@ -275,7 +279,7 @@ class RenameDialog(object):
         toggles the sensitivity of a given button widget.
         NOTE: The final argument passed is the button widget to toggle!!!
         """
-        button_widget = args[-1] # workaround for deferd argument passing
+        button_widget = args[-1]  # workaround for deferd argument passing
         if button_widget.get_sensitive():
             button_widget.set_sensitive(False)
         else:

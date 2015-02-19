@@ -37,14 +37,17 @@
 #    statement from all source files in the program, then also delete it here.
 #
 
+# noinspection PyUnresolvedReferences
 import gtk
 
+# noinspection PyUnresolvedReferences
 from deluge.ui.client import client
+# noinspection PyUnresolvedReferences
 from deluge.plugins.pluginbase import GtkPluginBase
+# noinspection PyUnresolvedReferences
 import deluge.component as component
 
 from filebottool.common import Log
-from filebottool.common import get_resource
 
 from rename_dialog import RenameDialog
 from config_ui import ConfigUI
@@ -53,8 +56,7 @@ log = Log()
 
 
 class GtkUI(GtkPluginBase):
-
-
+    # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit
     def enable(self):
         """actions to take on plugin enabled.
         loads preference page, and context menu.
@@ -106,6 +108,7 @@ class GtkUI(GtkPluginBase):
     def on_show_prefs(self):
         client.filebottool.get_config().addCallback(self.on_get_config)
 
+    # noinspection PyAttributeOutsideInit
     def on_get_config(self, config):
         self.config = config
         self.config_ui.populate_settings(config)

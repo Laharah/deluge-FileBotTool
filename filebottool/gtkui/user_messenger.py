@@ -4,6 +4,7 @@ Classes and functions for displaying error/warning/info dialogs to the user.
 __author__ = 'jaredanderson'
 
 
+# noinspection PyUnresolvedReferences
 import gtk
 from filebottool.common import Log
 

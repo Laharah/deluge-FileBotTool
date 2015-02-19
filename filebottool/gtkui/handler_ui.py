@@ -1,14 +1,16 @@
 __author__ = 'Lunchbox'
 
 
+# noinspection PyUnresolvedReferences
 import gtk
+# noinspection PyUnresolvedReferences
 from deluge.ui.client import client
-from twisted.internet import defer
 
 from filebottool.gtkui.common import inflate_list_store_combo
 from filebottool.common import Log
 
 log = Log()
+
 
 class HandlerUI(object):
     """

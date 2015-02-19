@@ -1,9 +1,11 @@
-__author__ = 'Lunchbox'
-
 """
 Contains some common functions for manipulating gtk UIs
 """
+__author__ = 'Lunchbox'
+
+# noinspection PyUnresolvedReferences
 import gtk
+
 
 def inflate_list_store_combo(model_data, combo_widget):
         """inflates an individual combo box

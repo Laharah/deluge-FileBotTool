@@ -80,7 +80,7 @@ class FilebotRuntimeError(Error):
 
 
 def get_version():
-    """returns the filebot version string. Usefull for testing if filebot is
+    """returns the filebot version string. Useful for testing if filebot is
     installed."""
     return_code, output, error_data = _execute(['-version'], workaround=False)
     if return_code != 0:

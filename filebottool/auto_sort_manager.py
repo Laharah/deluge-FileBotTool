@@ -7,6 +7,7 @@ __author__ = 'jaredanderson'
 from collections import namedtuple
 import re
 
+# noinspection PyUnresolvedReferences
 import deluge.component as component
 
 from filebottool.common import Log

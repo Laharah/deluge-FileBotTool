@@ -22,8 +22,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with deluge.    If not, write to:
-# 	The Free Software Foundation, Inc.,
-# 	51 Franklin Street, Fifth Floor
+# The Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor
 # 	Boston, MA  02110-1301, USA.
 #
 #    In addition, as a special exception, the copyright holders give
@@ -38,13 +38,15 @@
 #
 import os
 
-
+# noinspection PyUnresolvedReferences
 from deluge.plugins.pluginbase import CorePluginBase
+# noinspection PyUnresolvedReferences
 import deluge.component as component
+# noinspection PyUnresolvedReferences
 import deluge.configmanager
+# noinspection PyUnresolvedReferences
 from deluge.core.rpcserver import export
 from twisted.internet import threads, defer
-
 
 import pyfilebot
 from common import Log
@@ -52,7 +54,6 @@ import filebottool.auto_sort_manager
 
 
 log = Log()
-
 
 DEFAULT_PREFS = {
     "rename_dialog_last_settings": {
@@ -77,6 +78,7 @@ DEFAULT_PREFS = {
 class Core(CorePluginBase):
     """The Plugin Core"""
 
+    # noinspection PyAttributeOutsideInit
     def enable(self):
         self.config = deluge.configmanager.ConfigManager(
             "filebottool.conf", DEFAULT_PREFS)
@@ -170,17 +172,11 @@ class Core(CorePluginBase):
         log.debug("listning dictionary updated: {}".format(
             self.listening_dictionary))
 
-
     #########
     #  Section: Filebot interaction
     #########
 
-    def _file_movement_safty_check(self, torrent_id, target):
-        """executes a dry run to see if a filebot run will be torrent-safe
-        returns: True if torrent-safe, False if not
-        """
-        pass
-
+    # noinspection PyPep8Naming
     def _translate_filebot_movements(self, torrent_id, filebot_moves):
         """translates a filebot run into deluge torrent info
         Args:
@@ -255,7 +251,7 @@ class Core(CorePluginBase):
         return new_save_path, gcd, deluge_moves
 
     def _redirect_torrent_paths(self, torrent_id, (new_save_path, new_top_lvl,
-    new_file_paths), original_state=None):
+                                new_file_paths), original_state=None):
         """redirects a torrent's files and save paths to the new locations.
         registers them to the listening dictionary
         Args:
@@ -270,9 +266,9 @@ class Core(CorePluginBase):
                 new_save_path)
             torrent.move_storage(new_save_path)
         if new_top_lvl:
-            current_top_lvl = torrent.get_files()[0]["path"].split("/")[0]+"/"
+            current_top_lvl = torrent.get_files()[0]["path"].split("/")[0] + "/"
             self.listening_dictionary[torrent_id]["folder_rename"] = (
-                current_top_lvl, new_top_lvl+"/")
+                current_top_lvl, new_top_lvl + "/")
             torrent.rename_folder(current_top_lvl, new_top_lvl)
         if new_file_paths:
             for index, path in new_file_paths:
@@ -288,7 +284,7 @@ class Core(CorePluginBase):
         """
         Ensures that minimum safety is met (movements are possible)
         :param torrent_id:
-        :param filebot_renames:
+        :param filebot_translation:
         :return: true or false
         """
         torrent = self.torrent_manager[torrent_id]
@@ -336,6 +332,7 @@ class Core(CorePluginBase):
         except pyfilebot.FilebotRuntimeError, err:
             log.error("FILEBOT ERROR: {}".format(err))
             defer.returnValue(None)
+        # noinspection PyUnboundLocalVariable
         log.info("Successfully rolled back files: {}".format(results[1]))
         log.info("forcing recheck on {}".format(torrent_id))
         self.torrent_manager[torrent_id].force_recheck()
@@ -397,7 +394,7 @@ class Core(CorePluginBase):
             if attribute in settings:
                 try:
                     handler.__setattr__(attribute, settings[attribute])
-                except pyfilebot.ValueError:
+                except ValueError:
                     log.warning("{} is not a valid value for {}, "
                                 "skipping...".format(settings[attribute],
                                                      attribute))
@@ -463,6 +460,7 @@ class Core(CorePluginBase):
         except pyfilebot.FilebotRuntimeError as err:
             log.error("FILEBOT ERROR: {}".format(err.msg))
             defer.returnValue(("FILEBOT ERROR", err.msg))
+        # noinspection PyUnboundLocalVariable
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
@@ -470,7 +468,7 @@ class Core(CorePluginBase):
             new_save_path = self.torrent_manager[torrent_id].get_status(
                 ["save_path"])["save_path"]
             defer.returnValue((new_save_path, self.torrent_manager[
-                               torrent_id].get_files()))
+                torrent_id].get_files()))
 
         log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
         new_save_path = deluge_movements[0]
@@ -538,9 +536,9 @@ class Core(CorePluginBase):
                 self._rollback(filebot_results, torrent_id)
                 errors[torrent_id] = (
                     "Rollback", "Problem with moving torrent \"{}\". Rolling "
-                "back to previous state and rechecking.".format(
-                        self.torrent_manager[torrent_id].get_status(
-                            ["name"])["name"]))
+                                "back to previous state and rechecking.".format(
+                    self.torrent_manager[torrent_id].get_status(
+                        ["name"])["name"]))
                 continue
             if deluge_movements:
                 log.debug("Attempting to re-reoute torrent: {}".format(
@@ -565,12 +563,14 @@ class Core(CorePluginBase):
         self.torrent_manager[torrent_id].pause()
         handler = pyfilebot.FilebotHandler()
         try:
+            # noinspection PyUnresolvedReferences
             filebot_results = yield threads.deferToThread(handler.revert,
                                                           targets)
         except Exception, err:
             log.error("FILEBOT ERROR {}".format(err))
             defer.returnValue((False, err))
 
+        # noinspection PyUnboundLocalVariable
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
 
@@ -592,14 +592,12 @@ class Core(CorePluginBase):
                                      original_state=original_torrent_state)
         defer.returnValue((True, None))
 
-
-
     @export
     def save_rename_dialog_settings(self, new_settings):
         log.debug("recieved settings from client: {}".format(new_settings))
         for setting in self.config["rename_dialog_last_settings"]:
             try:
-                if new_settings[setting] != None:
+                if new_settings[setting] is not None:
                     self.config["rename_dialog_last_settings"][setting] = (
                         new_settings[setting])
                     log.debug("setting saved: {} : {}".format(
@@ -613,15 +611,13 @@ class Core(CorePluginBase):
         self.config["rename_dialog_last_settings"]["query_override"] = None
         self.config.save()
 
-
     @export
     def get_rename_dialog_info(self, torrent_ids):
         """returns the needed variables and torrent info needed to build a
         rename dialog"""
         log.debug("dialog info requested, packing dialog info.")
-        dialog_info = {}
+        dialog_info = {"torrent_ids": torrent_ids}
 
-        dialog_info["torrent_ids"] = torrent_ids
         if len(torrent_ids) == 1:
             torrent = self.torrent_manager[torrent_ids[0]]
             dialog_info["torrent_save_path"] = torrent.get_status(
@@ -637,6 +633,7 @@ class Core(CorePluginBase):
         log.debug("sending dialog info to client: {}".format(dialog_info))
         return dialog_info
 
+    # noinspection PyDictCreation
     @export
     def get_filebot_valid_values(self):
         """gathers valid arguments to filebot from pyfilebot.
