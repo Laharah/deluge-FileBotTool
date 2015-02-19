@@ -48,6 +48,7 @@ from twisted.internet import threads, defer
 
 import pyfilebot
 from common import Log
+import filebottool.auto_sort_manager
 
 
 log = Log()
@@ -69,6 +70,7 @@ DEFAULT_PREFS = {
     },
     "saved_handlers": {},
     "plugin_preferences": {}
+    "auto_sort_rules":{}
 }
 
 
@@ -98,6 +100,10 @@ class Core(CorePluginBase):
                                              self._on_folder_renamed)
         event_manager.register_event_handler("TorrentFileRenamedEvent",
                                              self._on_file_renamed)
+
+        self.auto_sort_manager = filebottool.auto_sort_manager.AutoSortManager(
+            sorting_rules=self.config["auto_sort_rules"]
+        )
 
     def disable(self):
         component.get("AlertManager").deregister_handler(self._on_storage_moved)
