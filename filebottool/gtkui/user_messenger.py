@@ -36,7 +36,7 @@ class UserMessenger(object):
 
         info_button = gtk.Button("Show Details")
 
-        def _show_details(button):
+        def _show_details(_):
             detail_dialog = DetailDialog("FilebotTool Errors",
                                          dialog.error_details)
             detail_dialog.run()
