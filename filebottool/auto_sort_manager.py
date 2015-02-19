@@ -26,7 +26,11 @@ FilterRule = namedtuple("FilterRule", ["field", "operator", "value",
 
 
 class AutoSortManager(object):
-    def __init__(self, sorting_rules=None):
+    """
+    class to monitor new torrents and execute filebot sorts on them if
+    appropriate
+    """
+    def __init__(self, filebottool_parent, sorting_rules=None):
         """
         inits the manager, optionally takes in set of sort rules
         :param sorting_rules: dictionary of rules to pre-set
@@ -34,11 +38,10 @@ class AutoSortManager(object):
         :return:
         """
         self.torrent_manager = component.get("TorrentManager")
-        self.filebottool = component.get("PluginManager")["filebottool"]
+        self.filebottool = filebottool_parent
         self.listener_registered = False
         self._sorting_rules = None
         self.sorting_rules = sorting_rules
-
 
     @property
     def sorting_rules(self):
@@ -46,14 +49,13 @@ class AutoSortManager(object):
 
     @sorting_rules.setter
     def sorting_rules(self, rules):
-        """registers or de-registers the listner if required."""
+        """registers or de-registers the listener if required."""
         if not self.listener_registered and rules:
             self._register_listener()
         if self.listener_registered and not rules:
             self._deregister_listener()
 
         self._sorting_rules = rules
-
 
     def _register_listener(self):
         component.get("EventManager").register_event_handler(
@@ -69,7 +71,7 @@ class AutoSortManager(object):
         Goes through the sort rules in order, and executes on the first rule
         that succeeds.
 
-        Is executed by the listner when any torrent completes.
+        Is executed by the listener when any torrent completes.
 
         :param torrent_id:
         :return:
@@ -77,8 +79,9 @@ class AutoSortManager(object):
         torrent = self.torrent_manager[torrent_id]
         for rule_id in sorted(self.sorting_rules):
             rule = self.sorting_rules[rule_id]
-            if OPERATOR_MAP[rule.operator](torrent.get_status(rule.field),
-                                           rule.value):
+            # noinspection PyCallingNonCallable
+            if OPERATOR_MAP[rule.operator](torrent.get_status([rule.field])[
+                                           rule.field], rule.value):
                 log.debug("executing filebot rename on torrent {} with "
                           "handler, {}".format(torrent_id, rule.handler_id))
                 self.filebottool.do_rename(

@@ -69,8 +69,8 @@ DEFAULT_PREFS = {
         "encoding": "UTF-8"
     },
     "saved_handlers": {},
-    "plugin_preferences": {}
-    "auto_sort_rules":{}
+    "plugin_preferences": {},
+    "auto_sort_rules": {},
 }
 
 
@@ -102,6 +102,7 @@ class Core(CorePluginBase):
                                              self._on_file_renamed)
 
         self.auto_sort_manager = filebottool.auto_sort_manager.AutoSortManager(
+            self,
             sorting_rules=self.config["auto_sort_rules"]
         )
 
