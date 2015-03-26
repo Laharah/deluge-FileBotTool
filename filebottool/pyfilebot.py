@@ -13,53 +13,18 @@ import sys
 from types import MethodType
 import functools
 
+FILEBOT_MODES = ['rename', 'move', 'check', 'get-missing-subtitles',
+                 'get-subtitles', 'list', 'mediainfo']
 
-FILEBOT_MODES = [
-    'rename',
-    'move',
-    'check',
-    'get-missing-subtitles',
-    'get-subtitles',
-    'list',
-    'mediainfo'
-]
+FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute"]
 
-FILEBOT_ORDERS = [
-    None,
-    "dvd",
-    "airdate",
-    "absolute"
-]
+FILEBOT_DATABASES = [None, 'TheTVDB', 'TvRage', 'AniDB', 'OpenSubtitles',
+                     'TheMovieDB', 'OMDb', 'AccoustID', 'ID3 Tags']
 
-FILEBOT_DATABASES = [
-    None,
-    'TheTVDB',
-    'TvRage',
-    'AniDB',
-    'OpenSubtitles',
-    'TheMovieDB',
-    'OMDb',
-    'AccoustID',
-    'ID3 Tags'
-]
+FILEBOT_RENAME_ACTIONS = [None, 'move', 'copy', 'duplicate', 'keeplink',
+                          'symlink', 'hardlink', 'test']
 
-FILEBOT_RENAME_ACTIONS = [
-    None,
-    'move',
-    'copy',
-    'duplicate',
-    'keeplink',
-    'symlink',
-    'hardlink',
-    'test'
-]
-
-FILEBOT_ON_CONFLICT = [
-    None,
-    'override',
-    'skip',
-    'fail'
-]
+FILEBOT_ON_CONFLICT = [None, 'override', 'skip', 'fail']
 
 
 class Error(Exception):
@@ -90,9 +55,16 @@ def get_version():
         return output.strip()
 
 
-def rename(targets, format_string=None, database=None, output=None,
-           rename_action='move', episode_order=None, on_conflict=None,
-           query_override=None, non_strict=True, recursive=True):
+def rename(targets,
+           format_string=None,
+           database=None,
+           output=None,
+           rename_action='move',
+           episode_order=None,
+           on_conflict=None,
+           query_override=None,
+           non_strict=True,
+           recursive=True):
     """Renames file or files from *targets* using the current settings
 
     Args:
@@ -128,19 +100,23 @@ def rename(targets, format_string=None, database=None, output=None,
         output = os.path.abspath(os.path.expandvars(os.path.expanduser(output)))
 
     exit_code, data, filebot_error = (
-        _build_filebot_arguments(targets, format_string=format_string,
-                                 database=database, output=output,
+        _build_filebot_arguments(targets,
+                                 format_string=format_string,
+                                 database=database,
+                                 output=output,
                                  rename_action=rename_action,
                                  episode_order=episode_order,
                                  on_confilct=on_conflict,
                                  query_override=query_override,
-                                 non_strict=non_strict, recursive=recursive))
+                                 non_strict=non_strict,
+                                 recursive=recursive)
+    )
 
     # TODO:better error handling
 
     if exit_code != 0:
-        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{}".format(
-            data.encode("UTF-8")))
+        raise FilebotRuntimeError(
+            "FILEBOT OUTPUT DUMP:\n{}".format(data.encode("UTF-8")))
 
     return parse_filebot(data)
 
@@ -179,15 +155,15 @@ def parse_filebot(data):
     for line in data:
         match = (
             re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]',
-                      line))
+                      line)
+        )
         if match:
             file_moves.append((match.group(1), match.group(2)))
 
     return total_processed_files, file_moves, skipped_files
 
 
-def test_format_string(format_string=None,
-                       file_name="Citizen Kane.avi"):
+def test_format_string(format_string=None, file_name="Citizen Kane.avi"):
     """Runs a quick test of a format string and returns renamed sample
      filename
 
@@ -206,7 +182,8 @@ def test_format_string(format_string=None,
             Returns an empty string if no matches were found.
     """
 
-    _, data, _ = _build_filebot_arguments(file_name, rename_action='test',
+    _, data, _ = _build_filebot_arguments(file_name,
+                                          rename_action='test',
                                           format_string=format_string)
     _, file_moves, _ = parse_filebot(data)
     if not file_moves:
@@ -215,8 +192,11 @@ def test_format_string(format_string=None,
         return file_moves[0][1]
 
 
-def get_subtitles(target, language_code=None, encoding=None,
-                  force=False, output=None):
+def get_subtitles(target,
+                  language_code=None,
+                  encoding=None,
+                  force=False,
+                  output=None):
     """
     convenience function, Gets subtitles for a given *target*
 
@@ -247,9 +227,11 @@ def get_subtitles(target, language_code=None, encoding=None,
             raise ValueError("Only None and srt are valid output "
                              "arguments for subtitle mode.")
 
-    _, data, _ = _build_filebot_arguments(target, mode=mode,
+    _, data, _ = _build_filebot_arguments(target,
+                                          mode=mode,
                                           language_code=language_code,
-                                          encoding=encoding, output=None)
+                                          encoding=encoding,
+                                          output=None)
     _, downloads, _ = parse_filebot(data)
     return [name[1] for name in downloads]
 
@@ -408,12 +390,19 @@ def _on_conflict_is_valid(on_conflict_string):
         return False
 
 
-def _build_filebot_arguments(targets, format_string=None,
-                             database=None, output=None, rename_action='move',
-                             episode_order=None, mode='-rename',
-                             recursive=True, language_code=None,
-                             encoding=None, query_override=None,
-                             on_confilct=None, non_strict=True):
+def _build_filebot_arguments(targets,
+                             format_string=None,
+                             database=None,
+                             output=None,
+                             rename_action='move',
+                             episode_order=None,
+                             mode='-rename',
+                             recursive=True,
+                             language_code=None,
+                             encoding=None,
+                             query_override=None,
+                             on_confilct=None,
+                             non_strict=True):
     """internal function used to set arguments and execute a filebot run
         on targets.
 
@@ -445,20 +434,19 @@ def _build_filebot_arguments(targets, format_string=None,
         tuple in format '(exit_code, stdoutput, stderr)'
     """
     if not _rename_action_is_valid(rename_action):
-        raise ValueError("'{}' is not a valid rename action".format(
-            rename_action))
+        raise ValueError(
+            "'{}' is not a valid rename action".format(rename_action))
     if not _order_is_valid(episode_order):
-        raise ValueError("'{}' is not a valid episode order".format(
-            episode_order))
+        raise ValueError(
+            "'{}' is not a valid episode order".format(episode_order))
     if not _database_is_valid(database):
-        raise ValueError("'{}' is not a valid filebot database"
-                         .format(database))
+        raise ValueError(
+            "'{}' is not a valid filebot database".format(database))
     if not _mode_is_valid(mode):
-        raise ValueError("'{}' is not a valid filebot mode".format(
-            mode))
+        raise ValueError("'{}' is not a valid filebot mode".format(mode))
     if not _on_conflict_is_valid(on_confilct):
-        raise ValueError("'{}' is not a valid conflict resolution."
-                         .format(on_confilct))
+        raise ValueError(
+            "'{}' is not a valid conflict resolution.".format(on_confilct))
 
     if not mode.startswith('-'):
         mode = '-' + mode
@@ -521,10 +509,7 @@ def _build_script_arguments(script_name, script_arguments):
     Returns:
         tuple in format '(exit_code, stdout, stderr)'
     """
-    process_arguments = [
-        '-script',
-        script_name
-    ]
+    process_arguments = ['-script', script_name]
     if script_arguments:
         if isinstance(script_arguments, basestring):
             script_arguments = [script_arguments]
@@ -551,8 +536,9 @@ def _execute(process_arguments, workaround=True):
     # this is a workaround for malfunctioning UTF-8 chars in Windows.
     file_temp = tempfile.NamedTemporaryFile(delete=False)
     file_temp.close()
-    process_arguments = (["filebot", "--log-file", file_temp.name] +
-                         process_arguments)
+    process_arguments = (
+        ["filebot", "--log-file", file_temp.name] + process_arguments
+    )
 
     if os.name == "nt":  # used to hide cmd window popup
         startupinfo = subprocess.STARTUPINFO()
@@ -561,7 +547,8 @@ def _execute(process_arguments, workaround=True):
         startupinfo = None
 
     try:
-        process = subprocess.Popen(process_arguments, stdout=subprocess.PIPE,
+        process = subprocess.Popen(process_arguments,
+                                   stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
                                    stdin=subprocess.PIPE,
                                    startupinfo=startupinfo)
@@ -650,10 +637,19 @@ class FilebotHandler(object):
             handler settings and their values
     """
 
-    def __init__(self, format_string=None, database=None, output=None,
-                 episode_order=None, rename_action=None, recursive=True,
-                 language_code=None, encoding='UTF-8', on_conflict='skip',
-                 query_override=None, non_strict=True, mode='rename'):
+    def __init__(self,
+                 format_string=None,
+                 database=None,
+                 output=None,
+                 episode_order=None,
+                 rename_action=None,
+                 recursive=True,
+                 language_code=None,
+                 encoding='UTF-8',
+                 on_conflict='skip',
+                 query_override=None,
+                 non_strict=True,
+                 mode='rename'):
 
         self.format_string = format_string
         self._database = None
@@ -695,8 +691,8 @@ class FilebotHandler(object):
         if _database_is_valid(value):
             self._database = value
         else:
-            raise ValueError('"{}" is not a valid filebot database'.format(
-                value))
+            raise ValueError(
+                '"{}" is not a valid filebot database'.format(value))
 
     @property
     def episode_order(self):
@@ -718,8 +714,8 @@ class FilebotHandler(object):
         if _rename_action_is_valid(action):
             self._rename_action = action
         else:
-            raise ValueError('"{}" is not a valid rename action.'.format(
-                action))
+            raise ValueError(
+                '"{}" is not a valid rename action.'.format(action))
 
     @property
     def on_conflict(self):
@@ -730,8 +726,8 @@ class FilebotHandler(object):
         if _on_conflict_is_valid(value):
             self._on_conflict = value
         else:
-            raise ValueError('"{}" is not a valid conflict resolution'.format(
-                value))
+            raise ValueError(
+                '"{}" is not a valid conflict resolution'.format(value))
 
     def _populate_methods(self):
         """populates the class methods with public functions from the module"""
