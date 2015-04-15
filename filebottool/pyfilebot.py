@@ -116,7 +116,7 @@ def rename(targets,
 
     if exit_code != 0:
         raise FilebotRuntimeError(
-            "FILEBOT OUTPUT DUMP:\n{}".format(data.encode("UTF-8")))
+            "FILEBOT OUTPUT DUMP:\n{0}".format(data.encode("UTF-8")))
 
     return parse_filebot(data)
 
@@ -435,18 +435,18 @@ def _build_filebot_arguments(targets,
     """
     if not _rename_action_is_valid(rename_action):
         raise ValueError(
-            "'{}' is not a valid rename action".format(rename_action))
+            "'{0}' is not a valid rename action".format(rename_action))
     if not _order_is_valid(episode_order):
         raise ValueError(
-            "'{}' is not a valid episode order".format(episode_order))
+            "'{0}' is not a valid episode order".format(episode_order))
     if not _database_is_valid(database):
         raise ValueError(
-            "'{}' is not a valid filebot database".format(database))
+            "'{0}' is not a valid filebot database".format(database))
     if not _mode_is_valid(mode):
-        raise ValueError("'{}' is not a valid filebot mode".format(mode))
+        raise ValueError("'{0}' is not a valid filebot mode".format(mode))
     if not _on_conflict_is_valid(on_confilct):
         raise ValueError(
-            "'{}' is not a valid conflict resolution.".format(on_confilct))
+            "'{0}' is not a valid conflict resolution.".format(on_confilct))
 
     if not mode.startswith('-'):
         mode = '-' + mode
@@ -680,7 +680,7 @@ class FilebotHandler(object):
         if _mode_is_valid(value):
             self._mode = value
         else:
-            raise ValueError('"{}" is not a valid filebot mode.'.format(value))
+            raise ValueError('"{0}" is not a valid filebot mode.'.format(value))
 
     @property
     def database(self):
@@ -692,7 +692,7 @@ class FilebotHandler(object):
             self._database = value
         else:
             raise ValueError(
-                '"{}" is not a valid filebot database'.format(value))
+                '"{0}" is not a valid filebot database'.format(value))
 
     @property
     def episode_order(self):
@@ -703,7 +703,7 @@ class FilebotHandler(object):
         if _order_is_valid(order):
             self._episode_order = order
         else:
-            raise ValueError('"{}" is not a valid episode order'.format(order))
+            raise ValueError('"{0}" is not a valid episode order'.format(order))
 
     @property
     def rename_action(self):
@@ -715,7 +715,7 @@ class FilebotHandler(object):
             self._rename_action = action
         else:
             raise ValueError(
-                '"{}" is not a valid rename action.'.format(action))
+                '"{0}" is not a valid rename action.'.format(action))
 
     @property
     def on_conflict(self):
@@ -727,7 +727,7 @@ class FilebotHandler(object):
             self._on_conflict = value
         else:
             raise ValueError(
-                '"{}" is not a valid conflict resolution'.format(value))
+                '"{0}" is not a valid conflict resolution'.format(value))
 
     def _populate_methods(self):
         """populates the class methods with public functions from the module"""
