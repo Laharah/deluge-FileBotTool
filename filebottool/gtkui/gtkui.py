@@ -101,8 +101,8 @@ class GtkUI(GtkPluginBase):
         component.get("MenuBar").torrentmenu.remove(self.menu_item)
 
     def on_apply_prefs(self):
-        log.debug("applying prefs for FileBotTool")
-        #self.config.update(self.config_ui.gather_settings())
+        log.debug("gathering prefs for FileBotTool")
+        self.config = self.config_ui.gather_settings(self.config)
         client.filebottool.set_config(self.config)
 
     def on_show_prefs(self):

@@ -19,7 +19,7 @@ OPERATOR_MAP = {
     "contains": lambda x, y: x in y,
     "starts with": lambda x, y: x.startswith(y),
     "ends with": lambda x, y: x.endswith(y),
-    "matches(regex)": re.search,
+    "matches(regex)": lambda x, y: re.search(y, x),
 }
 
 FilterRule = namedtuple("FilterRule", ["field", "operator", "value",
@@ -31,6 +31,7 @@ class AutoSortManager(object):
     class to monitor new torrents and execute filebot sorts on them if
     appropriate
     """
+
     def __init__(self, filebottool_parent, sorting_rules=None):
         """
         inits the manager, optionally takes in set of sort rules
@@ -91,6 +92,6 @@ class AutoSortManager(object):
                         rule.handler_id]
                 )
                 break
-
-
-
+        else:
+            log.debug("No rule filter matched for torrent {}".format(
+                torrent_id))
