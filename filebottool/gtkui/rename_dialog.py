@@ -31,7 +31,7 @@ class RenameDialog(object):
         Args:
          dialog_settings: A dictionary containing the settings to populate.
         """
-        self.messanger = user_messenger.UserMessenger()
+        self.messenger = user_messenger.UserMessenger()
         self.torrent_ids = dialog_settings["torrent_ids"]
         self.torrent_id = None
         self.files = []
@@ -268,7 +268,7 @@ class RenameDialog(object):
             self.window.destroy()
         else:
             log.warning("rename failed with message: {}".format(msg))
-            self.messanger.display_error(msg)
+            self.messenger.display_error(msg)
 
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
