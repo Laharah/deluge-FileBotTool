@@ -1,6 +1,5 @@
 __author__ = 'jaredanderson'
 
-
 # noinspection PyUnresolvedReferences
 import gtk
 import webbrowser
@@ -15,7 +14,6 @@ from filebottool.common import Log
 from filebottool.common import get_resource
 from filebottool.gtkui.handler_ui import HandlerUI
 import user_messenger
-
 
 log = Log()
 
@@ -50,8 +48,7 @@ class RenameDialog(object):
 
         self.original_files_treeview = self.glade.get_widget("files_treeview")
         self.new_files_treeview = self.glade.get_widget("new_files_treeview")
-        self.history_files_treeview = self.glade.get_widget(
-            "history_files_treeview")
+        self.history_files_treeview = self.glade.get_widget("history_files_treeview")
 
         if not self.torrent_id:
             self.glade.get_widget("tree_pane").hide()
@@ -71,17 +68,15 @@ class RenameDialog(object):
 
         self.glade.signal_autoconnect(signal_dictionary)
 
-        self.glade.get_widget("filebot_version").set_text(
-            self.server_filebot_version)
+        self.glade.get_widget("filebot_version").set_text(self.server_filebot_version)
 
         advanced_options = self.glade.get_widget("advanced_options")
-        if advanced_options.get_visible() != dialog_settings[
-                "rename_dialog_last_settings"]["show_advanced"]:
+        show_advanced = dialog_settings['rename_dialog_last_settings']['show_advanced']
+        if advanced_options.get_visible() != show_advanced:
             self.on_toggle_advanced()
 
         download_subs = self.handler_ui.download_subs_checkbox
-        if download_subs.get_active() != self.glade.get_widget(
-                "subs_options").get_sensitive():
+        if download_subs.get_active() != self.glade.get_widget"subs_options").get_sensitive():
             self.on_download_subs_toggled()
 
         self.init_treestore(self.original_files_treeview,
@@ -146,10 +141,8 @@ class RenameDialog(object):
                     except KeyError:
                         folder_structure[path_depth] = []
 
-                    if path_parts[path_depth] not in folder_structure[
-                            path_depth]:
-                        folder_structure[path_depth].append(path_parts[
-                            path_depth])
+                    if path_parts[path_depth] not in folder_structure[path_depth]:
+                        folder_structure[path_depth].append(path_parts[path_depth])
 
                         try:
                             parent = folder_iterators[path_depth - 1]
@@ -157,8 +150,7 @@ class RenameDialog(object):
                             parent = None
 
                         if path_parts[path_depth] == os.path.basename(path):
-                            model.append(
-                                parent, [str(index), path_parts[path_depth]])
+                            model.append(parent, [str(index), path_parts[path_depth]])
                         else:
                             folder_iterator = model.append(
                                 parent, ['', path_parts[path_depth]])
@@ -179,10 +171,8 @@ class RenameDialog(object):
         log.debug("recieved response from server{0}".format(torrent_data))
         save_path = torrent_data["save_path"]
         files = torrent_data["files"]
-        self.load_treestore((save_path, files), self.original_files_treeview,
-                            clear=True)
-        self.load_treestore((save_path, files), self.history_files_treeview,
-                            clear=True)
+        self.load_treestore((save_path, files), self.original_files_treeview, clear=True)
+        self.load_treestore((save_path, files), self.history_files_treeview, clear=True)
 
     # Section: UI actions
 
@@ -272,8 +262,7 @@ class RenameDialog(object):
 
     def rename_complete(self, (success, errors)):
         """
-        Executed when do_rename has returned from server. Reports errors as
-        well.
+        Executed when do_rename has returned from server. Reports errors as well.
         """
         if success:
             log.debug("Rename Completed.")
@@ -289,7 +278,9 @@ class RenameDialog(object):
     def toggle_button(self, *args):
         """
         toggles the sensitivity of a given button widget.
-        NOTE: The final argument passed is the button widget to toggle!!!
+        NOTE: The final argument passed must be the button widget to toggle!!!
+              (This allows toggle button to be the final callback in a twisted callback
+              chain)
         """
         button_widget = args[-1]  # workaround for deferd argument passing
         if button_widget.get_sensitive():
