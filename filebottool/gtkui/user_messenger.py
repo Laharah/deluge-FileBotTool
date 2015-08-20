@@ -49,8 +49,7 @@ class UserMessenger(object):
         detail_view.add(sw)
         detail_view.set_border_width(6)
         dialog.vbox.add(detail_view)
-        text_view.set_size_request(gtk.gdk.screen_width() / 2,
-                                   gtk.gdk.screen_height() / 3)
+        text_view.set_size_request(485, 300)
 
         info_button = gtk.Button("Show Details")
 
