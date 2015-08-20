@@ -15,6 +15,7 @@ class UserMessenger(object):
     """
     handles the formatting and creation of dialogs to display info to the user.
     """
+
     def __init__(self):
         pass
 
@@ -33,15 +34,28 @@ class UserMessenger(object):
         message = ("One or more errors occurred in FileBotTool. Click \"Show"
                    " Details\" for more info.")
         dialog = InfoDialog("FilebotTool Error", message, parent, modal)
-        dialog.error_details = self.format_errors(errors)
+        error_details = format_errors(errors)
+        text_view = gtk.TextView()
+        text_view.get_buffer().set_text(error_details)
+        text_view.set_editable(False)
+        text_view.set_cursor_visible(False)
+        text_view.show()
+        sw = gtk.ScrolledWindow()
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw.show()
+        sw.add(text_view)
+        detail_view = gtk.Frame()
+        detail_view.set_shadow_type(gtk.SHADOW_IN)
+        detail_view.add(sw)
+        detail_view.set_border_width(6)
+        dialog.vbox.add(detail_view)
+        text_view.set_size_request(gtk.gdk.screen_width() / 2,
+                                   gtk.gdk.screen_height() / 3)
 
         info_button = gtk.Button("Show Details")
 
         def _show_details(_):
-            detail_dialog = DetailDialog("FilebotTool Errors",
-                                         dialog.error_details)
-            detail_dialog.run()
-            detail_dialog.destroy()
+            detail_view.show()
 
         info_button.connect("clicked", _show_details)
         dialog.action_area.pack_start(info_button)
@@ -54,26 +68,25 @@ class UserMessenger(object):
         dialog.destroy()
         return response
 
-    @staticmethod
-    def format_errors(errors):
-        """
-        formats errors into a human readable text blob.
 
-        :param errors: dictionary in format {torrent_id: (error, error_msg),...}
-        """
-        error_list = []
+def format_errors(errors):
+    """
+    formats errors into a human readable text blob.
 
-        for torrent_id in errors:
-            if torrent_id != 0:
-                text = "{} error on torrent {}:\n".format(
-                    errors[torrent_id][0], torrent_id)
-            else:
-                text = "{} error:\n".format(errors[torrent_id][0])
+    :param errors: dictionary in format {torrent_id: (error, error_msg),...}
+    """
+    error_list = []
 
-            text += "    {}".format(errors[torrent_id][1])
-            error_list.append(text)
+    for torrent_id in errors:
+        if torrent_id != 0:
+            text = "{} error on torrent {}:\n".format(errors[torrent_id][0], torrent_id)
+        else:
+            text = "{} error:\n".format(errors[torrent_id][0])
 
-        return '\n'.join(error_list)
+        text += "    {}".format(errors[torrent_id][1])
+        error_list.append(text)
+
+    return '\n'.join(error_list)
 
 
 class InfoDialog(gtk.Dialog):
@@ -81,31 +94,16 @@ class InfoDialog(gtk.Dialog):
     Loads and shows a dialog to the user informing them of some event.
     used to display errors.
     """
+
     def __init__(self, title, message, parent=None, modal=False):
         if modal:
             modal = gtk.DIALOG_MODAL
         else:
             modal = 0
-        gtk.Dialog.__init__(self, title, parent, modal,
-                            (gtk.STOCK_OK, gtk.RESPONSE_OK))
+        gtk.Dialog.__init__(self, title, parent, modal, (gtk.STOCK_OK, gtk.RESPONSE_OK))
         self.message = message
         label = gtk.Label(message)
         self.get_content_area().add(label)
-        self.show_all()
-
-
-class DetailDialog(gtk.Dialog):
-    """A version of dialog that has a text field for displaying details"""
-    def __init__(self, title, details, parent=None, modal=False):
-        if modal:
-            modal = gtk.DIALOG_MODAL
-        else:
-            modal = 0
-        gtk.Dialog.__init__(self, title, parent, modal,
-                            (gtk.STOCK_OK, gtk.RESPONSE_OK))
-        self.text_view = gtk.TextView()
-        self.text_view.get_buffer().set_text(details)
-        self.text_view.set_editable(False)
-        self.text_view.set_cursor_visible(False)
-        self.get_content_area().add(self.text_view)
+        self.set_position(gtk.WIN_POS_CENTER)
+        self.set_gravity(gtk.gdk.GRAVITY_CENTER)
         self.show_all()
