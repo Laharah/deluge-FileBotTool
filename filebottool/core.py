@@ -461,7 +461,8 @@ class Core(CorePluginBase):
                                                           target)
         except pyfilebot.FilebotRuntimeError as err:
             log.error("FILEBOT ERROR: {}".format(err.msg))
-            defer.returnValue(("FILEBOT ERROR", err.msg))
+            defer.returnValue((False, {torrent_id:(str(err), err.msg)}),
+                              ('FILEBOTERROR', err.msg))
         # noinspection PyUnboundLocalVariable
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
@@ -469,7 +470,7 @@ class Core(CorePluginBase):
         if not deluge_movements:
             new_save_path = self.torrent_manager[torrent_id].get_status(
                 ["save_path"])["save_path"]
-            defer.returnValue((new_save_path, self.torrent_manager[
+            defer.returnValue((True, None), (new_save_path, self.torrent_manager[
                 torrent_id].get_files()))
 
         log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
@@ -480,9 +481,17 @@ class Core(CorePluginBase):
         if not new_save_path:
             new_save_path = self.torrent_manager[torrent_id].get_status(
                 ["save_path"])["save_path"]
-        defer.returnValue((new_save_path,
-                           self._get_mockup_files_dictionary(torrent_id,
-                                                             deluge_movements)))
+        conflicts = self._file_conflicts(torrent_id, deluge_movements, filebot_results[2])
+        if conflicts:
+            errors = {}
+            errors[torrent_id] = ('File Conflict',
+                                  'The following files already exsist:\n{}'.format(
+                                    ''.join('    ' + f + '\n' for f in conflicts))
+                                  )
+        defer.returnValue(
+            (True, None if not conflicts else errors),
+            (new_save_path,
+             self._get_mockup_files_dictionary(torrent_id, deluge_movements)))
 
     @export
     @defer.inlineCallbacks
@@ -520,6 +529,7 @@ class Core(CorePluginBase):
                 log.error("FILEBOT ERROR{}".format(err))
                 errors[torrent_id] = (str(err), err.msg)
                 filebot_results = ["", {}, {}]
+                continue
 
             log.debug("recieved results from filebot: {}".format(
                 filebot_results))

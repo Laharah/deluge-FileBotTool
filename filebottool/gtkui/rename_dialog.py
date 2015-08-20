@@ -223,8 +223,16 @@ class RenameDialog(object):
             self.torrent_id))
         log.debug("using settings: {}".format(handler_settings))
         self.toggle_button(button)
+
+        def error_check((success, errors), new_info):
+            '''closure to pop off error reporting'''
+            if not success:
+                self.messenger.display_errors(errors)
+            return new_info
+
         d = client.filebottool.do_dry_run(self.torrent_id, handler_settings)
         d.addCallback(self.log_response)
+        d.addCallback(error_check)
         d.addCallback(self.load_treestore, self.new_files_treeview, clear=True)
         d.addCallback(self.toggle_button, button)
 
