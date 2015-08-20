@@ -3,7 +3,6 @@ Classes and functions for displaying error/warning/info dialogs to the user.
 """
 __author__ = 'jaredanderson'
 
-
 # noinspection PyUnresolvedReferences
 import gtk
 from filebottool.common import Log
@@ -19,7 +18,13 @@ class UserMessenger(object):
     def __init__(self):
         pass
 
-    def display_errors(self, errors, parent=None, modal=False, response_needed=False):
+    def display_errors(self, errors,
+                       title=None,
+                       message=None,
+                       parent=None,
+                       modal=False,
+                       show_details=False,
+                       response_needed=False):
         """
         Given a dictionary of errors, display them as a dialog for the user.
         :param errors:dictionary in format {torrent_id; (error, error_message)
@@ -31,9 +36,12 @@ class UserMessenger(object):
         if isinstance(errors, tuple):
             errors = {0: errors}
 
-        message = ("One or more errors occurred in FileBotTool. Click \"Show"
-                   " Details\" for more info.")
-        dialog = InfoDialog("FilebotTool Error", message, parent, modal)
+        if message is None:
+            message = ("One or more errors occurred in FileBotTool. Click \"Show"
+                       " Details\" for more info.")
+        if title is None:
+            title = "FilebotTool Error"
+        dialog = InfoDialog(title, message, parent, modal)
         error_details = format_errors(errors)
         text_view = gtk.TextView()
         text_view.get_buffer().set_text(error_details)
@@ -68,7 +76,7 @@ class UserMessenger(object):
             dialog.destroy()
             return response
         else:
-            dialog.run()
+            dialog.run_async()
             return
 
 
@@ -110,3 +118,13 @@ class InfoDialog(gtk.Dialog):
         self.set_position(gtk.WIN_POS_CENTER)
         self.set_gravity(gtk.gdk.GRAVITY_CENTER)
         self.show_all()
+
+    def run_async():
+        """a version of run that does not block"""
+        def dialog_response_cb(dialog, response_id):
+            dialog.destroy()
+           
+        if not self.modal:
+            self.set_modal(True)
+        self.connect('response', dialog_response_cb)
+        self.show()

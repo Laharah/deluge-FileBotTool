@@ -227,7 +227,12 @@ class RenameDialog(object):
         def error_check(((success, errors), new_info)):
             '''closure to pop off error reporting'''
             if not success:
-                self.messenger.display_errors(errors)
+                message = 'The dry run found the following errors'
+                self.messenger.display_errors(
+                    errors,
+                    title="Dry Run Warning",
+                    message=message,
+                    show_details=True)
             return new_info
 
         d = client.filebottool.do_dry_run(self.torrent_id, handler_settings)
