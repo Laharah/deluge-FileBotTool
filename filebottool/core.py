@@ -489,7 +489,7 @@ class Core(CorePluginBase):
                                     ''.join('    ' + f + '\n' for f in conflicts))
                                   )
         defer.returnValue((
-            (True, None if not conflicts else errors),
+            (True if not conflicts else False, None if not conflicts else errors),
             (new_save_path,
              self._get_mockup_files_dictionary(torrent_id, deluge_movements))))
 
