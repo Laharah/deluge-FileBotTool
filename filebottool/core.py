@@ -279,17 +279,17 @@ class Core(CorePluginBase):
         if original_state == "Paused":
             del self.listening_dictionary[torrent_id]
 
-    def _torrent_safety_check(self, torrent_id, filebot_translation,
+    def _file_conflicts(self, torrent_id, filebot_translation,
                               skipped_files):
         """
-        Ensures that minimum safety is met (movements are possible)
+        builds a list of exsisting file conflicts for a given torrent rename.
         :param torrent_id:
         :param filebot_translation:
-        :return: true or false
+        :return: list of conflicting files
         """
         torrent = self.torrent_manager[torrent_id]
         if not filebot_translation:
-            return True
+            return []
 
         original_files = torrent.get_files()
         original_save_path = torrent.get_status(["save_path"])["save_path"]
@@ -313,6 +313,8 @@ class Core(CorePluginBase):
                 extra_files.append(
                     self._get_full_os_path(new_save_path, f["path"]))
 
+        conflicts = []
+
         for original_path, new_path in zip(original_paths, new_paths):
             if new_path == original_path:
                 continue
@@ -320,9 +322,9 @@ class Core(CorePluginBase):
                     new_path not in extra_files):
                 continue
             if os.path.exists(new_path):
-                return False
+                conflicts.append(new_path)
 
-        return True
+        return conflicts
 
     @defer.inlineCallbacks
     def _rollback(self, filebot_movements, torrent_id):
@@ -529,16 +531,20 @@ class Core(CorePluginBase):
                 if original_torrent_state == "Seeding":
                     self.torrent_manager[torrent_id].resume()
 
-            if not self._torrent_safety_check(torrent_id, deluge_movements,
-                                              filebot_results[2]):
+            conflicts = self._file_conflicts(torrent_id,
+                                             deluge_movements,
+                                             filebot_results[2])
+
+            if conflicts:
                 log.warning("Raname is not safe on torrent {}. "
                             "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
                 errors[torrent_id] = (
-                    "Rollback", "Problem with moving torrent \"{}\". Rolling "
-                                "back to previous state and rechecking.".format(
-                    self.torrent_manager[torrent_id].get_status(
-                        ["name"])["name"]))
+                    "Rollback", "Problem with moving torrent \"{}\".\n"
+                    "The following files already exsist: {}"
+                    "Rolling back to previous state and rechecking.".format(
+                    self.torrent_manager[torrent_id].get_status( ["name"])["name"],
+                    ''.join('    '+f+'\n' for f in conflicts)))
                 continue
             if deluge_movements:
                 log.debug("Attempting to re-reoute torrent: {}".format(
@@ -579,12 +585,19 @@ class Core(CorePluginBase):
                 self.torrent_manager[torrent_id].resume()
             defer.returnValue((True, None))
 
-        if not self._torrent_safety_check(torrent_id, deluge_movements,
-                                          filebot_results[2]):
-            log.warning("Raname is not safe on torrent {}. "
-                        "Rolling Back and recheking".format(torrent_id))
+        conflicts = self._file_conflicts(torrent_id,
+                                         deluge_movements,
+                                         filebot_results[2])
+        if conflicts:
+            log.warning('Rename unsafe for torrent {}, conflicting files:{}'.format(
+                torrent_id, conflicts))
+            log.warning('Rolling back torrent {}.'.format(torrent_id))
             self._rollback(filebot_results, torrent_id)
-            defer.returnValue((False, "Rename is not torrent safe. Rechecking"))
+            defer.returnValue((False, "Rename is not safe on torrent {}.\n"
+                               "The following files already exsist:\n"
+                               "{}"
+                               "Rolling Back and recheking.".format(torrent_id,
+                               ''.join('    ' + f + '\n' for f in conflicts))))
 
         log.debug("Attempting to re-reoute torrent: {}".format(
             deluge_movements))
