@@ -82,7 +82,7 @@ def format_errors(errors):
         else:
             text = "{} error:\n".format(errors[torrent_id][0])
 
-        text += "    {}".format(errors[torrent_id][1])
+        text += ''.join("    {}\n".format(l) for l in errors[torrent_id][1].splitlines())
         error_list.append(text)
 
     return '\n'.join(error_list)
