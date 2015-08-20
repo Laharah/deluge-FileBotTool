@@ -32,6 +32,7 @@ class Error(Exception):
 
     def __init__(self, msg=None):
         self.msg = msg
+        self.message = msg
 
 
 class FilebotFatalError(Error):
