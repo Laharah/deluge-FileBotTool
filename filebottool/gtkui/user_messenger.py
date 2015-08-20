@@ -19,7 +19,7 @@ class UserMessenger(object):
     def __init__(self):
         pass
 
-    def display_error(self, errors, parent=None, modal=False):
+    def display_errors(self, errors, parent=None, modal=False):
         """
         Given a dictionary of errors, display them as a dialog for the user.
         :param errors:dictionary in format {torrent_id; (error, error_message)

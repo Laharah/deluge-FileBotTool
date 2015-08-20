@@ -540,7 +540,7 @@ class Core(CorePluginBase):
                             "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
                 errors[torrent_id] = (
-                    "Rollback", "Problem with moving torrent \"{}\".\n"
+                    "File Conflict", "Problem with moving torrent \"{}\".\n"
                     "The following files already exsist:\n{}"
                     "Rolling back to previous state and rechecking.".format(
                     self.torrent_manager[torrent_id].get_status( ["name"])["name"],

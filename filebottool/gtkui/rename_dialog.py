@@ -258,7 +258,7 @@ class RenameDialog(object):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
         log.debug('Format expression info button was clicked')
 
-    def rename_complete(self, (success, msg)):
+    def rename_complete(self, (success, errors)):
         """
         Executed when do_rename has returned from server. Reports errors as
         well.
@@ -267,8 +267,8 @@ class RenameDialog(object):
             log.debug("Rename Completed.")
             self.window.destroy()
         else:
-            log.warning("rename failed with message: {}".format(msg))
-            self.messenger.display_error(msg)
+            log.warning("rename failed with errors: {}".format(errors))
+            self.messenger.display_errors(errors)
 
     def log_response(self, response):
         log.debug("response from server: {}".format(response))
