@@ -461,8 +461,8 @@ class Core(CorePluginBase):
                                                           target)
         except pyfilebot.FilebotRuntimeError as err:
             log.error("FILEBOT ERROR: {}".format(err.msg))
-            defer.returnValue((False, {torrent_id:(str(err), err.msg)}),
-                              ('FILEBOTERROR', err.msg))
+            defer.returnValue(((False, {torrent_id:(str(err), err.msg)}),
+                              ('FILEBOTERROR', err.msg)))
         # noinspection PyUnboundLocalVariable
         log.debug("recieved results from filebot: {}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
@@ -470,8 +470,8 @@ class Core(CorePluginBase):
         if not deluge_movements:
             new_save_path = self.torrent_manager[torrent_id].get_status(
                 ["save_path"])["save_path"]
-            defer.returnValue((True, None), (new_save_path, self.torrent_manager[
-                torrent_id].get_files()))
+            defer.returnValue(((True, None), (new_save_path, self.torrent_manager[
+                torrent_id].get_files())))
 
         log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
         new_save_path = deluge_movements[0]
@@ -488,10 +488,10 @@ class Core(CorePluginBase):
                                   'The following files already exsist:\n{}'.format(
                                     ''.join('    ' + f + '\n' for f in conflicts))
                                   )
-        defer.returnValue(
+        defer.returnValue((
             (True, None if not conflicts else errors),
             (new_save_path,
-             self._get_mockup_files_dictionary(torrent_id, deluge_movements)))
+             self._get_mockup_files_dictionary(torrent_id, deluge_movements))))
 
     @export
     @defer.inlineCallbacks

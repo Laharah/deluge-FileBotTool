@@ -224,7 +224,7 @@ class RenameDialog(object):
         log.debug("using settings: {}".format(handler_settings))
         self.toggle_button(button)
 
-        def error_check((success, errors), new_info):
+        def error_check(((success, errors), new_info)):
             '''closure to pop off error reporting'''
             if not success:
                 self.messenger.display_errors(errors)
