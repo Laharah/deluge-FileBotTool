@@ -19,7 +19,7 @@ class UserMessenger(object):
     def __init__(self):
         pass
 
-    def display_errors(self, errors, parent=None, modal=False):
+    def display_errors(self, errors, parent=None, modal=False, response_needed=False):
         """
         Given a dictionary of errors, display them as a dialog for the user.
         :param errors:dictionary in format {torrent_id; (error, error_message)
@@ -61,11 +61,15 @@ class UserMessenger(object):
         dialog.action_area.reorder_child(info_button, 0)
         info_button.show()
 
-        response = None
-        while response not in [gtk.RESPONSE_OK, gtk.RESPONSE_DELETE_EVENT]:
-            response = dialog.run()
-        dialog.destroy()
-        return response
+        if response_needed:
+            response = None
+            while response not in [gtk.RESPONSE_OK, gtk.RESPONSE_DELETE_EVENT]:
+                response = dialog.run()
+            dialog.destroy()
+            return response
+        else:
+            dialog.run()
+            return
 
 
 def format_errors(errors):
