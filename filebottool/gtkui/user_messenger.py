@@ -64,6 +64,9 @@ class UserMessenger(object):
         def _show_details(_):
             detail_view.show()
 
+        if show_details:
+            _show_details(None)
+
         info_button.connect("clicked", _show_details)
         dialog.action_area.pack_start(info_button)
         dialog.action_area.reorder_child(info_button, 0)
@@ -119,11 +122,11 @@ class InfoDialog(gtk.Dialog):
         self.set_gravity(gtk.gdk.GRAVITY_CENTER)
         self.show_all()
 
-    def run_async():
+    def run_async(self):
         """a version of run that does not block"""
         def dialog_response_cb(dialog, response_id):
             dialog.destroy()
-           
+
         if not self.modal:
             self.set_modal(True)
         self.connect('response', dialog_response_cb)
