@@ -124,6 +124,7 @@ class InfoDialog(gtk.Dialog):
 
     def run_async(self):
         """a version of run that does not block"""
+
         def dialog_response_cb(dialog, response_id):
             dialog.destroy()
 
