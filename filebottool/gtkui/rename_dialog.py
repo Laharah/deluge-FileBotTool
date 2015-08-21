@@ -76,7 +76,8 @@ class RenameDialog(object):
             self.on_toggle_advanced()
 
         download_subs = self.handler_ui.download_subs_checkbox
-        if download_subs.get_active() != self.glade.get_widget"subs_options").get_sensitive():
+        if download_subs.get_active() != self.glade.get_widget(
+            "subs_options").get_sensitive():
             self.on_download_subs_toggled()
 
         self.init_treestore(self.original_files_treeview,
@@ -166,9 +167,9 @@ class RenameDialog(object):
         """
         log.debug("refreshing filedata for torrent {}".format(self.torrent_id))
 
-        torrent_data = yield client.core.get_torrent_status(self.torrent_id,
-                                                            ["save_path", "files"])
-        
+        torrent_data = yield client.core.get_torrent_status(
+            self.torrent_id, ["save_path", "files"])
+
         log.debug("recieved response from server{}".format(torrent_data))
         save_path = torrent_data["save_path"]
         files = torrent_data["files"]
