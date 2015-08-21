@@ -47,8 +47,7 @@ class HandlerUI(object):
 
         self.format_string_entry = self.glade.get_widget("format_string_entry")
         self.query_entry = self.glade.get_widget("query_entry")
-        self.download_subs_checkbox = self.glade.get_widget(
-            "download_subs_checkbox")
+        self.download_subs_checkbox = self.glade.get_widget("download_subs_checkbox")
         self.language_code_entry = self.glade.get_widget("language_code_entry")
         self.encoding_entry = self.glade.get_widget("encoding_entry")
         self.output_entry = self.glade.get_widget("output_entry")
