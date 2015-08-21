@@ -672,6 +672,12 @@ class Core(CorePluginBase):
         return valid_args
 
     @export
+    def update_handlers(self, handlers):
+        log.debug("Updating saved handlers: {}".format(handlers))
+        self.config["saved_handlers"] = handlers
+        self.config.save()
+
+    @export
     def test_function(self):
         """used for testing purposes"""
         pass
