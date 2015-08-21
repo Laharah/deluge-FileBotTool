@@ -79,9 +79,9 @@ class HandlerUI(object):
             self.populate_with_settings(self.initial_settings)
 
     def populate_with_settings(self, settings):
-        """presets the window with the last settings used in the plugin
+        """populates the UI with the desired settings dictionary
         Args:
-          settings: The settings dict given by the server.
+          settings: The settings dict to populate.
         """
         combo_value_pairs = [
             (self.database_combo, settings["database"]),

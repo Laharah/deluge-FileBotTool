@@ -94,9 +94,7 @@ class AutoSortOrderer(object):
         Should always be run before sending rule dictionary back to server
         :return: the new rule dictionary
         """
-        new_rules = {}
-        for new_index, row in enumerate(self.model):
-            new_rules[new_index] = self.rules[row[0]]
+        new_rules = {index: row for index, row in enumerate(self.model)}
         self.rules = new_rules
 
     def on_move_selection_up_clicked(self, button):
