@@ -83,8 +83,8 @@ class AutoSortManager(object):
             # noinspection PyCallingNonCallable
             if OPERATOR_MAP[rule.operator](torrent.get_status([rule.field])[
                                            rule.field], rule.value):
-                log.debug("executing filebot rename on torrent {} with "
-                          "handler, {}".format(torrent_id, rule.handler_id))
+                log.debug("executing filebot rename on torrent {0} with "
+                          "handler, {1}".format(torrent_id, rule.handler_id))
                 self.filebottool.do_rename(
                     torrent_id,
                     handler_settings=self.filebottool.config["saved_handlers"][

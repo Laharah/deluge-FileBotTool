@@ -85,11 +85,11 @@ class RenameDialog(object):
             self.on_download_subs_toggled()
 
         self.init_treestore(self.original_files_treeview,
-                            "Original File Structure at {}".format(
+                            "Original File Structure at {0}".format(
                                 self.current_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
         self.init_treestore(self.history_files_treeview,
-                            "Current File Structure at {}".format(
+                            "Current File Structure at {0}".format(
                             self.current_save_path))
         self.load_treestore((None, self.files), self.original_files_treeview)
         self.load_treestore((None, self.files), self.history_files_treeview)
@@ -125,8 +125,7 @@ class RenameDialog(object):
             if save_path:
                 for column in treeview.get_columns():
                     treeview.remove_column(column)
-                self.init_treestore(treeview, "New File Structure at {"
-                                              "}".format(save_path))
+                self.init_treestore(treeview, "New File Structure at {0}".format(save_path))
             model = gtk.TreeStore(str, str)
             treeview.set_model(model)
         if not file_data:
@@ -172,12 +171,12 @@ class RenameDialog(object):
         """
         Refreshes the file data from the server and updates the treestore model
         """
-        log.debug("refreshing filedata for torrent {}".format(self.torrent_id))
+        log.debug("refreshing filedata for torrent {0}".format(self.torrent_id))
 
         torrent_data = yield client.core.get_torrent_status(self.torrent_id,
                                                             ["save_path",
                                                              "files"])
-        log.debug("recieved response from server{}".format(torrent_data))
+        log.debug("recieved response from server{0}".format(torrent_data))
         save_path = torrent_data["save_path"]
         files = torrent_data["files"]
         self.load_treestore((save_path, files), self.original_files_treeview,
@@ -219,9 +218,9 @@ class RenameDialog(object):
         look after filebot run.
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
-        log.info("sending dry run request to server for torrent {}".format(
+        log.info("sending dry run request to server for torrent {0}".format(
             self.torrent_id))
-        log.debug("using settings: {}".format(handler_settings))
+        log.debug("using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
         def error_check(((success, errors), new_info)):
@@ -246,9 +245,9 @@ class RenameDialog(object):
          them.
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
-        log.info("Sending execute request to server for torrents {}".format(
+        log.info("Sending execute request to server for torrents {0}".format(
             self.torrent_ids))
-        log.debug("Using settings: {}".format(handler_settings))
+        log.debug("Using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
         client.filebottool.save_rename_dialog_settings(handler_settings)
@@ -258,7 +257,7 @@ class RenameDialog(object):
         d.addCallback(self.toggle_button, button)
 
     def on_revert_button_clicked(self, button):
-        log.info("Sending revert request to server for torrent {}".format(
+        log.info("Sending revert request to server for torrent {0}".format(
             self.torrent_id))
         self.toggle_button(button)
 
@@ -280,11 +279,11 @@ class RenameDialog(object):
             log.debug("Rename Completed.")
             self.window.destroy()
         else:
-            log.warning("rename failed with errors: {}".format(errors))
+            log.warning("rename failed with errors: {0}".format(errors))
             self.messenger.display_errors(errors)
 
     def log_response(self, response):
-        log.debug("response from server: {}".format(response))
+        log.debug("response from server: {0}".format(response))
         return response
 
     def toggle_button(self, *args):

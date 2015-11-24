@@ -49,16 +49,16 @@ class Log(object):
     """small wrapper class for formatting log outputs"""
 
     def error(self, msg):
-        delugelog.error("[FilebotTool] {}".format(msg))
+        delugelog.error("[FilebotTool] {0}".format(msg))
 
     def info(self, msg):
-        delugelog.info("[FilebotTool] {}".format(msg))
+        delugelog.info("[FilebotTool] {0}".format(msg))
 
     def debug(self, msg):
-        delugelog.debug("[FilebotTool] {}".format(msg))
+        delugelog.debug("[FilebotTool] {0}".format(msg))
 
     def critical(self, msg):
-        delugelog.critical("[FilebotTool] {}".format(msg))
+        delugelog.critical("[FilebotTool] {0}".format(msg))
 
     def warning(self, msg):
-        delugelog.warning("[FilebotTool] {}".format(msg))
+        delugelog.warning("[FilebotTool] {0}".format(msg))

@@ -150,5 +150,5 @@ class HandlerUI(object):
             "advanced_options").get_visible()
         settings["download_subs"] = self.download_subs_checkbox.get_active()
 
-        log.debug("Collected settings for server: {}".format(settings))
+        log.debug("Collected settings for server: {0}".format(settings))
         return settings

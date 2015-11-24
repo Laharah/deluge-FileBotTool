@@ -85,7 +85,7 @@ class Core(CorePluginBase):
 
         try:
             self.filebot_version = pyfilebot.get_version()
-            log.info("Filebot Found with version {}".format(
+            log.info("Filebot Found with version {0}".format(
                 self.filebot_version))
         except pyfilebot.FilebotFatalError:
             log.error("Filebot cannot be found!")
@@ -127,7 +127,7 @@ class Core(CorePluginBase):
         """handler for storage movements, Checks listening dictionary if it's
          a relevant movement"""
         torrent_id = str(alert.handle.info_hash())
-        log.debug("_on_storage_moved({})".format(torrent_id))
+        log.debug("_on_storage_moved({0})".format(torrent_id))
         if torrent_id not in self.listening_dictionary:
             return
 
@@ -140,7 +140,7 @@ class Core(CorePluginBase):
         """handler for folder renames, Checks plugin listening dictionary and
         takes appropriate action.
         """
-        log.debug("_on_folder_moved({},{}, {})".format(torrent_id, old, new))
+        log.debug("_on_folder_moved({0},{1}, {2})".format(torrent_id, old, new))
         if torrent_id not in self.listening_dictionary:
             return
 
@@ -152,7 +152,7 @@ class Core(CorePluginBase):
     def _on_file_renamed(self, torrent_id, index, name):
         """handler for file renames, Checks plugin listening dictionary and
         takes appropriate action."""
-        log.debug("on_file_renamed({},{}, {})".format(torrent_id, index, name))
+        log.debug("on_file_renamed({0},{1}, {2})".format(torrent_id, index, name))
         if torrent_id not in self.listening_dictionary:
             return
 
@@ -169,7 +169,7 @@ class Core(CorePluginBase):
                 del self.listening_dictionary[torrent_id]
                 self.torrent_manager[torrent_id].resume()
 
-        log.debug("listning dictionary updated: {}".format(
+        log.debug("listning dictionary updated: {0}".format(
             self.listening_dictionary))
 
     #########
@@ -185,7 +185,7 @@ class Core(CorePluginBase):
         returns: tuple(new_path, new_toplevel, [(index, new file path), ...])
         """
         if not filebot_moves:
-            log.info("No movements for {}".format(torrent_id))
+            log.info("No movements for {0}".format(torrent_id))
             return
         torrent = self.torrent_manager[torrent_id]
         current_save_path = torrent.get_status(["save_path"])["save_path"]
@@ -205,7 +205,7 @@ class Core(CorePluginBase):
             try:
                 renames[old]["new_path"] = new
             except KeyError:
-                log.error("could not find index for {} in the torrent, problem "
+                log.error("could not find index for {0} in the torrent, problem "
                           "with movement matching.".format(old))
                 raise
 
@@ -332,11 +332,11 @@ class Core(CorePluginBase):
         try:
             results = yield threads.deferToThread(pyfilebot.revert, targets)
         except pyfilebot.FilebotRuntimeError, err:
-            log.error("FILEBOT ERROR: {}".format(err))
+            log.error("FILEBOT ERROR: {0}".format(err))
             defer.returnValue(None)
         # noinspection PyUnboundLocalVariable
-        log.info("Successfully rolled back files: {}".format(results[1]))
-        log.info("forcing recheck on {}".format(torrent_id))
+        log.info("Successfully rolled back files: {0}".format(results[1]))
+        log.info("forcing recheck on {0}".format(torrent_id))
         self.torrent_manager[torrent_id].force_recheck()
 
     #########
@@ -348,12 +348,12 @@ class Core(CorePluginBase):
         Args: torrent_id: torrent_id
         returns: path
         """
-        log.debug("targets list for torrent {}".format(torrent_id))
+        log.debug("targets list for torrent {0}".format(torrent_id))
         torrent = self.torrent_manager[torrent_id]
         save_path = torrent.get_status(["save_path"])["save_path"]
         targets = [self._get_full_os_path(save_path, f["path"]) for f in
                    torrent.get_files()]
-        log.debug("targets found: {}".format(targets))
+        log.debug("targets found: {0}".format(targets))
         return targets
 
     @staticmethod
@@ -397,7 +397,7 @@ class Core(CorePluginBase):
                 try:
                     handler.__setattr__(attribute, settings[attribute])
                 except ValueError:
-                    log.warning("{} is not a valid value for {}, "
+                    log.warning("{0} is not a valid value for {1}, "
                                 "skipping...".format(settings[attribute],
                                                      attribute))
         return handler
@@ -454,17 +454,17 @@ class Core(CorePluginBase):
 
         handler.rename_action = "test"
         target = self._get_filebot_target(torrent_id)
-        log.debug("running filbot dry run for torrent: {} with target {"
-                  "}".format(torrent_id, target))
+        log.debug("running filbot dry run for torrent: {0} with target {1}".format(
+            torrent_id, target))
         try:
             filebot_results = yield threads.deferToThread(handler.rename,
                                                           target)
         except pyfilebot.FilebotRuntimeError as err:
-            log.error("FILEBOT ERROR: {}".format(err.msg))
+            log.error("FILEBOT ERROR: {0}".format(err.msg))
             defer.returnValue(((False, {torrent_id:(str(err), err.msg)}),
                               ('FILEBOTERROR', err.msg)))
         # noinspection PyUnboundLocalVariable
-        log.debug("recieved results from filebot: {}".format(filebot_results))
+        log.debug("recieved results from filebot: {0}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
                                                              filebot_results[1])
         if not deluge_movements:
@@ -473,7 +473,7 @@ class Core(CorePluginBase):
             defer.returnValue(((True, None), (new_save_path, self.torrent_manager[
                 torrent_id].get_files())))
 
-        log.debug("REQUIRED DELUGE MOVEMENTS: {}".format(deluge_movements))
+        log.debug("REQUIRED DELUGE MOVEMENTS: {0}".format(deluge_movements))
         new_save_path = deluge_movements[0]
         if not new_save_path:
             new_save_path = None
@@ -485,7 +485,7 @@ class Core(CorePluginBase):
         if conflicts:
             errors = {}
             errors[torrent_id] = ('File Conflict',
-                                  'The following files already exsist:\n{}'.format(
+                                  'The following files already exsist:\n{0}'.format(
                                     ''.join('    ' + f + '\n' for f in conflicts))
                                   )
         defer.returnValue((
@@ -516,8 +516,8 @@ class Core(CorePluginBase):
         errors = {}
         for torrent_id in torrent_ids:
             target = self._get_filebot_target(torrent_id)
-            log.debug("beginning filebot run on torrent {}, with target {"
-                      "}".format(torrent_id, target))
+            log.debug("beginning filebot run on torrent {0}, with target {1}".format(
+                torrent_id, target))
 
             original_torrent_state = self.torrent_manager[torrent_id].state
             self.torrent_manager[torrent_id].pause()
@@ -526,12 +526,12 @@ class Core(CorePluginBase):
                 filebot_results = yield threads.deferToThread(handler.rename,
                                                               target)
             except pyfilebot.FilebotRuntimeError as err:
-                log.error("FILEBOT ERROR{}".format(err))
+                log.error("FILEBOT ERROR{0}".format(err))
                 errors[torrent_id] = (str(err), err.msg)
                 filebot_results = ["", {}, {}]
                 continue
 
-            log.debug("recieved results from filebot: {}".format(
+            log.debug("recieved results from filebot: {0}".format(
                 filebot_results))
 
             deluge_movements = self._translate_filebot_movements(
@@ -546,18 +546,18 @@ class Core(CorePluginBase):
                                              filebot_results[2])
 
             if conflicts:
-                log.warning("Raname is not safe on torrent {}. "
+                log.warning("Raname is not safe on torrent {0}. "
                             "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
                 errors[torrent_id] = (
-                    "File Conflict", "Problem with moving torrent \"{}\".\n"
-                    "The following files already exsist:\n{}"
+                    "File Conflict", "Problem with moving torrent \"{0}\".\n"
+                    "The following files already exsist:\n{1}"
                     "Rolling back to previous state and rechecking.".format(
                     self.torrent_manager[torrent_id].get_status( ["name"])["name"],
                     ''.join('    '+f+'\n' for f in conflicts)))
                 continue
             if deluge_movements:
-                log.debug("Attempting to re-reoute torrent: {}".format(
+                log.debug("Attempting to re-reoute torrent: {0}".format(
                     deluge_movements))
                 self._redirect_torrent_paths(
                     torrent_id, deluge_movements,
@@ -573,7 +573,7 @@ class Core(CorePluginBase):
         """calls filebottool.revert() on files in a torrent. Will only allow
         one torrent at a time"""
         targets = self._get_filebot_target(torrent_id)
-        log.debug("reverting torrent {} with targets {}".format(torrent_id,
+        log.debug("reverting torrent {0} with targets {1}".format(torrent_id,
                                                                 targets))
         original_torrent_state = self.torrent_manager[torrent_id].state
         self.torrent_manager[torrent_id].pause()
@@ -583,7 +583,7 @@ class Core(CorePluginBase):
             filebot_results = yield threads.deferToThread(handler.revert,
                                                           targets)
         except Exception, err:
-            log.error("FILEBOT ERROR {}".format(err))
+            log.error("FILEBOT ERROR {0}".format(err))
             defer.returnValue((False, err))
 
         # noinspection PyUnboundLocalVariable
@@ -599,17 +599,17 @@ class Core(CorePluginBase):
                                          deluge_movements,
                                          filebot_results[2])
         if conflicts:
-            log.warning('Rename unsafe for torrent {}, conflicting files:{}'.format(
+            log.warning('Rename unsafe for torrent {0}, conflicting files:{1}'.format(
                 torrent_id, conflicts))
-            log.warning('Rolling back torrent {}.'.format(torrent_id))
+            log.warning('Rolling back torrent {0}.'.format(torrent_id))
             self._rollback(filebot_results, torrent_id)
-            defer.returnValue((False, "Rename is not safe on torrent {}.\n"
+            defer.returnValue((False, "Rename is not safe on torrent {0}.\n"
                                "The following files already exsist:\n"
-                               "{}"
+                               "{1}"
                                "Rolling Back and recheking.".format(torrent_id,
                                ''.join('    ' + f + '\n' for f in conflicts))))
 
-        log.debug("Attempting to re-reoute torrent: {}".format(
+        log.debug("Attempting to re-reoute torrent: {00}".fo10rmat(
             deluge_movements))
         self._redirect_torrent_paths(torrent_id, deluge_movements,
                                      original_state=original_torrent_state)
@@ -617,13 +617,13 @@ class Core(CorePluginBase):
 
     @export
     def save_rename_dialog_settings(self, new_settings):
-        log.debug("recieved settings from client: {}".format(new_settings))
+        log.debug("recieved settings from client: {0}".format(new_settings))
         for setting in self.config["rename_dialog_last_settings"]:
             try:
                 if new_settings[setting] is not None:
                     self.config["rename_dialog_last_settings"][setting] = (
                         new_settings[setting])
-                    log.debug("setting saved: {} : {}".format(
+                    log.debug("setting saved: {0} : {1}".format(
                         setting, new_settings[setting]))
                 else:
                     self.config["rename_dialog_last_settings"][setting] = None
@@ -653,7 +653,7 @@ class Core(CorePluginBase):
         dialog_info["rename_dialog_last_settings"] = rename_dialog_last_settings
         dialog_info.update(self.get_filebot_valid_values())
 
-        log.debug("sending dialog info to client: {}".format(dialog_info))
+        log.debug("sending dialog info to client: {0}".format(dialog_info))
         return dialog_info
 
     # noinspection PyDictCreation

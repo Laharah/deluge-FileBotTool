@@ -93,11 +93,11 @@ def format_errors(errors):
 
     for torrent_id in errors:
         if torrent_id != 0:
-            text = "{} error on torrent {}:\n".format(errors[torrent_id][0], torrent_id)
+            text = "{0} error on torrent {1}:\n".format(errors[torrent_id][0], torrent_id)
         else:
-            text = "{} error:\n".format(errors[torrent_id][0])
+            text = "{0} error:\n".format(errors[torrent_id][0])
 
-        text += ''.join("    {}\n".format(l) for l in errors[torrent_id][1].splitlines())
+        text += ''.join("    {0}\n".format(l) for l in errors[torrent_id][1].splitlines())
         error_list.append(text)
 
     return '\n'.join(error_list)
