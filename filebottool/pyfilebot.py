@@ -127,7 +127,7 @@ def parse_filebot(data):
 
     parses and gives info about number of files processed, their moves, and
     files that were skipped.
-    NOTE: data should be pre-decoded as utf-8
+    NOTE: data will be decoded as UTF-8
 
     Args:
         data: a string containing the output of a filebot run
@@ -136,6 +136,10 @@ def parse_filebot(data):
         a tuple in format (num processed files, list of movement tuples,
                            skipped/failed files)
     """
+    try:
+        data = data.decode('utf8')
+    except UnicodeDecodeError:
+        data = data.decode('utf8', errors='ignore')
     data = data.splitlines()
 
     skipped_files = []
@@ -562,7 +566,7 @@ def _execute(process_arguments, workaround=True):
 
     if workaround:
         with open(file_temp.name, 'rU') as log:
-            data = log.read().decode('utf8')  # read and cleanup temp/logfile
+            data = log.read()  # read and cleanup temp/logfile
             log.close()
     else:
         data = stdout
