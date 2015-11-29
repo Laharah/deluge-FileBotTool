@@ -14,16 +14,16 @@ import warnings
 from types import MethodType
 import functools
 
-FILEBOT_MODES = ['rename', 'move', 'check', 'get-missing-subtitles',
-                 'get-subtitles', 'list', 'mediainfo']
+FILEBOT_MODES = ['rename', 'move', 'check', 'get-missing-subtitles', 'get-subtitles',
+                 'list', 'mediainfo']
 
 FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute"]
 
-FILEBOT_DATABASES = [None, 'TheTVDB', 'TvRage', 'AniDB', 'OpenSubtitles',
-                     'TheMovieDB', 'OMDb', 'AccoustID', 'ID3 Tags']
+FILEBOT_DATABASES = [None, 'TheTVDB', 'TvRage', 'AniDB', 'OpenSubtitles', 'TheMovieDB',
+                     'OMDb', 'AccoustID', 'ID3 Tags']
 
-FILEBOT_RENAME_ACTIONS = [None, 'move', 'copy', 'duplicate', 'keeplink',
-                          'symlink', 'hardlink', 'test']
+FILEBOT_RENAME_ACTIONS = [None, 'move', 'copy', 'duplicate', 'keeplink', 'symlink',
+                          'hardlink', 'test']
 
 FILEBOT_ON_CONFLICT = [None, 'override', 'skip', 'fail']
 
@@ -102,22 +102,22 @@ def rename(targets,
         output = os.path.abspath(os.path.expandvars(os.path.expanduser(output)))
 
     filebot_arguments = _build_filebot_arguments(targets,
-                                 format_string=format_string,
-                                 database=database,
-                                 output=output,
-                                 rename_action=rename_action,
-                                 episode_order=episode_order,
-                                 on_confilct=on_conflict,
-                                 query_override=query_override,
-                                 non_strict=non_strict,
-                                 recursive=recursive)
+                                                 format_string=format_string,
+                                                 database=database,
+                                                 output=output,
+                                                 rename_action=rename_action,
+                                                 episode_order=episode_order,
+                                                 on_confilct=on_conflict,
+                                                 query_override=query_override,
+                                                 non_strict=non_strict,
+                                                 recursive=recursive)
 
     # TODO:better error handling
     exit_code, data, filebot_error = _execute(filebot_arguments)
 
     if exit_code != 0:
-        raise FilebotRuntimeError(
-            "FILEBOT OUTPUT DUMP:\n{0}".format(data.encode("UTF-8")))
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data.encode(
+            "UTF-8")))
 
     return parse_filebot(data)
 
@@ -159,10 +159,8 @@ def parse_filebot(data):
     # file moves
     file_moves = []
     for line in data:
-        match = (
-            re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]',
-                      line)
-        )
+        match = (re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]',
+                           line))
         if match:
             file_moves.append((match.group(1), match.group(2)))
 
@@ -189,8 +187,8 @@ def test_format_string(format_string=None, file_name="Citizen Kane.avi"):
     """
 
     filebot_arguments = _build_filebot_arguments(file_name,
-                                          rename_action='test',
-                                          format_string=format_string)
+                                                 rename_action='test',
+                                                 format_string=format_string)
 
     _, data, _ = _execute(filebot_arguments)
     _, file_moves, _ = parse_filebot(data)
@@ -200,11 +198,7 @@ def test_format_string(format_string=None, file_name="Citizen Kane.avi"):
         return file_moves[0][1]
 
 
-def get_subtitles(target,
-                  language_code=None,
-                  encoding=None,
-                  force=False,
-                  output=None):
+def get_subtitles(target, language_code=None, encoding=None, force=False, output=None):
     """
     convenience function, Gets subtitles for a given *target*
 
@@ -236,10 +230,10 @@ def get_subtitles(target,
                              "arguments for subtitle mode.")
 
     filebot_arguments = _build_filebot_arguments(target,
-                                          mode=mode,
-                                          language_code=language_code,
-                                          encoding=encoding,
-                                          output=None)
+                                                 mode=mode,
+                                                 language_code=language_code,
+                                                 encoding=encoding,
+                                                 output=None)
     _, data, _ = _execute(filebot_arguments)
     _, downloads, _ = parse_filebot(data)
     return [name[1] for name in downloads]
@@ -260,8 +254,7 @@ def get_history(targets):
     """
     if isinstance(targets, basestring):
         targets = [targets]
-    targets = [os.path.expanduser(os.path.expandvars(target))
-               for target in targets]
+    targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
     filebot_arguments = _build_script_arguments("fn:history", targets)
     _, data, _ = _execute(filebot_arguments)
     _, file_moves, _ = parse_filebot(data)
@@ -285,8 +278,7 @@ def revert(targets):
     """
     if isinstance(targets, basestring):
         targets = [targets]
-    targets = [os.path.expanduser(os.path.expandvars(target))
-               for target in targets]
+    targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
     filebot_arguments = _build_script_arguments("fn:revert", targets)
     _, data, _ = _execute(filebot_arguments)
     file_moves = parse_filebot(data)
@@ -445,19 +437,15 @@ def _build_filebot_arguments(targets,
         tuple in format '(exit_code, stdoutput, stderr)'
     """
     if not _rename_action_is_valid(rename_action):
-        raise ValueError(
-            "'{0}' is not a valid rename action".format(rename_action))
+        raise ValueError("'{0}' is not a valid rename action".format(rename_action))
     if not _order_is_valid(episode_order):
-        raise ValueError(
-            "'{0}' is not a valid episode order".format(episode_order))
+        raise ValueError("'{0}' is not a valid episode order".format(episode_order))
     if not _database_is_valid(database):
-        raise ValueError(
-            "'{0}' is not a valid filebot database".format(database))
+        raise ValueError("'{0}' is not a valid filebot database".format(database))
     if not _mode_is_valid(mode):
         raise ValueError("'{0}' is not a valid filebot mode".format(mode))
     if not _on_conflict_is_valid(on_confilct):
-        raise ValueError(
-            "'{0}' is not a valid conflict resolution.".format(on_confilct))
+        raise ValueError("'{0}' is not a valid conflict resolution.".format(on_confilct))
 
     if not mode.startswith('-'):
         mode = '-' + mode
@@ -499,8 +487,7 @@ def _build_filebot_arguments(targets,
         targets = os.path.expanduser((os.path.expandvars(targets)))
         process_arguments.append(targets)
     else:
-        targets = [os.path.expanduser(os.path.expandvars(target))
-                   for target in targets]
+        targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
         process_arguments += [target.decode("utf8") for target in targets]
 
     return process_arguments
@@ -547,9 +534,7 @@ def _execute(process_arguments, workaround=True):
     # this is a workaround for malfunctioning UTF-8 chars in Windows.
     file_temp = tempfile.NamedTemporaryFile(delete=False)
     file_temp.close()
-    process_arguments = (
-        ["filebot", "--log-file", file_temp.name] + process_arguments
-    )
+    process_arguments = (["filebot", "--log-file", file_temp.name] + process_arguments)
 
     if os.name == "nt":  # used to hide cmd window popup
         startupinfo = subprocess.STARTUPINFO()
@@ -702,8 +687,7 @@ class FilebotHandler(object):
         if _database_is_valid(value):
             self._database = value
         else:
-            raise ValueError(
-                '"{0}" is not a valid filebot database'.format(value))
+            raise ValueError('"{0}" is not a valid filebot database'.format(value))
 
     @property
     def episode_order(self):
@@ -725,8 +709,7 @@ class FilebotHandler(object):
         if _rename_action_is_valid(action):
             self._rename_action = action
         else:
-            raise ValueError(
-                '"{0}" is not a valid rename action.'.format(action))
+            raise ValueError('"{0}" is not a valid rename action.'.format(action))
 
     @property
     def on_conflict(self):
@@ -737,8 +720,7 @@ class FilebotHandler(object):
         if _on_conflict_is_valid(value):
             self._on_conflict = value
         else:
-            raise ValueError(
-                '"{0}" is not a valid conflict resolution'.format(value))
+            raise ValueError('"{0}" is not a valid conflict resolution'.format(value))
 
     def _populate_methods(self):
         """populates the class methods with public functions from the module"""
