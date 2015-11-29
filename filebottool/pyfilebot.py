@@ -10,6 +10,7 @@ import os
 import tempfile
 import inspect
 import sys
+import warnings
 from types import MethodType
 import functools
 
@@ -100,8 +101,7 @@ def rename(targets,
     if output:
         output = os.path.abspath(os.path.expandvars(os.path.expanduser(output)))
 
-    exit_code, data, filebot_error = (
-        _build_filebot_arguments(targets,
+    filebot_arguments = _build_filebot_arguments(targets,
                                  format_string=format_string,
                                  database=database,
                                  output=output,
@@ -111,9 +111,9 @@ def rename(targets,
                                  query_override=query_override,
                                  non_strict=non_strict,
                                  recursive=recursive)
-    )
 
     # TODO:better error handling
+    exit_code, data, filebot_error = _execute(filebot_arguments)
 
     if exit_code != 0:
         raise FilebotRuntimeError(
@@ -139,6 +139,7 @@ def parse_filebot(data):
     try:
         data = data.decode('utf8')
     except UnicodeDecodeError:
+        warnings.warn('DECODING ERROR WARNING: UNVALID UNICODE DETECTED!', UnicodeWarning)
         data = data.decode('utf8', errors='ignore')
     data = data.splitlines()
 
@@ -187,9 +188,11 @@ def test_format_string(format_string=None, file_name="Citizen Kane.avi"):
             Returns an empty string if no matches were found.
     """
 
-    _, data, _ = _build_filebot_arguments(file_name,
+    filebot_arguments = _build_filebot_arguments(file_name,
                                           rename_action='test',
                                           format_string=format_string)
+
+    _, data, _ = _execute(filebot_arguments)
     _, file_moves, _ = parse_filebot(data)
     if not file_moves:
         return ""
@@ -232,11 +235,12 @@ def get_subtitles(target,
             raise ValueError("Only None and srt are valid output "
                              "arguments for subtitle mode.")
 
-    _, data, _ = _build_filebot_arguments(target,
+    filebot_arguments = _build_filebot_arguments(target,
                                           mode=mode,
                                           language_code=language_code,
                                           encoding=encoding,
                                           output=None)
+    _, data, _ = _execute(filebot_arguments)
     _, downloads, _ = parse_filebot(data)
     return [name[1] for name in downloads]
 
@@ -258,7 +262,8 @@ def get_history(targets):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target))
                for target in targets]
-    _, data, _ = _build_script_arguments("fn:history", targets)
+    filebot_arguments = _build_script_arguments("fn:history", targets)
+    _, data, _ = _execute(filebot_arguments)
     _, file_moves, _ = parse_filebot(data)
     file_moves = [(x[1], x[0]) for x in file_moves]  # swaps entries for
     # clarity
@@ -282,7 +287,8 @@ def revert(targets):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target))
                for target in targets]
-    _, data, _ = _build_script_arguments("fn:revert", targets)
+    filebot_arguments = _build_script_arguments("fn:revert", targets)
+    _, data, _ = _execute(filebot_arguments)
     file_moves = parse_filebot(data)
 
     return file_moves
@@ -497,7 +503,7 @@ def _build_filebot_arguments(targets,
                    for target in targets]
         process_arguments += [target.decode("utf8") for target in targets]
 
-    return _execute(process_arguments)
+    return process_arguments
 
 
 def _build_script_arguments(script_name, script_arguments):
@@ -520,7 +526,7 @@ def _build_script_arguments(script_name, script_arguments):
             script_arguments = [script_arguments]
         process_arguments += [arg.decode("utf8") for arg in script_arguments]
 
-    return _execute(process_arguments)
+    return process_arguments
 
 
 def _execute(process_arguments, workaround=True):
