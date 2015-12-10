@@ -8,6 +8,7 @@ from filebottool.common import Log
 from filebottool.common import get_resource
 from filebottool.gtkui.handler_ui import HandlerUI
 from filebottool.gtkui.common import inflate_list_store_combo
+from filebottool.gtkui.user_messenger import InfoDialog, ResponseDialog
 
 
 class HandlerEditor(HandlerUI):
@@ -43,9 +44,6 @@ class HandlerEditor(HandlerUI):
 
         self.window.show()
 
-    def on_new_handler_id(self, *args):
-        pass
-
     def on_handler_changed(self, *args):
         """New handler chosen, re-populate widgets with handler settings"""
         try:
@@ -59,6 +57,26 @@ class HandlerEditor(HandlerUI):
         """send updated handlers dictionary to server, call the callback if supplied"""
         settings = self.collect_dialog_settings()
         handler_id = self.handler_name_combo_entry.child.get_text().strip()
+        if not handler_id:
+            dialog = InfoDialog("Identifier Required",
+                                "The Handler requires a Name.",
+                                modal=True)
+            dialog.run()
+            return
+        if handler_id in self.handlers:
+            buttons = (gtk.STOCK_CANCEL,
+                       gtk.RESPONSE_CANCEL,
+                       gtk.STOCK_APPLY,
+                       gtk.RESPONSE_APPLY,)
+
+            dialog = ResponseDialog("Overwrite?",
+                                    "Overwrite the handler named {0}? "
+                                    "Profiles that use this handler will "
+                                    "be affected.".format(handler_id),
+                                    buttons=buttons)
+            response = dialog.run()
+            if response != gtk.RESPONSE_APPLY:
+                return
         self.handlers[handler_id] = settings
         client.filebottool.update_handlers(self.handlers)
         self.window.destroy()
