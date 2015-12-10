@@ -1,8 +1,0 @@
-
-    [deluge.plugin.core]
-    FileBotTool = filebottool:CorePlugin
-    [deluge.plugin.gtkui]
-    FileBotTool = filebottool:GtkUIPlugin
-    [deluge.plugin.web]
-    FileBotTool = filebottool:WebUIPlugin
-    
