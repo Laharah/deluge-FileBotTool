@@ -10,6 +10,57 @@ from filebottool.common import Log
 log = Log()
 
 
+class InfoDialog(gtk.Dialog):
+    """
+    Loads and shows a dialog to the user informing them of some event.
+    used to display errors.
+    """
+
+    def __init__(self, title, message, parent=None, modal=False):
+        if modal:
+            modal = gtk.DIALOG_MODAL
+        else:
+            modal = 0
+        gtk.Dialog.__init__(self, title, parent, modal, (gtk.STOCK_OK, gtk.RESPONSE_OK))
+        self.message = message
+        label = gtk.Label(message)
+        self.get_content_area().add(label)
+        self.set_position(gtk.WIN_POS_CENTER)
+        self.set_gravity(gtk.gdk.GRAVITY_CENTER)
+        self.show_all()
+
+    def run_async(self):
+        """a version of run that does not block"""
+
+        def dialog_response_cb(dialog, response_id):
+            dialog.destroy()
+
+        if not self.modal:
+            self.set_modal(True)
+        self.connect('response', dialog_response_cb)
+        self.show()
+
+
+class ResponseDialog(gtk.Dialog):
+    """
+    Loads and shows a dialog that presents a user with options, one of which they must
+    choose to continue.
+    """
+
+    def __init__(self, title, message, parent=None, modal=True, buttons=None):
+        if not buttons:
+            buttons = (gtk.STOCk_OK, gtk.RESPONSE_ACCEPT, gtk.STOCK_CANCEL,
+                       gtk.RESPONSE_CANCEL)
+        modal = gtk.DIALOG_MODAL if modal else 0
+        super(self.__class__, self).__init__(title, parent, modal, buttons)
+        self.message = message
+        label = gtk.Label(message)
+        self.get_content_area().add(label)
+        self.set_gravity(gtk.gdk.GRAVITY_CENTER)
+        self.set_position(gtk.WIN_POS_CENTER)
+        self.show_all()
+
+
 class UserMessenger(object):
     """
     handles the formatting and creation of dialogs to display info to the user.
@@ -101,34 +152,3 @@ def format_errors(errors):
         error_list.append(text)
 
     return '\n'.join(error_list)
-
-
-class InfoDialog(gtk.Dialog):
-    """
-    Loads and shows a dialog to the user informing them of some event.
-    used to display errors.
-    """
-
-    def __init__(self, title, message, parent=None, modal=False):
-        if modal:
-            modal = gtk.DIALOG_MODAL
-        else:
-            modal = 0
-        gtk.Dialog.__init__(self, title, parent, modal, (gtk.STOCK_OK, gtk.RESPONSE_OK))
-        self.message = message
-        label = gtk.Label(message)
-        self.get_content_area().add(label)
-        self.set_position(gtk.WIN_POS_CENTER)
-        self.set_gravity(gtk.gdk.GRAVITY_CENTER)
-        self.show_all()
-
-    def run_async(self):
-        """a version of run that does not block"""
-
-        def dialog_response_cb(dialog, response_id):
-            dialog.destroy()
-
-        if not self.modal:
-            self.set_modal(True)
-        self.connect('response', dialog_response_cb)
-        self.show()
