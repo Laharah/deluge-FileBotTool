@@ -35,6 +35,9 @@ class Error(Exception):
         self.msg = msg
         self.message = msg
 
+    def __str__(self):
+        return self.message
+
 
 class FilebotFatalError(Error):
     """raise on a non-recoverable error, such as filebot not found"""
