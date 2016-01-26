@@ -119,7 +119,6 @@ def rename(targets,
     exit_code, data, filebot_error = _execute(filebot_arguments)
 
     if exit_code != 0:
-        data = data.decode('UTF-8', 'replace')
         raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data))
 
     return parse_filebot(data)
