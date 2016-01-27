@@ -42,7 +42,7 @@ from setuptools import setup, find_packages
 __plugin_name__ = "FileBotTool"
 __author__ = "laharah"
 __author_email__ = "laharah+fbt@gmail.com"
-__version__ = "0.6.2"
+__version__ = "0.6.4"
 __url__ = ""
 __license__ = "GPLv3"
 __description__ = ""

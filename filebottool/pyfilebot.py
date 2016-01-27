@@ -2,7 +2,7 @@
 FilebotHandler convenience class.
 """
 __author__ = 'Lunchbox'
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 import subprocess
 import re
@@ -34,6 +34,9 @@ class Error(Exception):
     def __init__(self, msg=None):
         self.msg = msg
         self.message = msg
+
+    def __str__(self):
+        return self.message
 
 
 class FilebotFatalError(Error):
@@ -116,8 +119,7 @@ def rename(targets,
     exit_code, data, filebot_error = _execute(filebot_arguments)
 
     if exit_code != 0:
-        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data.encode(
-            "UTF-8")))
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data))
 
     return parse_filebot(data)
 

@@ -461,8 +461,8 @@ class Core(CorePluginBase):
                                                           target)
         except pyfilebot.FilebotRuntimeError as err:
             log.error("FILEBOT ERROR: {0}".format(err.msg))
-            defer.returnValue(((False, {torrent_id:(str(err), err.msg)}),
-                              ('FILEBOTERROR', err.msg)))
+            defer.returnValue(((False, {torrent_id:('FilebotRuntimeError', err.msg)}),
+                              ('FILEBOTERROR', None)))
         # noinspection PyUnboundLocalVariable
         log.debug("recieved results from filebot: {0}".format(filebot_results))
         deluge_movements = self._translate_filebot_movements(torrent_id,
