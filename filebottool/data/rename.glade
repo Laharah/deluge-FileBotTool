@@ -70,6 +70,76 @@
                   </packing>
                 </child>
                 <child>
+                  <widget class="GtkAlignment" id="alignment2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="yalign">1</property>
+                    <property name="top_padding">4</property>
+                    <property name="bottom_padding">4</property>
+                    <property name="left_padding">61</property>
+                    <child>
+                      <widget class="GtkHBox" id="hbox8">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <child>
+                          <widget class="GtkLabel" id="handler_name_label">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Profile: </property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkComboBoxEntry" id="saved_handlers_combo">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <signal name="changed" handler="on_load_saved_handler" swapped="no"/>
+                            <child internal-child="entry">
+                              <widget class="GtkEntry" id="saved_handlers_entry">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="primary_icon_activatable">False</property>
+                                <property name="secondary_icon_activatable">False</property>
+                                <property name="primary_icon_sensitive">True</property>
+                                <property name="secondary_icon_sensitive">True</property>
+                              </widget>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkButton" id="save_handlers">
+                            <property name="label">gtk-save</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="use_stock">True</property>
+                            <signal name="clicked" handler="on_save_handlers_clicked" swapped="no"/>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
                   <widget class="GtkAlignment" id="alignment1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -129,6 +199,7 @@
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
                                 <property name="secondary_icon_sensitive">True</property>
+                                <signal name="changed" handler="on_setting_changed" swapped="no"/>
                               </widget>
                               <packing>
                                 <property name="expand">True</property>
@@ -187,6 +258,7 @@
                               <widget class="GtkComboBox" id="database_combo">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <signal name="changed" handler="on_setting_changed" swapped="no"/>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -215,6 +287,7 @@
                                   <widget class="GtkComboBox" id="rename_action_combo">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <signal name="changed" handler="on_setting_changed" swapped="no"/>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
@@ -257,6 +330,7 @@
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
+                            <signal name="changed" handler="on_setting_changed" swapped="no"/>
                           </widget>
                           <packing>
                             <property name="left_attach">1</property>
@@ -271,7 +345,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">1</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
@@ -320,7 +394,7 @@
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="position">3</property>
                   </packing>
                 </child>
                 <child>
@@ -420,7 +494,7 @@
                     <property name="expand">False</property>
                     <property name="fill">False</property>
                     <property name="padding">8</property>
-                    <property name="position">3</property>
+                    <property name="position">4</property>
                   </packing>
                 </child>
                 <child>
@@ -477,7 +551,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">4</property>
+                    <property name="position">5</property>
                   </packing>
                 </child>
                 <child>
@@ -538,6 +612,7 @@
                               <widget class="GtkComboBox" id="episode_order_combo">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <signal name="changed" handler="on_setting_changed" swapped="no"/>
                               </widget>
                               <packing>
                                 <property name="expand">True</property>
@@ -576,6 +651,7 @@
                               <widget class="GtkComboBox" id="on_conflict_combo">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <signal name="changed" handler="on_setting_changed" swapped="no"/>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -690,7 +766,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">5</property>
+                    <property name="position">6</property>
                   </packing>
                 </child>
               </widget>

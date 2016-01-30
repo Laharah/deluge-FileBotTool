@@ -134,6 +134,8 @@ class HandlerUI(object):
             current_iter = combos[setting].get_active_iter()
             if current_iter:
                 settings[setting] = combo_model[current_iter][0]
+            else:
+                settings[setting] = None
 
         entries = {
             "format_string": self.format_string_entry,

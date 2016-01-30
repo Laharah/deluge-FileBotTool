@@ -12,6 +12,7 @@ from twisted.internet import defer
 
 from filebottool.common import Log
 from filebottool.common import get_resource
+from filebottool.gtkui.common import inflate_list_store_combo
 from filebottool.gtkui.handler_ui import HandlerUI
 import user_messenger
 
@@ -29,6 +30,7 @@ class RenameDialog(object):
         Args:
          dialog_settings: A dictionary containing the settings to populate.
         """
+        self.watch_for_setting_change = False
         self.messenger = user_messenger.UserMessenger()
         self.torrent_ids = dialog_settings["torrent_ids"]
         self.torrent_id = None
@@ -64,9 +66,13 @@ class RenameDialog(object):
             "on_execute_filebot_clicked": self.on_execute_filebot_clicked,
             "on_revert_button_clicked": self.on_revert_button_clicked,
             "on_download_subs_toggled": self.on_download_subs_toggled,
+            "on_setting_changed": self.on_setting_changed,
+            "on_save_handlers_clicked": self.on_save_handlers_clicked,
+            "on_load_saved_handler": self.on_load_saved_handler,
         }
 
         self.glade.signal_autoconnect(signal_dictionary)
+
         if self.server_filebot_version:
             self.glade.get_widget("filebot_version").set_text(
                 self.server_filebot_version)
@@ -87,7 +93,7 @@ class RenameDialog(object):
 
         download_subs = self.handler_ui.download_subs_checkbox
         if download_subs.get_active() != self.glade.get_widget(
-            "subs_options").get_sensitive():
+                "subs_options").get_sensitive():
             self.on_download_subs_toggled()
 
         self.init_treestore(self.original_files_treeview,
@@ -96,11 +102,21 @@ class RenameDialog(object):
         self.init_treestore(self.new_files_treeview, "New File Structure")
         self.init_treestore(self.history_files_treeview,
                             "Current File Structure at {0}".format(
-                            self.current_save_path))
+                                self.current_save_path))
         self.load_treestore((None, self.files), self.original_files_treeview)
         self.load_treestore((None, self.files), self.history_files_treeview)
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
+
+        self.saved_handlers = dialog_settings["saved_handlers"]
+        inflate_list_store_combo(self.saved_handlers.keys(),
+                                 self.glade.get_widget("saved_handlers_combo"))
+
+        handler_name = self.ui_settings['handler_name']
+        if handler_name in self.saved_handlers:
+            entry = self.glade.get_widget('saved_handlers_combo').get_child()
+            entry.set_text(handler_name)
+        self.watch_for_setting_change = True
 
         self.window.show()
 
@@ -246,6 +262,13 @@ class RenameDialog(object):
          them.
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
+
+        handler_name = self.glade.get_widget('saved_handlers_combo').get_child().get_text()
+        if handler_name in self.saved_handlers:
+            handler_settings['handler_name'] = handler_name
+        else:
+            handler_settings['handler_name'] = None
+
         log.info("Sending execute request to server for torrents {0}".format(
             self.torrent_ids))
         log.debug("Using settings: {0}".format(handler_settings))
@@ -266,6 +289,41 @@ class RenameDialog(object):
         d.addCallback(self.log_response)
         d.addCallback(self.toggle_button, button)
         d.addCallback(self.refresh_files)
+
+    def on_setting_changed(self, *args):
+        if not self.watch_for_setting_change:
+            return
+        entry = self.glade.get_widget("saved_handlers_combo").get_child()
+        if entry.get_text() in self.saved_handlers:
+            entry.select_region(0, -1)
+
+    def on_save_handlers_clicked(self, *args):
+        log.debug("Sending handler configurations to server.")
+        handler_combo = self.glade.get_widget("saved_handlers_combo")
+        handler_name = handler_combo.get_child().get_text()
+        if not handler_name:
+            return
+        data = self.handler_ui.collect_dialog_settings()
+        data['query_override'] = None
+        self.saved_handlers[handler_name] = data
+        client.filebottool.update_handlers(self.saved_handlers)
+        inflate_list_store_combo(self.saved_handlers, handler_combo)
+
+
+    def on_load_saved_handler(self, saved_handler_combo, *args):
+        self.watch_for_setting_change = False
+        combo_model = saved_handler_combo.get_model()
+        current_iter = saved_handler_combo.get_active_iter()
+        if not current_iter:
+            return
+        handler_name = combo_model[current_iter][0]
+        log.debug(handler_name)
+        if current_iter >= 0:
+            handler = self.saved_handlers[handler_name]
+            self.handler_ui.populate_with_settings(handler)
+        saved_handler_combo.get_child().set_text(handler_name)
+        self.watch_for_setting_change = True
+
 
     def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)

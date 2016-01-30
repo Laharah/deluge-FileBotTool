@@ -57,6 +57,7 @@ log = Log()
 
 DEFAULT_PREFS = {
     "rename_dialog_last_settings": {
+        "handler_name": None,
         "database": None,
         "output": None,
         "format_string": None,
@@ -651,6 +652,7 @@ class Core(CorePluginBase):
 
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]
         dialog_info["rename_dialog_last_settings"] = rename_dialog_last_settings
+        dialog_info['saved_handlers'] = self.config['saved_handlers']
         dialog_info.update(self.get_filebot_valid_values())
 
         log.debug("sending dialog info to client: {0}".format(dialog_info))
