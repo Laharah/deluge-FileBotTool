@@ -14,6 +14,24 @@ import warnings
 from types import MethodType
 import functools
 
+
+from distutils import spawn
+
+
+FILEBOT_EXE = spawn.find_executable('filebot')
+if not FILEBOT_EXE:
+    locations = [r'C:\Program Files\FileBot\filebot.exe',
+                 r'/usr/bin/filebot',
+                 r'/usr/local/bin/filebot']
+    for loc in locations:
+        if os.path.exists(loc):
+            FILEBOT_EXE = loc
+            break
+    else:
+        warnings.warn("Could not find filebot executable!", stacklevel=2)
+        FILEBOT_EXE = 'filebot'
+
+
 FILEBOT_MODES = ['rename', 'move', 'check', 'get-missing-subtitles', 'get-subtitles',
                  'list', 'mediainfo']
 
@@ -536,7 +554,7 @@ def _execute(process_arguments, workaround=True):
     # this is a workaround for malfunctioning UTF-8 chars in Windows.
     file_temp = tempfile.NamedTemporaryFile(delete=False)
     file_temp.close()
-    process_arguments = (["filebot", "--log-file", file_temp.name] + process_arguments)
+    process_arguments = ([FILEBOT_EXE, "--log-file", file_temp.name] + process_arguments)
 
     if os.name == "nt":  # used to hide cmd window popup
         startupinfo = subprocess.STARTUPINFO()
