@@ -6,7 +6,7 @@ if "%ProgramFiles(x86)%"=="" (set delugepath="%ProgramFiles%") else (set delugep
 
 %scriptdrive%
 cd %scriptdrive%%scriptpath%
-python setup.py bdist_egg
+py -2.7 setup.py bdist_egg
 copy dist\* %APPDATA%\deluge\plugins
 
 start cmd.exe /K "%delugepath%\Deluge\deluged-debug.exe -L debug"
