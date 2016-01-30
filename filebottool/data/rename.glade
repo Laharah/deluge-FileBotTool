@@ -24,6 +24,7 @@
                   <widget class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <signal name="button_press_event" handler="on_filebot_version_clicked" swapped="no"/>
                     <child>
                       <widget class="GtkLabel" id="fb_version_label">
                         <property name="visible">True</property>
@@ -38,11 +39,22 @@
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkLabel" id="filebot_version">
+                      <widget class="GtkEventBox" id="filebot_version_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="xalign">0</property>
-                        <property name="label" translatable="yes">NONE</property>
+                        <property name="visible_window">False</property>
+                        <signal name="button_press_event" handler="on_filebot_version_clicked" swapped="no"/>
+                        <child>
+                          <widget class="GtkLabel" id="filebot_version">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="xalign">0</property>
+                            <property name="yalign">0.50999999046325684</property>
+                            <property name="ypad">2</property>
+                            <property name="label" translatable="yes">&lt;span foreground="red"&gt;&lt;u&gt;FILEBOT NOT FOUND:  CLICK HERE TO DOWNLOAD&lt;/u&gt;&lt;/span&gt;</property>
+                            <property name="use_markup">True</property>
+                          </widget>
+                        </child>
                       </widget>
                       <packing>
                         <property name="expand">True</property>

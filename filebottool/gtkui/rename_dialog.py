@@ -70,9 +70,18 @@ class RenameDialog(object):
         }
 
         self.glade.signal_autoconnect(signal_dictionary)
+        if self.server_filebot_version:
+            self.glade.get_widget("filebot_version").set_text(
+                self.server_filebot_version)
+        else:
+            def open_filebot_homepage(*args):
+                webbrowser.open(r'http://www.filebot.net', new=2)
+                log.debug('opening filebot homepage')
 
-        self.glade.get_widget("filebot_version").set_text(
-            self.server_filebot_version)
+            signal = {"on_filebot_version_clicked": open_filebot_homepage}
+            self.glade.signal_autoconnect(signal)
+            self.toggle_button(self.glade.get_widget('do_dry_run'))
+            self.toggle_button(self.glade.get_widget('execute_filebot'))
 
         advanced_options = self.glade.get_widget("advanced_options")
         if advanced_options.get_visible() != dialog_settings[
