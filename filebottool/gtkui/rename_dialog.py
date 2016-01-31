@@ -69,6 +69,7 @@ class RenameDialog(object):
             "on_setting_changed": self.on_setting_changed,
             "on_save_handlers_clicked": self.on_save_handlers_clicked,
             "on_load_saved_handler": self.on_load_saved_handler,
+            "on_saved_handlers_entry_focus": self.on_saved_handers_entry_focus,
         }
 
         self.glade.signal_autoconnect(signal_dictionary)
@@ -289,6 +290,9 @@ class RenameDialog(object):
         d.addCallback(self.log_response)
         d.addCallback(self.toggle_button, button)
         d.addCallback(self.refresh_files)
+
+    def on_saved_handers_entry_focus(self, entry, *args):
+        entry.select_region(0, -1)
 
     def on_setting_changed(self, *args):
         if not self.watch_for_setting_change:
