@@ -302,14 +302,24 @@ class RenameDialog(object):
             entry.select_region(0, -1)
 
     def on_save_handlers_clicked(self, *args):
-        log.debug("Sending handler configurations to server.")
         handler_combo = self.glade.get_widget("saved_handlers_combo")
         handler_name = handler_combo.get_child().get_text()
         if not handler_name:
             return
         data = self.handler_ui.collect_dialog_settings()
         data['query_override'] = None
+
+        if handler_name in self.saved_handlers:
+            message = "Overwrite the {0} profile?".format(handler_name)
+            dialog = user_messenger.ResponseDialog("Confirm Overwrite", message=message,
+                                                   modal=True)
+            response = dialog.run()
+            dialog.destroy()
+            if response != gtk.RESPONSE_ACCEPT:
+                return
+
         self.saved_handlers[handler_name] = data
+        log.debug("Sending handler configurations to server.")
         client.filebottool.update_handlers(self.saved_handlers)
         inflate_list_store_combo(self.saved_handlers, handler_combo)
 

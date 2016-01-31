@@ -44,12 +44,12 @@ class InfoDialog(gtk.Dialog):
 class ResponseDialog(gtk.Dialog):
     """
     Loads and shows a dialog that presents a user with options, one of which they must
-    choose to continue.
+    choose to continue. Defaults to OK and Cancle Buttons.
     """
 
     def __init__(self, title, message, parent=None, modal=True, buttons=None):
         if not buttons:
-            buttons = (gtk.STOCk_OK, gtk.RESPONSE_ACCEPT, gtk.STOCK_CANCEL,
+            buttons = (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT, gtk.STOCK_CANCEL,
                        gtk.RESPONSE_CANCEL)
         modal = gtk.DIALOG_MODAL if modal else 0
         super(self.__class__, self).__init__(title, parent, modal, buttons)
