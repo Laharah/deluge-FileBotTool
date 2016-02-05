@@ -50,7 +50,7 @@ class EditableList(object):
         """retruns the model data for selected row"""
         return self.model[self.get_selected()]
 
-    def move_down(self):
+    def move_down(self, *args):
         """moves the selected row down"""
         iter = self.get_selected()
         next = self.model.iter_next(iter)
@@ -58,7 +58,7 @@ class EditableList(object):
             return
         self.model.swap(iter, next)
 
-    def move_up(self):
+    def move_up(self, *args):
         """Moves selected row down"""
         iter = self.get_selected()
         selection_path = self.model.get_path(iter)
@@ -68,7 +68,7 @@ class EditableList(object):
             return
         self.model.swap(iter, prev)
 
-    def remove(self):
+    def remove(self, *args):
         """deletes a row"""
         iter = self.get_selected()
         if iter:

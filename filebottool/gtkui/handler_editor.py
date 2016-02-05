@@ -87,7 +87,7 @@ class HandlerEditor(HandlerUI):
         self.handlers[handler_id] = settings
         self.window.destroy()
         if self.cb:
-            self.cb(handler_id)
+            self.cb(handler_id, self.handlers)
 
     def on_cancel_changes_clicked(self, *args):
         self.window.destroy()
