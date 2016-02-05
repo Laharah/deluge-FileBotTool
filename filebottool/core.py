@@ -50,7 +50,7 @@ from twisted.internet import threads, defer
 
 import pyfilebot
 from common import Log
-import filebottool.auto_sort_manager
+import filebottool.auto_sort
 
 
 log = Log()
@@ -72,7 +72,7 @@ DEFAULT_PREFS = {
     },
     "saved_handlers": {},
     "plugin_preferences": {},
-    "auto_sort_rules": {},
+    "auto_sort_rules": [],
 }
 
 
@@ -103,11 +103,7 @@ class Core(CorePluginBase):
                                              self._on_folder_renamed)
         event_manager.register_event_handler("TorrentFileRenamedEvent",
                                              self._on_file_renamed)
-
-        self.auto_sort_manager = filebottool.auto_sort_manager.AutoSortManager(
-            self,
-            sorting_rules=self.config["auto_sort_rules"]
-        )
+        event_manager.register_event_handler("TorrentFinishedEvent", self._auto_sort)
 
     def disable(self):
         component.get("AlertManager").deregister_handler(self._on_storage_moved)
@@ -116,6 +112,7 @@ class Core(CorePluginBase):
                                                self._on_folder_renamed)
         event_manager.deregister_event_handler("TorrentFileRenamedEvent",
                                                self._on_file_renamed)
+        event_manager.deregister_event_handler("TorrentFinishedEvent", self._auto_sort)
 
     def update(self):
         pass
@@ -172,6 +169,18 @@ class Core(CorePluginBase):
 
         log.debug("listning dictionary updated: {0}".format(
             self.listening_dictionary))
+
+    def _auto_sort(self, torrent_id):
+        """called on completed torrents for matching auto sort rules"""
+        rules = self.config["auto_sort_rules"]
+        handler = filebottool.auto_sort.check_rules(torrent_id, rules)
+        if handler:
+            try:
+                handler_settings = self.config["saved_handlers"][handler]
+            except KeyError:
+                log.error("no handler with name '{0}' could be found!".format(handler))
+                return
+            self.do_rename([torrent_id], handler_settings=handler_settings)
 
     #########
     #  Section: Filebot interaction
