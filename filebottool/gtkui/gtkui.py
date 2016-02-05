@@ -62,7 +62,6 @@ class GtkUI(GtkPluginBase):
         loads preference page, and context menu.
         """
         self.config_ui = ConfigUI()
-
         component.get("Preferences").add_page("FileBotTool",
                                               self.config_ui.config_page)
         component.get("PluginManager").register_hook("on_apply_prefs",
@@ -102,7 +101,7 @@ class GtkUI(GtkPluginBase):
 
     def on_apply_prefs(self):
         log.debug("gathering prefs for FileBotTool")
-        self.config = self.config_ui.gather_settings(self.config)
+        self.config = self.config_ui.gather_settings()
         client.filebottool.set_config(self.config)
 
     def on_show_prefs(self):
@@ -110,5 +109,6 @@ class GtkUI(GtkPluginBase):
 
     # noinspection PyAttributeOutsideInit
     def on_get_config(self, config):
+        log.debug("recireved config from server: {0}".format(config))
         self.config = config
         self.config_ui.populate_settings(config)

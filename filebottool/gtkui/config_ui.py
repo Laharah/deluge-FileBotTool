@@ -3,8 +3,13 @@ __author__ = 'jaredanderson'
 
 import gtk
 
+import deluge.component as component
+
 from filebottool.common import get_resource
 from filebottool.common import Log
+from filebottool.gtkui.common import EditableList
+from filebottool.gtkui.handler_editor import HandlerEditor
+
 
 log = Log()
 
@@ -12,34 +17,79 @@ log = Log()
 class ConfigUI(object):
     """handles the UI portion of getting and setting preferences"""
 
-    def __init__(self):
+    def __init__(self, settings=None):
         self.glade = gtk.glade.XML(get_resource("config.glade"))
         self.config_page = self.glade.get_widget("prefs_box")
-        self.auto_sort_orderer = None
+        self.pref_dialog = component.get("Preferences").pref_dialog
+
+        model = gtk.ListStore(str)
+        view = self.glade.get_widget('saved_handlers_listview')
+        renderer = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Profile Name", renderer, text=0)
+        view.append_column(column)
+        model.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        self.handlers_list = EditableList(view, model)
+
+        self.glade.signal_autoconnect({
+            "on_add_handler": self.on_add_handler,
+            "on_remove_handler": lambda x: self.handlers_list.remove(),
+            "on_edit_handler": self.on_edit_handler,
+        })
+
+        if settings:
+            self.populate_settings(settings)
 
     def populate_settings(self, settings):
         """populates the UI widgets with the given settings"""
-        saved_handlers = settings["saved_handlers"]
-        sorting_rules = settings["auto_sort_rules"]
-        if not self.auto_sort_orderer:
-            self.auto_sort_orderer = AutoSortOrderer(
-                self.glade, saved_handlers, sorting_rules)
-        else:
-            self.auto_sort_orderer.rules = sorting_rules
-            self.auto_sort_orderer.model = (
-                self.auto_sort_orderer.build_rule_model(sorting_rules))
-            self.auto_sort_orderer.handlers = saved_handlers
+        self.config = settings
+        self.saved_handlers = settings["saved_handlers"]
+        self.handlers_list.clear()
+        for name in self.saved_handlers:
+            self.handlers_list.add([name])
 
-    def gather_settings(self, config):
+            # sorting_rules = settings["auto_sort_rules"]
+            # if not self.auto_sort_orderer:
+            #     self.auto_sort_orderer = AutoSortOrderer(
+            #         self.glade, sorting_rules, saved_handlers)
+            # else:
+            #     self.auto_sort_orderer.rules = sorting_rules
+            #     self.auto_sort_orderer.model = (
+            #         self.auto_sort_orderer.build_rule_model(sorting_rules))
+            #     self.auto_sort_orderer.handlers = saved_handlers
+
+    def gather_settings(self):
         """
         Updates the given config dictionary and updates the appropriate
         settings.
         """
-        self.auto_sort_orderer.reorder_rules()
-        config["auto_sort_rules"] = self.auto_sort_orderer.rules
-        config["saved_handlers"] = self.auto_sort_orderer.handlers
-        return config
+        # self.auto_sort_orderer.reorder_rules()
+        # config["auto_sort_rules"] = self.auto_sort_orderer.rules
+        handlers = {}
+        for row in self.handlers_list.get_data():
+            handlers[row[0]] = self.saved_handlers[row[0]]
+        self.saved_handlers = handlers
+        self.config["saved_handlers"] = self.saved_handlers
+        return self.config
 
+
+    def on_add_handler(self, widget):
+        def new_handler_cb(id):
+            self.handlers_list.add([id])
+
+        editor = HandlerEditor(handlers=self.saved_handlers, cb=new_handler_cb,
+                               parent=self.pref_dialog)
+
+    def on_edit_handler(self, widget):
+        handler_name = self.handlers_list.get_row()[0]
+        def edited_cb(id):
+            if id != handler_name:
+                del self.saved_handlers[handler_name]
+                self.handlers_list.clear()
+                for name in self.saved_handlers:
+                    self.handlers_list.add([name])
+
+        editor = HandlerEditor(handlers=self.saved_handlers, initial=handler_name,
+                               cb=edited_cb, parent=self.pref_dialog)
 
 class AutoSortOrderer(object):
     def __init__(self, glade, sorting_rules, handlers):
@@ -123,3 +173,4 @@ class AutoSortOrderer(object):
         if event.button == 3:
             self.right_click_menu.popup(None, None, None, event.button,
                                         event.time, None)
+
