@@ -77,7 +77,7 @@ class HandlerEditor(HandlerUI):
 
             dialog = ResponseDialog("Overwrite?",
                                     "Overwrite the profile named {0}? "
-                                    "Profiles that use this handler will "
+                                    "Auto-sort rules that use this handler will "
                                     "be affected.".format(handler_id),
                                     buttons=buttons)
             response = dialog.run()
