@@ -37,28 +37,27 @@ class ConfigUI(object):
         model = gtk.ListStore(str, str, str, str)
         view = self.glade.get_widget('rule_listview')
         options = [
-            ("Field", ('label', 'tracker')),
-            ("OP", SORT_OPERATORS),
+            ("Field:", ('label', 'tracker')),
+            ("Comparison Operator:", SORT_OPERATORS),
         ]
         for col_index, tup in enumerate(options):
             name, items= tup
             combo_model = gtk.ListStore(str)
             for item in items:
-                log.debug("attempting to append {0}".format(item))
                 combo_model.append([item])
-            cb = build_combo_renderer_cb(model, col_index)
+            cb = build_combo_renderer_cb(model, col_index, items)
             renderer = build_combo_cellrenderer(combo_model, cb)
             column = gtk.TreeViewColumn(name, renderer, text=col_index)
             view.append_column(column)
         renderer = gtk.CellRendererText()
         renderer.set_property("editable", True)
-        column = gtk.TreeViewColumn("Pattern", renderer, text=2)
+        def text_edited(widget, path, text):
+            model[path][2] = text
+        renderer.connect("edited", text_edited)
+        column = gtk.TreeViewColumn("Pattern to Match:", renderer, text=2)
         view.append_column(column)
-        empty_store = gtk.ListStore(str)
-        self.rule_handler_combo = build_combo_cellrenderer(
-            empty_store, self.on_rule_handler_combo_changed)
-        column = gtk.TreeViewColumn("Profile", self.rule_handler_combo, text=3)
-        view.append_column(column)
+        selected_rule = view.get_selection()
+        selected_rule.connect("changed", self.on_rule_selection_change)
         self.rules_list = EditableList(view, model)
 
         self.glade.signal_autoconnect({
@@ -68,7 +67,7 @@ class ConfigUI(object):
             "on_move_rule_up": self.rules_list.move_up,
             "on_move_rule_down": self.rules_list.move_down,
             "on_remove_rule": self.rules_list.remove,
-            "on_add_rule": lambda x: self.rules_list.add(['', 'is', '', ''])
+            "on_add_rule": self.on_add_rule,
         })
 
         if settings:
@@ -83,10 +82,22 @@ class ConfigUI(object):
             self.handlers_list.add([name])
 
         rules = settings["auto_sort_rules"]
-        self.rule_handler_combo.set_properties("model", self.handlers_list.model)
+        if len(self.rules_list.view.get_columns()) < 4:  # haven't added handler column
+            self.rule_handler_combo = build_combo_cellrenderer(
+                self.handlers_list.model, self.on_rule_handler_combo_changed)
+            column_name = "Profile to Use:"
+            column = gtk.TreeViewColumn(column_name, self.rule_handler_combo, text=3)
+            self.rules_list.view.append_column(column)
         self.rules_list.clear()
         for rule in rules:
             self.rules_list.add(rule[1:])
+        for column in self.rules_list.view.get_columns():
+            column.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+            column.set_resizable(True)
+
+        if not rules:
+            for column in self.rules_list.view.get_columns():
+                column.set_expand(True)
 
     def gather_settings(self):
         """
@@ -102,7 +113,7 @@ class ConfigUI(object):
         rules = []
         for index, row in enumerate(self.rules_list.get_data()):
             field, op, pat, handler = row
-            rules.append((index, field, op, pat, handler))
+            rules.append([index, field, op, pat, handler])
 
         self.config['auto_sort_rules'] = rules
         return self.config
@@ -133,24 +144,37 @@ class ConfigUI(object):
         HandlerEditor(handlers=self.saved_handlers, initial=handler_name,
                       cb=edited_cb, parent=self.pref_dialog)
 
+    def on_rule_selection_change(self, selection):
+        log.debug("selection changed")
+        self.rule_handler_combo.set_properties('model', self.handlers_list.model)
 
-    def on_rule_handler_combo_changed(self, widget, path, iter):
-        self.rules_list[path][3] = widget.get_property('model')[iter][0]
+    def on_add_rule(self, *args):
+        self.rules_list.add(['', "is exactly", '', ''])
+        path = self.rules_list.model.get_string_from_iter(self.rules_list.model[-1].iter)
+        self.rules_list.view.set_cursor(path)
+
+    def on_rule_handler_combo_changed(self, widget, path, text):
+        self.rules_list.model[path][3] = text
 
 
 #########
 #  Section: Utilities
 #########
 
-def build_combo_renderer_cb(list_store, column_number):
-    def cb(widget, path, iter):
-        list_store[path][column_number] = widget.get_property('model')[iter][0]
+def build_combo_renderer_cb(list_store, column_number, allowed=None):
+    def cb(widget, path, text):
+        if allowed:
+            if text not in allowed:
+                return
+        log.debug('{} {} {}'.format(widget, path, text))
+        list_store[path][column_number] = text
     return cb
 
 def build_combo_cellrenderer(model, cb):
     renderer = gtk.CellRendererCombo()
-    renderer.set_property("model", model)
+    if model:
+        renderer.set_property("model", model)
     renderer.set_property("editable", True)
     renderer.set_property("text-column", 0)
-    renderer.connect("changed", cb)
+    renderer.connect("edited", cb)
     return renderer

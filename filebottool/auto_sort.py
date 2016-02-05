@@ -15,7 +15,7 @@ from filebottool.common import Log
 log = Log()
 
 OPERATOR_MAP = {
-    "is": lambda x, y: x == y,
+    "is exactly": lambda x, y: x == y,
     "contains": lambda x, y: x in y,
     "starts with": lambda x, y: x.startswith(y),
     "ends with": lambda x, y: x.endswith(y),

@@ -441,6 +441,7 @@ class Core(CorePluginBase):
     def set_config(self, config):
         """Sets the config dictionary"""
         for key in config.keys():
+            log.debug(key)
             self.config[key] = config[key]
         self.config.save()
 
