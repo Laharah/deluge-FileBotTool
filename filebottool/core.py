@@ -441,9 +441,9 @@ class Core(CorePluginBase):
     def set_config(self, config):
         """Sets the config dictionary"""
         for key in config.keys():
-            log.debug(key)
             self.config[key] = config[key]
         self.config.save()
+        log.debug("config saved")
 
     @export
     def get_filebot_version(self):
@@ -697,4 +697,5 @@ class Core(CorePluginBase):
     @export
     def get_config(self):
         """Returns the config dictionary"""
+        log.debug("Sending Config")
         return self.config.config
