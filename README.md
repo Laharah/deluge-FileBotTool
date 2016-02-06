@@ -6,8 +6,8 @@
 *Download [HERE](https://github.com/Laharah/deluge-FilebotTool/releases/latest)*
 
 
-- Rename your torrents using FileBot from within deluge. Keep your media organized and 
-your torrents seeding without wasting storage space on duplicates!
+Rename your torrents using FileBot from within deluge. Keep your media organized and 
+your torrents seeding **without wasting storage space on duplicates!**
 
 ![rename_dialog](http://i.imgur.com/pfc14Rs.png)
 
