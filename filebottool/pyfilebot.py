@@ -1,7 +1,7 @@
 """Contains functions for interaction with the filebotCLI and the
 FilebotHandler convenience class.
 """
-__author__ = 'Lunchbox'
+__author__ = 'laharah'
 __version__ = '0.2.2'
 
 import subprocess

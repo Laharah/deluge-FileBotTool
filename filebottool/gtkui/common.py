@@ -1,7 +1,7 @@
 """
 Contains some common functions for manipulating gtk UIs
 """
-__author__ = 'Lunchbox'
+__author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
 import gtk

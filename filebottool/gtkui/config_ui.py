@@ -1,8 +1,7 @@
-__author__ = 'jaredanderson'
+__author__ = 'laharah'
 
 
 import gtk
-from functools import partial
 
 import deluge.component as component
 

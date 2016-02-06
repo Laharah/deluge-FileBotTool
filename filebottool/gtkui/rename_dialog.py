@@ -1,4 +1,4 @@
-__author__ = 'jaredanderson'
+__author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
 import gtk

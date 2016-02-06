@@ -1,7 +1,7 @@
 """
 Classes and functions for displaying error/warning/info dialogs to the user.
 """
-__author__ = 'jaredanderson'
+__author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
 import gtk

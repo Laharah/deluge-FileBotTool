@@ -2,10 +2,10 @@
 Module that watches for finished torrents and decides if filebottool should
 sort them.
 """
-__author__ = 'jaredanderson'
+__author__ = 'laharah'
 
-from collections import namedtuple
 import re
+from collections import namedtuple
 
 # noinspection PyUnresolvedReferences
 import deluge.component as component
@@ -38,7 +38,6 @@ def check_rules(torrent_id, sorting_rules):
     core = component.get('Core')
     sorting_rules = [FilterRule(*rule) for rule in sorting_rules]
     for rule in sorted(sorting_rules):
-        # noinspection PyCallingNonCallable
         if OPERATOR_MAP[rule.operator](
                 core.get_torrent_status(torrent_id, [rule.field])[rule.field],
                 rule.value):
