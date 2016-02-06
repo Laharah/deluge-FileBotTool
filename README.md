@@ -13,6 +13,7 @@ your torrents seeding **without wasting storage space on duplicates!**
 
 ###Features:
 - easy to use GUI
+- cross-platform
 - Automatic file re-direction
 - Save frequently used profiles
 - Batch processing
