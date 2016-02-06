@@ -35,12 +35,13 @@ def check_rules(torrent_id, sorting_rules):
 
     Returns: handler name or None
     """
-    torrent = component.get("TorrentManager")[torrent_id]
+    core = component.get('Core')
     sorting_rules = [FilterRule(*rule) for rule in sorting_rules]
     for rule in sorted(sorting_rules):
         # noinspection PyCallingNonCallable
-        if OPERATOR_MAP[rule.operator](torrent.get_status([rule.field])[rule.field],
-                                       rule.value):
+        if OPERATOR_MAP[rule.operator](
+                core.get_torrent_status(torrent_id, [rule.field])[rule.field],
+                rule.value):
             log.info("Torrent {0} matched rule {1}".format(torrent_id, rule.id))
             return rule.handler_name
 

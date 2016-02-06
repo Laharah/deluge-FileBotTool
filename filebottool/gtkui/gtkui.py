@@ -101,8 +101,8 @@ class GtkUI(GtkPluginBase):
 
     def on_apply_prefs(self):
         log.debug("gathering prefs for FileBotTool")
-        self.config = self.config_ui.gather_settings()
-        client.filebottool.set_config(self.config)
+        config = self.config_ui.gather_settings()
+        client.filebottool.set_config(config)
 
     def on_show_prefs(self):
         client.filebottool.get_config().addCallback(self.on_get_config)
@@ -110,5 +110,4 @@ class GtkUI(GtkPluginBase):
     # noinspection PyAttributeOutsideInit
     def on_get_config(self, config):
         log.debug("recireved config from server: {0}".format(config))
-        self.config = config
         self.config_ui.populate_settings(config)

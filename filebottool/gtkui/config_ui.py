@@ -56,8 +56,6 @@ class ConfigUI(object):
         renderer.connect("edited", text_edited)
         column = gtk.TreeViewColumn("Pattern to Match:", renderer, text=2)
         view.append_column(column)
-        selected_rule = view.get_selection()
-        selected_rule.connect("changed", self.on_rule_selection_change)
         self.rules_list = EditableList(view, model)
 
         self.glade.signal_autoconnect({
@@ -69,12 +67,14 @@ class ConfigUI(object):
             "on_remove_rule": self.rules_list.remove,
             "on_add_rule": self.on_add_rule,
         })
-
+        self.populated = False
         if settings:
             self.populate_settings(settings)
 
     def populate_settings(self, settings):
         """populates the UI widgets with the given settings"""
+        if self.populated:  # workaround for settings returning before they are saved
+            return
         self.config = settings
         self.saved_handlers = settings["saved_handlers"]
         self.handlers_list.clear()
@@ -82,12 +82,13 @@ class ConfigUI(object):
             self.handlers_list.add([name])
 
         rules = settings["auto_sort_rules"]
-        if len(self.rules_list.view.get_columns()) < 4:  # haven't added handler column
-            self.rule_handler_combo = build_combo_cellrenderer(
-                self.handlers_list.model, self.on_rule_handler_combo_changed)
-            column_name = "Profile to Use:"
-            column = gtk.TreeViewColumn(column_name, self.rule_handler_combo, text=3)
-            self.rules_list.view.append_column(column)
+        if len(self.rules_list.view.get_columns()) == 4:
+            self.rules_list.view.remove_column(self.rules_list.view.get_column(3))
+        self.rule_handler_combo = build_combo_cellrenderer(
+            self.handlers_list.model, self.on_rule_handler_combo_changed)
+        column_name = "Profile to Use:"
+        column = gtk.TreeViewColumn(column_name, self.rule_handler_combo, text=3)
+        self.rules_list.view.append_column(column)
         self.rules_list.clear()
         for rule in rules:
             self.rules_list.add(rule[1:])
@@ -98,6 +99,7 @@ class ConfigUI(object):
         if not rules:
             for column in self.rules_list.view.get_columns():
                 column.set_expand(True)
+        self.populated = True
 
     def gather_settings(self):
         """
@@ -111,6 +113,7 @@ class ConfigUI(object):
         self.config["saved_handlers"] = self.saved_handlers
 
         rules = []
+        log.debug(self.rules_list.get_data())
         for index, row in enumerate(self.rules_list.get_data()):
             field, op, pat, handler = row
             rules.append([index, field, op, pat, handler])
@@ -144,9 +147,6 @@ class ConfigUI(object):
         HandlerEditor(handlers=self.saved_handlers, initial=handler_name,
                       cb=edited_cb, parent=self.pref_dialog)
 
-    def on_rule_selection_change(self, selection):
-        log.debug("selection changed")
-        self.rule_handler_combo.set_properties('model', self.handlers_list.model)
 
     def on_add_rule(self, *args):
         self.rules_list.add(['', "is exactly", '', ''])
