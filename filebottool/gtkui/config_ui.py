@@ -2,6 +2,7 @@ __author__ = 'laharah'
 
 
 import gtk
+import time
 
 import deluge.component as component
 
@@ -66,14 +67,17 @@ class ConfigUI(object):
             "on_remove_rule": self.rules_list.remove,
             "on_add_rule": self.on_add_rule,
         })
-        self.populated = False
+        self.gather_time = None
         if settings:
             self.populate_settings(settings)
 
     def populate_settings(self, settings):
         """populates the UI widgets with the given settings"""
-        if self.populated:  # workaround for settings returning before they are saved
-            return
+        # workaround for new settings being overwritten by previous settings
+        if self.gather_time:
+            if time.time() - self.gather_time < 1:
+                return
+
         self.config = settings
         self.saved_handlers = settings["saved_handlers"]
         self.handlers_list.clear()
@@ -81,7 +85,7 @@ class ConfigUI(object):
             self.handlers_list.add([name])
 
         rules = settings["auto_sort_rules"]
-        if len(self.rules_list.view.get_columns()) == 4:
+        if len(self.rules_list.view.get_columns()) == 4:  # force refresh
             self.rules_list.view.remove_column(self.rules_list.view.get_column(3))
         self.rule_handler_combo = build_combo_cellrenderer(
             self.handlers_list.model, self.on_rule_handler_combo_changed)
@@ -98,13 +102,13 @@ class ConfigUI(object):
         if not rules:
             for column in self.rules_list.view.get_columns():
                 column.set_expand(True)
-        self.populated = True
 
     def gather_settings(self):
         """
         Updates the given config dictionary and updates the appropriate
         settings.
         """
+        self.gather_time = time.time()
         handlers = {}
         for row in self.handlers_list.get_data():
             handlers[row[0]] = self.saved_handlers[row[0]]
