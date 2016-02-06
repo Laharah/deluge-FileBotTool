@@ -36,7 +36,7 @@ class ConfigUI(object):
         model = gtk.ListStore(str, str, str, str)
         view = self.glade.get_widget('rule_listview')
         options = [
-            ("Field:", ('label', 'tracker')),
+            ("Field:", ('label', 'tracker', 'save_path')),
             ("Comparison Operator:", SORT_OPERATORS),
         ]
         for col_index, tup in enumerate(options):
