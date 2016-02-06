@@ -7,6 +7,7 @@ import os
 
 # noinspection PyUnresolvedReferences
 from deluge.ui.client import client
+import deluge.component as component
 
 from twisted.internet import defer
 
@@ -47,6 +48,11 @@ class RenameDialog(object):
         self.glade = gtk.glade.XML(get_resource("rename.glade"))
         self.handler_ui = HandlerUI(self.glade, self.ui_settings)
         self.window = self.glade.get_widget("rename_dialog")
+        self.window.set_transient_for(component.get("MainWindow").window)
+
+        fb_icon = self.glade.get_widget("fb_execute_icon")
+        image = get_resource("fb_icon24.png")
+        fb_icon.set_from_file(image)
 
         self.original_files_treeview = self.glade.get_widget("files_treeview")
         self.new_files_treeview = self.glade.get_widget("new_files_treeview")

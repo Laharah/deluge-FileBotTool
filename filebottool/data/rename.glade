@@ -401,23 +401,24 @@
                           <widget class="GtkHBox" id="hbox10">
                             <property name="visible">True</property>
                             <child>
+                              <widget class="GtkImage" id="fb_execute_icon">
+                                <property name="visible">True</property>
+                                <property name="stock">gtk-missing-image</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="padding">5</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
                               <widget class="GtkLabel" id="execute_filebot_label">
                                 <property name="visible">True</property>
                                 <property name="label" translatable="yes">&lt;b&gt;Execute FileBot&lt;/b&gt;</property>
                                 <property name="use_markup">True</property>
                               </widget>
                               <packing>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkImage" id="image3">
-                                <property name="visible">True</property>
-                                <property name="stock">gtk-execute</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>

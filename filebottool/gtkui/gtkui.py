@@ -47,7 +47,7 @@ from deluge.plugins.pluginbase import GtkPluginBase
 # noinspection PyUnresolvedReferences
 import deluge.component as component
 
-from filebottool.common import Log
+from filebottool.common import Log, get_resource
 
 from rename_dialog import RenameDialog
 from config_ui import ConfigUI
@@ -72,8 +72,7 @@ class GtkUI(GtkPluginBase):
         # add context menu item for FileBotTool
         torrentmenu = component.get("MenuBar").torrentmenu
         self.menu_item = gtk.ImageMenuItem("FileBotTool")
-
-        img = gtk.image_new_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_MENU)
+        img = gtk.image_new_from_file(get_resource("fb_icon16.png"))
         self.menu_item.set_image(img)
         self.menu_item.connect("activate", self.get_torrent_info)
         torrentmenu.append(self.menu_item)
