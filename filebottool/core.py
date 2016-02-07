@@ -154,8 +154,8 @@ class Core(CorePluginBase):
         if torrent_id not in self.listening_dictionary:
             return
 
-        if (index, name) in self.listening_dictionary[torrent_id]:
-            del self.listening_dictionary[torrent_id][(index, name)]
+        if index in self.listening_dictionary[torrent_id]:
+            del self.listening_dictionary[torrent_id][index]
 
         self._check_listening_dictionary(torrent_id)
 
@@ -272,8 +272,7 @@ class Core(CorePluginBase):
         if any([new_save_path, new_top_lvl, new_file_paths]):
             self.listening_dictionary[torrent_id] = {}
         if new_save_path:
-            self.listening_dictionary[torrent_id]["move_storage"] = (
-                new_save_path)
+            self.listening_dictionary[torrent_id]["move_storage"] = new_save_path
             torrent.move_storage(new_save_path)
         if new_top_lvl:
             current_top_lvl = torrent.get_files()[0]["path"].split("/")[0] + "/"
@@ -282,7 +281,7 @@ class Core(CorePluginBase):
             torrent.rename_folder(current_top_lvl, new_top_lvl)
         if new_file_paths:
             for index, path in new_file_paths:
-                self.listening_dictionary[torrent_id][(index, path)] = True
+                self.listening_dictionary[torrent_id][index] = True
             torrent.rename_files(new_file_paths)
 
         #prefent resume if torrent was originally paused
@@ -486,8 +485,6 @@ class Core(CorePluginBase):
 
         log.debug("REQUIRED DELUGE MOVEMENTS: {0}".format(deluge_movements))
         new_save_path = deluge_movements[0]
-        if not new_save_path:
-            new_save_path = None
 
         if not new_save_path:
             new_save_path = self.torrent_manager[torrent_id].get_status(
