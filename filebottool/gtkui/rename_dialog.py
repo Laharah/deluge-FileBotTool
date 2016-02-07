@@ -50,7 +50,7 @@ class RenameDialog(object):
         self.window = self.glade.get_widget("rename_dialog")
         self.window.set_transient_for(component.get("MainWindow").window)
 
-        fb_icon = self.glade.get_widget("fb_execute_icon")
+        fb_icon = self.glade.get_widget("execute_icon")
         image = get_resource("fb_icon24.png")
         fb_icon.set_from_file(image)
 
@@ -258,10 +258,14 @@ class RenameDialog(object):
                     show_details=True)
             return new_info
 
+        spinner = self.glade.get_widget("dry_run_spinner")
+        self.swap_spinner(spinner)
+
         d = client.filebottool.do_dry_run(self.torrent_id, handler_settings)
         d.addCallback(self.log_response)
         d.addCallback(error_check)
         d.addCallback(self.load_treestore, self.new_files_treeview, clear=True)
+        d.addCallback(self.swap_spinner, spinner)
         d.addCallback(self.toggle_button, button)
 
     def on_execute_filebot_clicked(self, button):
@@ -281,10 +285,13 @@ class RenameDialog(object):
         log.debug("Using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
+        spinner = self.glade.get_widget("execute_spinner")
+        self.swap_spinner(spinner)
         client.filebottool.save_rename_dialog_settings(handler_settings)
         d = client.filebottool.do_rename(self.torrent_ids, handler_settings)
         d.addCallback(self.log_response)
         d.addCallback(self.rename_complete)
+        d.addCallback(self.swap_spinner, spinner)
         d.addCallback(self.toggle_button, button)
 
     def on_revert_button_clicked(self, button):
@@ -376,3 +383,20 @@ class RenameDialog(object):
             button_widget.set_sensitive(False)
         else:
             button_widget.set_sensitive(True)
+
+    def swap_spinner(self, *args):
+        spinner = args[-1]
+        if spinner is self.glade.get_widget("dry_run_spinner"):
+            hide = self.glade.get_widget("dry_run_icon")
+        else:
+            hide = self.glade.get_widget("execute_icon")
+
+        if spinner.get_visible():
+            spinner.hide()
+            spinner.stop()
+            hide.show()
+        else:
+            spinner.show()
+            spinner.start()
+            hide.hide()
+
