@@ -537,6 +537,8 @@ class Core(CorePluginBase):
                 log.error("FILEBOT ERROR{0}".format(err))
                 errors[torrent_id] = (str(err), err.msg)
                 filebot_results = ["", {}, {}]
+                if original_torrent_state == "Seeding":
+                    self.torrent_manager[torrent_id].resume()
                 continue
 
             log.debug("recieved results from filebot: {0}".format(
