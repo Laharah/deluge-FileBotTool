@@ -42,7 +42,7 @@ You will need:
 
 - then to build the plugin, on linux/osx type:
 ```
-    python2.6 setup.py bdist_egg
+    python2.6 setup.py bdist_egg  # replace with 2.7 if deluge uses python 2.7
 ``` 
    or on windows:
 ```
