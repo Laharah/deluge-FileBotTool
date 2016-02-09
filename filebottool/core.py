@@ -619,7 +619,7 @@ class Core(CorePluginBase):
                                "Rolling Back and recheking.".format(torrent_id,
                                ''.join('    ' + f + '\n' for f in conflicts))))
 
-        log.debug("Attempting to re-reoute torrent: {00}".fo10rmat(
+        log.debug("Attempting to re-reoute torrent: {00}".format(
             deluge_movements))
         self._redirect_torrent_paths(torrent_id, deluge_movements,
                                      original_state=original_torrent_state)
