@@ -26,6 +26,25 @@ your torrents seeding **without wasting storage space on duplicates!**
 
 ![prefs_page](http://i.imgur.com/Dr22k0a.png)
 
+####How to build:
+if you want the very latest release, you can build the plugin from source.
+
+You will need:
+- git
+- a version of python that matches your deluge version (2.6 by default)
+
+######Instructions:
+- in a command window, type
+```
+    git clone https://github.com/Laharah/deluge-FileBotTool.git
+    cd deluge-FileBotTool
+```
+- then to build the plugin, on linux/osx type:
+    `python2.6 setup.py bdist_egg`
+   or on windows:
+    `py -2.6 setup.py bdist_egg`
+- The new .egg file located in the `dist/` folder is now ready to be added to deluge. 
+
 ####Planned Release Features:
 - individual file filtering and rule matching
 - better logging
