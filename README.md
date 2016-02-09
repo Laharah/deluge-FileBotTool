@@ -38,6 +38,7 @@ You will need:
 ```
     git clone https://github.com/Laharah/deluge-FileBotTool.git
     cd deluge-FileBotTool
+    git checkout develop
 ```
 
 - then to build the plugin, on linux/osx type:
