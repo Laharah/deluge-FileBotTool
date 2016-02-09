@@ -179,7 +179,7 @@ def parse_filebot(data):
     # file moves
     file_moves = []
     for line in data:
-        match = (re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]',
+        match = (re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]$',
                            line))
         if match:
             file_moves.append((match.group(1), match.group(2)))
