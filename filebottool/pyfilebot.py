@@ -38,7 +38,7 @@ FILEBOT_MODES = ['rename', 'move', 'check', 'get-missing-subtitles', 'get-subtit
 FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute"]
 
 FILEBOT_DATABASES = [None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMovieDB',
-                     'OMDb', 'AccoustID', 'ID3 Tags']
+                     'OMDb', 'AcoustID', 'ID3 Tags']
 
 FILEBOT_RENAME_ACTIONS = [None, 'move', 'copy', 'duplicate', 'keeplink', 'symlink',
                           'hardlink', 'test']
