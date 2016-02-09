@@ -1,7 +1,7 @@
 #FilebotTool:FileBot integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
-**Version Beta 0.7.2**
+**Version Beta 0.7.3**
 
 *Download [HERE](https://github.com/Laharah/deluge-FilebotTool/releases/latest)*
 
