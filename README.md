@@ -39,10 +39,15 @@ You will need:
     git clone https://github.com/Laharah/deluge-FileBotTool.git
     cd deluge-FileBotTool
 ```
+
 - then to build the plugin, on linux/osx type:
-    `python2.6 setup.py bdist_egg`
+```
+    python2.6 setup.py bdist_egg
+``` 
    or on windows:
-    `py -2.6 setup.py bdist_egg`
+```
+    py -2.6 setup.py bdist_egg
+``` 
 - The new .egg file located in the `dist/` folder is now ready to be added to deluge. 
 
 ####Planned Release Features:
