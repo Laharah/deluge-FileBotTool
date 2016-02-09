@@ -1,4 +1,4 @@
-#FilebotTool:FileBot integration for Deluge
+#FilebotTool: FileBot integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
 **Version Beta 0.7.3**
