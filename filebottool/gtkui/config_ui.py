@@ -13,6 +13,8 @@ from filebottool.gtkui.handler_editor import HandlerEditor
 import filebottool.auto_sort
 
 SORT_OPERATORS = filebottool.auto_sort.OPERATOR_MAP.keys()
+VALID_FIELDS = filebottool.auto_sort.VALID_FIELDS
+
 FilterRule = filebottool.auto_sort.FilterRule
 
 log = Log()
@@ -37,11 +39,11 @@ class ConfigUI(object):
         model = gtk.ListStore(str, str, str, str)
         view = self.glade.get_widget('rule_listview')
         options = [
-            ("Field:", ('label', 'tracker', 'save_path')),
+            ("Field:", VALID_FIELDS),
             ("Comparison Operator:", SORT_OPERATORS),
         ]
         for col_index, tup in enumerate(options):
-            name, items= tup
+            name, items = tup
             combo_model = gtk.ListStore(str)
             for item in items:
                 combo_model.append([item])
