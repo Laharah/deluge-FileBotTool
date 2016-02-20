@@ -51,6 +51,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="tooltip" translatable="yes">Saved profiles are used in auto-execute rules, and call also be used in the rename dialog.</property>
+                            <property name="rules_hint">True</property>
                           </widget>
                         </child>
                       </widget>
@@ -155,6 +156,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="tooltip" translatable="yes">On torrent finish. Executes the first rule that matches.</property>
+                        <property name="rules_hint">True</property>
                         <property name="enable_grid_lines">vertical</property>
                       </widget>
                     </child>
