@@ -37,16 +37,25 @@ class RenameDialog(object):
         self.torrent_id = None
         self.files = []
         self.current_save_path = ""
+        self.glade = gtk.glade.XML(get_resource("rename.glade"))
+
         if len(dialog_settings["torrent_ids"]) == 1:
             self.torrent_id = dialog_settings["torrent_ids"][0]
             self.files = dialog_settings["files"]
             self.current_save_path = dialog_settings["torrent_save_path"]
 
         self.ui_settings = dialog_settings["rename_dialog_last_settings"]
+        handler_name = self.ui_settings['handler_name']
+        if handler_name in dialog_settings['saved_handlers']:
+            try:
+                self.ui_settings = dialog_settings['saved_handlers'][handler_name]
+            except KeyError:
+                log.error('handler {0} could not be found'.format(handler_name))
+
+        self.handler_ui = HandlerUI(self.glade, self.ui_settings)
+
         self.server_filebot_version = dialog_settings["filebot_version"]
 
-        self.glade = gtk.glade.XML(get_resource("rename.glade"))
-        self.handler_ui = HandlerUI(self.glade, self.ui_settings)
         self.window = self.glade.get_widget("rename_dialog")
         self.window.set_transient_for(component.get("MainWindow").window)
 
@@ -119,10 +128,11 @@ class RenameDialog(object):
         inflate_list_store_combo(self.saved_handlers.keys(),
                                  self.glade.get_widget("saved_handlers_combo"))
 
-        handler_name = self.ui_settings['handler_name']
-        if handler_name in self.saved_handlers:
+        if handler_name:
             entry = self.glade.get_widget('saved_handlers_combo').get_child()
+            log.debug('Setting text to {0}'.format(handler_name))
             entry.set_text(handler_name)
+
         self.watch_for_setting_change = True
 
         self.window.show()
@@ -275,7 +285,8 @@ class RenameDialog(object):
         handler_settings = self.handler_ui.collect_dialog_settings()
 
         handler_name = self.glade.get_widget('saved_handlers_combo').get_child().get_text()
-        if handler_name in self.saved_handlers:
+        if (handler_name in self.saved_handlers and
+                handler_settings == self.saved_handlers[handler_name]):
             handler_settings['handler_name'] = handler_name
         else:
             handler_settings['handler_name'] = None
@@ -308,11 +319,11 @@ class RenameDialog(object):
         entry.select_region(0, -1)
 
     def on_setting_changed(self, *args):
-        if not self.watch_for_setting_change:
+        if not self.watch_for_setting_change or not self.handler_ui.populated:
             return
         entry = self.glade.get_widget("saved_handlers_combo").get_child()
         if entry.get_text() in self.saved_handlers:
-            entry.select_region(0, -1)
+            entry.set_text('')
 
     def on_save_handlers_clicked(self, *args):
         handler_combo = self.glade.get_widget("saved_handlers_combo")
@@ -330,6 +341,8 @@ class RenameDialog(object):
             dialog.destroy()
             if response != gtk.RESPONSE_ACCEPT:
                 return
+            #  preserve query override for pre-exsisting handlers (from config only)
+            data['query_override'] = self.saved_handlers[handler_name]['query_override']
 
         self.saved_handlers[handler_name] = data
         log.debug("Sending handler configurations to server.")

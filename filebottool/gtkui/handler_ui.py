@@ -52,6 +52,8 @@ class HandlerUI(object):
         self.encoding_entry = self.glade.get_widget("encoding_entry")
         self.output_entry = self.glade.get_widget("output_entry")
 
+        self.populated = False
+
         client.filebottool.get_filebot_valid_values().addCallback(
             self.init_combo_boxes)
 
@@ -76,6 +78,7 @@ class HandlerUI(object):
 
         if self.initial_settings:
             self.populate_with_settings(self.initial_settings)
+        self.populated = True
 
     def populate_with_settings(self, settings):
         """populates the UI with the desired settings dictionary
@@ -145,6 +148,8 @@ class HandlerUI(object):
             "output": self.output_entry
         }
         for setting in entries:
+            if not entries[setting]:
+                entries[setting] = ''
             settings[setting] = entries[setting].get_text()
 
         settings["show_advanced"] = self.glade.get_widget(
