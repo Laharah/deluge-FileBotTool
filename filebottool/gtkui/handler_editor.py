@@ -39,12 +39,22 @@ class HandlerEditor(HandlerUI):
             "on_handler_name_combo_changed": self.on_handler_changed,
             "on_save_changes_clicked": self.on_save_changes_clicked,
             "on_cancel_changes_clicked": self.on_cancel_changes_clicked,
+            "on_query_checkbox_toggled": self.on_query_checkbox_toggled,
         }
         self.glade.signal_autoconnect(signal_dictionary)
 
         if parent:
             self.window.set_transient_for(parent)
         self.window.show_all()
+
+    def populate_with_settings(self, *args, **kwargs):
+        super(self.__class__, self).populate_with_settings(*args, **kwargs)
+        check_box = self.glade.get_widget('query_checkbox')
+        if self.query_entry.get_text():
+            check_box.set_active(True)
+        else:
+            check_box.set_active(False)
+
 
     def on_handler_changed(self, *args):
         """New handler chosen, re-populate widgets with handler settings"""
@@ -91,3 +101,22 @@ class HandlerEditor(HandlerUI):
 
     def on_cancel_changes_clicked(self, *args):
         self.window.destroy()
+
+    def on_query_checkbox_toggled(self, box):
+        """show message about query overriding and enable query_entry"""
+        text = self.query_entry.get_text()
+        if box.get_active():
+            if not text:
+                dialog = InfoDialog("Override Query Warning!",
+                                    "Using A Search Query in a saved profile "
+                                    "will force every run to match against the same"
+                                    " title!",
+                                    modal=True)
+                dialog.run()
+                dialog.destroy()
+
+            self.query_entry.set_sensitive(True)
+
+        else:
+            self.query_entry.set_sensitive(False)
+            self.query_entry.set_text('')
