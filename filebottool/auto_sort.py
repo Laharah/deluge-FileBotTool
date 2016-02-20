@@ -18,7 +18,7 @@ VALID_FIELDS = ['label', 'tracker', 'save_path', 'file path']
 
 OPERATOR_MAP = {
     "is exactly": lambda x, y: x == y,
-    "contains": lambda x, y: x in y,
+    "contains": lambda x, y: y in x,
     "starts with": lambda x, y: x.startswith(y),
     "ends with": lambda x, y: x.endswith(y),
     "matches(regex)": lambda x, y: re.search(y, x),
@@ -44,7 +44,7 @@ def check_rules(torrent_id, sorting_rules):
         if rule.field == 'file path':  # special handeling for file path
             files = component.get('TorrentManager')[torrent_id].get_files()
             for f in files:
-                if OPERATOR_MAP[rule.operator]( f['path'], rule.value):
+                if OPERATOR_MAP[rule.operator](f['path'], rule.value):
                     logline ='Torrent:file {0}:{1} matched rule {2}'
                     log.info(logline.format(torrent_id, f['path'], rule.id))
                     return rule.handler_name
