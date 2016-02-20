@@ -1,7 +1,7 @@
 #FilebotTool: FileBot integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
-**Version Beta 0.7.3**
+**Version Beta 0.7.4**
 
 *Download [HERE](https://github.com/Laharah/deluge-FilebotTool/releases/latest)*
 
@@ -52,6 +52,5 @@ You will need:
 - The new .egg file located in the `dist/` folder is now ready to be added to deluge. 
 
 ####Planned Release Features:
-- individual file filtering and rule matching
-- better logging
 - more UI polish
+- support execution on individual files rather than whole torrents
