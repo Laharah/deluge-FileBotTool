@@ -2,8 +2,6 @@ __author__ = 'laharah'
 
 import gtk
 
-from deluge.ui.client import client
-
 from filebottool.common import Log
 from filebottool.common import get_resource
 from filebottool.gtkui.handler_ui import HandlerUI
@@ -55,6 +53,11 @@ class HandlerEditor(HandlerUI):
         else:
             check_box.set_active(False)
 
+    def collect_dialog_settings(self):
+        settings = super(self.__class__, self).collect_dialog_settings()
+        if not self.glade.get_widget('query_checkbox').get_active():
+            settings['query_override'] = ''
+        return settings
 
     def on_handler_changed(self, *args):
         """New handler chosen, re-populate widgets with handler settings"""
@@ -119,4 +122,3 @@ class HandlerEditor(HandlerUI):
 
         else:
             self.query_entry.set_sensitive(False)
-            self.query_entry.set_text('')
