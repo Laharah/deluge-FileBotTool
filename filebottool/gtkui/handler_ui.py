@@ -115,6 +115,8 @@ class HandlerUI(object):
         for entry, value in entry_value_pairs:
             if value:
                 entry.set_text(value)
+            else:
+                entry.set_text('')
 
         if settings["download_subs"]:
             self.download_subs_checkbox.set_active(True)
