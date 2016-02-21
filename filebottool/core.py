@@ -576,6 +576,7 @@ class Core(CorePluginBase):
             if handler_settings:
                 if handler_settings['download_subs']:
                     handler.output = None
+                    target = self._get_filebot_target(torrent_id)
                     try:
                         subs = yield threads.deferToThread(handler.get_subtitles, target)
                         if not subs:
