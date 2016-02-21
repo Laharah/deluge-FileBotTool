@@ -43,10 +43,10 @@ __plugin_name__ = "FileBotTool"
 __author__ = "laharah"
 __author_email__ = "laharah+fbt@gmail.com"
 __version__ = "0.8.1"
-__url__ = ""
+__url__ = "https://github.com/Laharah/deluge-FileBotTool"
 __license__ = "GPLv3"
-__description__ = ""
-__long_description__ = """"""
+__description__ = "Integrates FileBot functionality to Deluge"
+__long_description__ = """Allows Filebot renaming and sorting from within Deluge. No more duplicates!"""
 __pkg_data__ = {__plugin_name__.lower(): ["template/*", "data/*"]}
 
 setup(

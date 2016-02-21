@@ -26,6 +26,28 @@ your torrents seeding **without wasting storage space on duplicates!**
 
 ![prefs_page](http://i.imgur.com/Dr22k0a.png)
 
+####How to Use:
+1. Download, then install the appropriate .egg files using the plugin manager in deluge->settings
+ (install both if you're not sure which to use)
+
+2. click the checkbox next to FileBotTool to enable the plugin
+
+2. Once Installed simply right click any torrent you'd like to sort, and select FileBotTool:
+
+    ![right-click-menu](http://i.imgur.com/mVfmfnr.png)
+
+3. Fill out which database you'd like to use along with the format expression and any other settings
+you'd like filebot to use (click the format expression link for help).
+
+4. press the "Dry Run" button to test your settings and see a preview of the output.
+
+5. Optionally name your settings profile and save it for quick use later.
+
+6. Press "Execute Filebot" to rename and sort your torrents, the window will close when the
+ sorting is finished!
+
+See the [wiki](https://github.com/Laharah/deluge-FileBotTool/wiki) for more detailed information.
+
 ####How to build:
 if you want the very latest release, you can build the plugin from source.
 
