@@ -1,7 +1,7 @@
 #FilebotTool: FileBot integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
-**Version Beta 0.7.4**
+**Version Beta 0.8.0**
 
 *Download [HERE](https://github.com/Laharah/deluge-FilebotTool/releases/latest)*
 
@@ -18,7 +18,7 @@ your torrents seeding **without wasting storage space on duplicates!**
 - Save frequently used profiles
 - Batch processing
 - Dry run previews
-- Download missing subtitles *(temporarily disabled)*
+- Download missing subtitles
 - Easily rollback mistakes
 - supports both server-client and classic mode
 - Custom auto-organize rulesets:
