@@ -576,7 +576,9 @@ class Core(CorePluginBase):
             if handler_settings:
                 if handler_settings['download_subs']:
                     handler.output = None
-                    target = self._get_filebot_target(torrent_id)
+                    mock = self._get_mockup_files_dictionary(torrent_id, deluge_movements)
+                    new_save = deluge_movements[0]
+                    target = [self._get_full_os_path(new_save, f['path']) for f in mock]
                     try:
                         subs = yield threads.deferToThread(handler.get_subtitles, target)
                         if not subs:
