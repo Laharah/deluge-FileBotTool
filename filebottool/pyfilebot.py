@@ -253,8 +253,11 @@ def get_subtitles(target, language_code=None, encoding=None, force=False, output
                                                  mode=mode,
                                                  language_code=language_code,
                                                  encoding=encoding,
+                                                 recursive=False,
                                                  output=None)
-    _, data, _ = _execute(filebot_arguments)
+    code, data, _ = _execute(filebot_arguments)
+    if code != 0:
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data))
     _, downloads, _ = parse_filebot(data)
     return [name[1] for name in downloads]
 

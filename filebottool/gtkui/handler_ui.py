@@ -120,6 +120,8 @@ class HandlerUI(object):
 
         if settings["download_subs"]:
             self.download_subs_checkbox.set_active(True)
+        else:
+            self.download_subs_checkbox.set_active(False)
 
     def collect_dialog_settings(self):
         """collects the settings on the widgets and serializes them into

@@ -572,6 +572,21 @@ class Core(CorePluginBase):
                 self._redirect_torrent_paths(
                     torrent_id, deluge_movements,
                     original_state=original_torrent_state)
+
+            if handler_settings:
+                if handler_settings['download_subs']:
+                    handler.output = None
+                    try:
+                        subs = yield threads.deferToThread(handler.get_subtitles, target)
+                        if not subs:
+                            log.info("No subs found for torrent {0}".format(torrent_id))
+                        else:
+                            log.info('Downloaded subs: {0}'.format(subs))
+                    except pyfilebot.FilebotRuntimeError as err:
+                        log.error("FILEBOTERROR: {0}").format(err)
+                        errors[torrent_id] = (str(err), err.msg)
+
+
         if errors:
             defer.returnValue((False, errors))
         else:

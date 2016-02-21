@@ -9,6 +9,8 @@ from filebottool.gtkui.common import inflate_list_store_combo
 from filebottool.gtkui.user_messenger import InfoDialog, ResponseDialog
 
 
+log = Log()
+
 class HandlerEditor(HandlerUI):
     def __init__(self, handlers=None, initial=None, cb=None, parent=None):
         """
@@ -38,6 +40,7 @@ class HandlerEditor(HandlerUI):
             "on_save_changes_clicked": self.on_save_changes_clicked,
             "on_cancel_changes_clicked": self.on_cancel_changes_clicked,
             "on_query_checkbox_toggled": self.on_query_checkbox_toggled,
+            "on_download_subs_checkbox_toggled": self.on_download_subs_checkbox_toggled,
         }
         self.glade.signal_autoconnect(signal_dictionary)
 
@@ -122,3 +125,11 @@ class HandlerEditor(HandlerUI):
 
         else:
             self.query_entry.set_sensitive(False)
+
+    def on_download_subs_checkbox_toggled(self, box):
+        log.debug("subs box toggled")
+        subs_options = self.glade.get_widget('subs_options')
+        if box.get_active():
+            subs_options.set_sensitive(True)
+        else:
+            subs_options.set_sensitive(False)
