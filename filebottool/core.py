@@ -578,6 +578,9 @@ class Core(CorePluginBase):
                     handler.output = None
                     mock = self._get_mockup_files_dictionary(torrent_id, deluge_movements)
                     new_save = deluge_movements[0]
+                    if not new_save:
+                        torrent = self.torrent_manager[torrent_id]
+                        new_save = torrent.get_status(["save_path"])["save_path"]
                     target = [self._get_full_os_path(new_save, f['path']) for f in mock]
                     try:
                         subs = yield threads.deferToThread(handler.get_subtitles, target)
