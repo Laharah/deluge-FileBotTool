@@ -573,6 +573,7 @@ class Core(CorePluginBase):
                     torrent_id, deluge_movements,
                     original_state=original_torrent_state)
 
+            #  download subs
             if handler_settings:
                 if handler_settings['download_subs']:
                     handler.output = None
