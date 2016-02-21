@@ -447,6 +447,11 @@ class Core(CorePluginBase):
 
     @export
     def get_filebot_version(self):
+        if not self.filebot_version:
+            try:
+               self.filebot_version = pyfilebot.get_version()
+            except pyfilebot.FilebotFatalError:
+                self.filebot_version = None
         return self.filebot_version
 
     @export
@@ -691,7 +696,7 @@ class Core(CorePluginBase):
                 ['save_path'])['save_path']
             dialog_info["files"] = torrent.get_files()
 
-        dialog_info["filebot_version"] = self.filebot_version
+        dialog_info["filebot_version"] = self.get_filebot_version()
 
         rename_dialog_last_settings = self.config["rename_dialog_last_settings"]
         dialog_info["rename_dialog_last_settings"] = rename_dialog_last_settings
