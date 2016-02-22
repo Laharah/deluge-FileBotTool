@@ -1,9 +1,11 @@
-#FilebotTool: FileBot integration for Deluge
+#FilebotTool: FileBot Integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
 **Version Beta 0.8.4**
 
-*Download [HERE](https://github.com/Laharah/deluge-FilebotTool/releases/latest)*
+#####[Download Latest Release](https://github.com/Laharah/deluge-FilebotTool/releases/latest)
+
+#####[How to Install in Deluge](https://github.com/Laharah/deluge-FileBotTool/wiki)
 
 
 Rename your torrents using FileBot from within deluge. Keep your media organized and 
