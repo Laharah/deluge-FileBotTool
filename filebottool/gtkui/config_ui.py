@@ -3,6 +3,7 @@ __author__ = 'laharah'
 
 import gtk
 import time
+import webbrowser
 
 import deluge.component as component
 
@@ -68,6 +69,7 @@ class ConfigUI(object):
             "on_move_rule_down": self.rules_list.move_down,
             "on_remove_rule": self.rules_list.remove,
             "on_add_rule": self.on_add_rule,
+            "on_auto_sort_help_clicked": self.on_auto_sort_help_clicked,
         })
         self.gather_time = None
         if settings:
@@ -161,6 +163,9 @@ class ConfigUI(object):
     def on_rule_handler_combo_changed(self, widget, path, text):
         self.rules_list.model[path][3] = text
 
+    def on_auto_sort_help_clicked(self, *args):
+        webbrowser.open('https://github.com/Laharah/deluge-FileBotTool/wiki/Auto-Sorting',
+                        new=2)
 
 #########
 #  Section: Utilities

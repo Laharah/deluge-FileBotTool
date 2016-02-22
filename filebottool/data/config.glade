@@ -127,17 +127,52 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="rule_orders_label">
+              <widget class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="tooltip" translatable="yes">On torrent completion. Executes the first rule that matches.</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Auto Execute Rules:</property>
+                <property name="spacing">3</property>
+                <child>
+                  <widget class="GtkLabel" id="rule_orders_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">On torrent completion. Executes the first rule that matches.</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">Auto Execute Rules:</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="padding">2</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkEventBox" id="eventbox1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="visible_window">False</property>
+                    <signal name="button_press_event" handler="on_auto_sort_help_clicked" swapped="no"/>
+                    <child>
+                      <widget class="GtkLabel" id="auto_sort_help">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">On torrent completion. Executes the first rule that matches.</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">&lt;span color="blue"&gt;&lt;u&gt;help?&lt;/u&gt;&lt;/span&gt;</property>
+                        <property name="use_markup">True</property>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="padding">2</property>
                 <property name="position">2</property>
               </packing>
             </child>
