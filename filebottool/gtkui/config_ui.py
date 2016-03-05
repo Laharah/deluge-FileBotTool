@@ -176,7 +176,7 @@ def build_combo_renderer_cb(list_store, column_number, allowed=None):
         if allowed:
             if text not in allowed:
                 return
-        log.debug('{} {} {}'.format(widget, path, text))
+        log.debug('{0} {1} {2}'.format(widget, path, text))
         list_store[path][column_number] = text
     return cb
 
