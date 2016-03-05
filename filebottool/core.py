@@ -276,10 +276,11 @@ class Core(CorePluginBase):
             self.listening_dictionary[torrent_id]["move_storage"] = new_save_path
             torrent.move_storage(new_save_path)
         if new_top_lvl:
-            current_top_lvl = torrent.get_files()[0]["path"].split("/")[0] + "/"
-            self.listening_dictionary[torrent_id]["folder_rename"] = (
-                current_top_lvl, new_top_lvl + "/")
-            torrent.rename_folder(current_top_lvl, new_top_lvl)
+            if len(torrent.get_files()) > 1:
+                current_top_lvl = torrent.get_files()[0]["path"].split("/")[0] + "/"
+                self.listening_dictionary[torrent_id]["folder_rename"] = (
+                    current_top_lvl, new_top_lvl + "/")
+                torrent.rename_folder(current_top_lvl, new_top_lvl)
         if new_file_paths:
             for index, path in new_file_paths:
                 self.listening_dictionary[torrent_id][index] = True
