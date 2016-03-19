@@ -72,8 +72,8 @@ def get_version():
     installed."""
     return_code, output, error_data = _execute(['-version'], workaround=False)
     if return_code != 0:
-        return 'FileBot Not Found!', error_data
-
+        msg = "Filebot not found or could not run: {0}".format(error_data)
+        raise FilebotFatalError(msg)
     else:
         return output.strip()
 
