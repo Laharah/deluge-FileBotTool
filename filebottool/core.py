@@ -458,9 +458,15 @@ class Core(CorePluginBase):
     @export
     @defer.inlineCallbacks
     def do_dry_run(self, torrent_id, handler_settings=None, handler=None):
-        """does a dry run to get predicted renames.
-        *returns*: a tuple containing the new save path and a mock
-          Torrent.files dictionary showing predicted state
+        """
+        Executes a dry run on torrent_id using handler_settings
+        Args:
+            torrent_id: deluge ID of torrent
+            handler_settings: dictionary containing the handler settings
+            handler: optional handler object
+
+        Returns: Tuple in format:
+            ((success, errors_dict), (new_save_path, files_dictionary))
         """
         if not handler:
             if handler_settings:
@@ -524,7 +530,7 @@ class Core(CorePluginBase):
             handler: an optional FilebotHandler to use (overrides
                 handler_settings)
         returns:
-            True if successful, False with "msg" kwarg if some error occurred.
+            tuple in format (success, errors_dictionary).
         """
         if not handler:
             if handler_settings:
