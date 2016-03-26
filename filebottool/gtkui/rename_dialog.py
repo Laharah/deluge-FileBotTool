@@ -117,8 +117,7 @@ class RenameDialog(object):
                                 self.current_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
         self.init_treestore(self.history_files_treeview,
-                            "Current File Structure at {0}".format(
-                                self.current_save_path))
+                            "Current File Structure at {0}".format(self.current_save_path))
         self.load_treestore(self.original_files_treeview, self.files)
         self.load_treestore(self.history_files_treeview, self.files)
         treeview = self.glade.get_widget("files_treeview")
@@ -152,7 +151,7 @@ class RenameDialog(object):
         column = gtk.TreeViewColumn(header, renderer, text=1)
         treeview.append_column(column)
 
-    def load_treestore(self, file_data, treeview, clear=False, title=None):
+    def load_treestore(self, treeview, file_data, clear=False, title=None):
 
         """
         Loads file_data into given treeview
