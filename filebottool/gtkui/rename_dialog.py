@@ -119,8 +119,8 @@ class RenameDialog(object):
         self.init_treestore(self.history_files_treeview,
                             "Current File Structure at {0}".format(
                                 self.current_save_path))
-        self.load_treestore((None, self.files), self.original_files_treeview)
-        self.load_treestore((None, self.files), self.history_files_treeview)
+        self.load_treestore(self.original_files_treeview, self.files)
+        self.load_treestore(self.history_files_treeview, self.files)
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
 
@@ -152,19 +152,23 @@ class RenameDialog(object):
         column = gtk.TreeViewColumn(header, renderer, text=1)
         treeview.append_column(column)
 
-    def load_treestore(self, (save_path, file_data), treeview, clear=False):
-        """populates a treestore using a torrents filedata and savepath
-        Args:
-          (save_path, file_data): tuple conting the save path and files dict.
-          treeview: the treeview widget you would like to load data into.
-          clear: a bool to notify clearing of treeview widget before writing.
+    def load_treestore(self, file_data, treeview, clear=False, title=None):
+
         """
-        # TODO: look into deluge's internal treestore functions
+        Loads file_data into given treeview
+        Args:
+            file_data: dict containing file info from deluge
+            treeview: treeview widget to load into
+            clear: clear the treestore of old data
+            title: The title at the top of treeview widget (requires clear)
+
+        Returns: None
+        """
         if clear:
-            if save_path:
+            if title:
                 for column in treeview.get_columns():
                     treeview.remove_column(column)
-                self.init_treestore(treeview, "New File Structure at {0}".format(save_path))
+                self.init_treestore(treeview, title)
             model = gtk.TreeStore(str, str)
             treeview.set_model(model)
         if not file_data:
@@ -215,8 +219,9 @@ class RenameDialog(object):
         log.debug("recieved response from server{0}".format(torrent_data))
         save_path = torrent_data["save_path"]
         files = torrent_data["files"]
-        self.load_treestore((save_path, files), self.original_files_treeview, clear=True)
-        self.load_treestore((save_path, files), self.history_files_treeview, clear=True)
+        header = "Current File Structure at {0}".format(save_path)
+        self.load_treestore(self.original_files_treeview, files, clear=True, title=header)
+        self.load_treestore(self.history_files_treeview, files, clear=True, title=header)
 
     # Section: UI actions
 
@@ -246,6 +251,7 @@ class RenameDialog(object):
             advanced_label.set_text("Hide Advanced")
             arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
 
+    @defer.inlineCallbacks
     def on_do_dry_run_clicked(self, button):
         """
         executes a dry run to show the user how the torrent is expected to
@@ -257,27 +263,29 @@ class RenameDialog(object):
         log.debug("using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
-        def error_check(((success, errors), new_info)):
-            '''closure to pop off error reporting'''
-            if not success:
-                message = 'The dry run found the following errors'
-                self.messenger.display_errors(
-                    errors,
-                    title="Dry Run Warning",
-                    message=message,
-                    show_details=True)
-            return new_info
-
         spinner = self.glade.get_widget("dry_run_spinner")
         self.swap_spinner(spinner)
 
-        d = client.filebottool.do_dry_run(self.torrent_id, handler_settings)
-        d.addCallback(self.log_response)
-        d.addCallback(error_check)
-        d.addCallback(self.load_treestore, self.new_files_treeview, clear=True)
-        d.addCallback(self.swap_spinner, spinner)
-        d.addCallback(self.toggle_button, button)
+        result = yield client.filebottool.do_dry_run(self.torrent_id, handler_settings)
+        self.swap_spinner(spinner)
+        self.toggle_button(button)
+        self.log_response(result)
 
+        (success, errors), (new_save_path, files) = result
+        if not success:
+            message = "The dry run found the following errors"
+            self.messenger.display_errors(
+                errors,
+                title="Dry Run Warning",
+                message=message,
+                show_details=True
+            )
+
+        else:
+            header = "New File Structure at: {0}".format(new_save_path)
+            self.load_treestore(self.new_files_treeview, files, clear=True, title=header)
+
+    @defer.inlineCallbacks
     def on_execute_filebot_clicked(self, button):
         """collects and sends settings, and tells server to execute run using
          them.
@@ -299,11 +307,18 @@ class RenameDialog(object):
         spinner = self.glade.get_widget("execute_spinner")
         self.swap_spinner(spinner)
         client.filebottool.save_rename_dialog_settings(handler_settings)
-        d = client.filebottool.do_rename(self.torrent_ids, handler_settings)
-        d.addCallback(self.log_response)
-        d.addCallback(self.rename_complete)
-        d.addCallback(self.swap_spinner, spinner)
-        d.addCallback(self.toggle_button, button)
+
+        result = yield client.filebottool.do_rename(self.torrent_ids, handler_settings)
+        self.swap_spinner(spinner)
+        self.toggle_button(button)
+        self.log_response(result)
+        success, errors = result
+        if not success:
+            log.warning("rename failed with errors: {0}".format(errors))
+            self.messenger.display_errors(errors)
+        else:
+            log.info("rename successful on {0}".format(self.torrent_ids))
+            self.window.destroy()
 
     def on_revert_button_clicked(self, button):
         log.info("Sending revert request to server for torrent {0}".format(
@@ -349,7 +364,6 @@ class RenameDialog(object):
         client.filebottool.update_handlers(self.saved_handlers)
         inflate_list_store_combo(self.saved_handlers, handler_combo)
 
-
     def on_load_saved_handler(self, saved_handler_combo, *args):
         self.watch_for_setting_change = False
         combo_model = saved_handler_combo.get_model()
@@ -364,21 +378,9 @@ class RenameDialog(object):
         saved_handler_combo.get_child().set_text(handler_name)
         self.watch_for_setting_change = True
 
-
     def on_format_help_clicked(self, *args):
         webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
         log.debug('Format expression info button was clicked')
-
-    def rename_complete(self, (success, errors)):
-        """
-        Executed when do_rename has returned from server. Reports errors as well.
-        """
-        if success:
-            log.debug("Rename Completed.")
-            self.window.destroy()
-        else:
-            log.warning("rename failed with errors: {0}".format(errors))
-            self.messenger.display_errors(errors)
 
     def log_response(self, response):
         log.debug("response from server: {0}".format(response))
