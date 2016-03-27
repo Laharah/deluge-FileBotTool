@@ -311,7 +311,9 @@ class RenameDialog(object):
         self.swap_spinner(spinner)
         self.toggle_button(button)
         self.log_response(result)
-        success, errors = result
+        success, errors, new_files = result
+        if new_files:
+            self.messenger.show_new_files(new_files)
         if not success:
             log.warning("rename failed with errors: {0}".format(errors))
             self.messenger.display_errors(errors)

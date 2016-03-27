@@ -5,6 +5,7 @@ __author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
 import gtk
+import pprint
 from filebottool.common import Log
 
 log = Log()
@@ -68,6 +69,36 @@ class UserMessenger(object):
 
     def __init__(self):
         pass
+
+    def show_new_files(self, files):
+        """
+        Given a list of new files, display message showing them to the user
+        Args:
+            files: list of files or file => linked file pairs
+        """
+        message = """FileBot has created the following new files:\n"""
+        title = "New Files Created"
+        dialog = InfoDialog(title, message)
+        files = [' => '.join(f) if isinstance(f, tuple) else f for f in files]
+        files = pprint.pformat(files)
+        text_view = gtk.TextView()
+        text_view.get_buffer().set_text(files)
+        text_view.set_editable(False)
+        text_view.set_cursor_visible(False)
+        text_view.show()
+        sw = gtk.ScrolledWindow()
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw.show()
+        sw.add(text_view)
+        detail_view = gtk.Frame()
+        detail_view.set_shadow_type(gtk.SHADOW_IN)
+        detail_view.add(sw)
+        detail_view.set_border_width(6)
+        dialog.vbox.add(detail_view)
+        text_view.set_size_request(485, 300)
+        detail_view.show()
+        dialog.run_async()
+        return
 
     def display_errors(self, errors,
                        title=None,

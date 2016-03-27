@@ -530,7 +530,7 @@ class Core(CorePluginBase):
             handler: an optional FilebotHandler to use (overrides
                 handler_settings)
         returns:
-            tuple in format (success, errors_dictionary).
+            tuple in format (success, errors_dictionary, messages).
         """
         if not handler:
             if handler_settings:
@@ -540,7 +540,9 @@ class Core(CorePluginBase):
                 handler = pyfilebot.FilebotHandler()
 
         errors = {}
+        new_files = []
         for torrent_id in torrent_ids:
+            link = "link" in handler.rename_action or handler.rename_action == 'copy'
             target = self._get_filebot_target(torrent_id)
             log.debug("beginning filebot run on torrent {0}, with target {1}".format(
                 torrent_id, target))
@@ -568,8 +570,12 @@ class Core(CorePluginBase):
             log.debug("recieved results from filebot: {0}".format(
                 filebot_results))
 
-            deluge_movements = self._translate_filebot_movements(
-                torrent_id, filebot_results[1])
+            if not link:
+                deluge_movements = self._translate_filebot_movements(torrent_id,
+                                                                     filebot_results[1])
+            else:
+                deluge_movements = None
+                new_files += filebot_results[1]
 
             if not deluge_movements:
                 if original_torrent_state == "Seeding":
@@ -601,11 +607,15 @@ class Core(CorePluginBase):
             if handler_settings:
                 if handler_settings['download_subs']:
                     handler.output = None
+                    if link:
+                        deluge_movements = self._translate_filebot_movements(torrent_id, filebot_results[1])
+
                     mock = self._get_mockup_files_dictionary(torrent_id, deluge_movements)
                     new_save = deluge_movements[0]
                     if not new_save:
                         torrent = self.torrent_manager[torrent_id]
                         new_save = torrent.get_status(["save_path"])["save_path"]
+
                     target = [self._get_full_os_path(new_save, f['path']) for f in mock]
                     try:
                         subs = yield threads.deferToThread(handler.get_subtitles, target)
@@ -613,15 +623,16 @@ class Core(CorePluginBase):
                             log.info("No subs found for torrent {0}".format(torrent_id))
                         else:
                             log.info('Downloaded subs: {0}'.format(subs))
+                            new_files += subs
                     except pyfilebot.FilebotRuntimeError as err:
                         log.error("FILEBOTERROR: {0}").format(err)
                         errors[torrent_id] = (str(err), err.msg)
 
 
         if errors:
-            defer.returnValue((False, errors))
+            defer.returnValue((False, errors, new_files))
         else:
-            defer.returnValue((True, None))
+            defer.returnValue((True, None, new_files))
 
     @export
     @defer.inlineCallbacks
