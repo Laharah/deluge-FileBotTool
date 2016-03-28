@@ -611,7 +611,7 @@ class Core(CorePluginBase):
                         deluge_movements = self._translate_filebot_movements(torrent_id, filebot_results[1])
 
                     mock = self._get_mockup_files_dictionary(torrent_id, deluge_movements)
-                    new_save = deluge_movements[0]
+                    new_save = deluge_movements[0] if deluge_movements else None
                     if not new_save:
                         torrent = self.torrent_manager[torrent_id]
                         new_save = torrent.get_status(["save_path"])["save_path"]
