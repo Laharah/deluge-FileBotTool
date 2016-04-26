@@ -489,7 +489,7 @@ class Core(CorePluginBase):
         except Exception as e:
             log.error("Unexpected error in pyfilebot: {0}".format(e))
             log.error(traceback.format_exc())
-            defer.returnValue(((False, {torrent_id:(str(e.__class__), str(e))}),
+            defer.returnValue(((False, {torrent_id:(str(e.__class__.__name__), str(e))}),
                                ('FILEBOTTOOLERROR', None)))
         # noinspection PyUnboundLocalVariable
         log.debug("recieved results from filebot: {0}".format(filebot_results))
@@ -563,7 +563,7 @@ class Core(CorePluginBase):
             except Exception as e:
                 log.error("Unexpected error from pyfilebot: {0}".format(e))
                 log.error(traceback.format_exc())
-                errors[torrent_id] = (str(err.__class__), err.msg)
+                errors[torrent_id] = (str(err.__class__.__name__), err.msg)
                 filebot_results = ["", {}, {}]
                 continue
 
