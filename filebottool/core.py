@@ -548,7 +548,8 @@ class Core(CorePluginBase):
                 torrent_id, target))
 
             original_torrent_state = self.torrent_manager[torrent_id].state
-            self.torrent_manager[torrent_id].pause()
+            if not link:
+                self.torrent_manager[torrent_id].pause()
 
             try:
                 filebot_results = yield threads.deferToThread(handler.rename,
