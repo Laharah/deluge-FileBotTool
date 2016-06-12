@@ -691,8 +691,12 @@ class Core(CorePluginBase):
                 if new_settings[setting] is not None:
                     self.config["rename_dialog_last_settings"][setting] = (
                         new_settings[setting])
-                    log.debug("setting saved: {0} : {1}".format(
-                        setting, new_settings[setting]))
+                    try:
+                        log.debug("setting saved: {0} : {1}".format(
+                            setting, new_settings[setting]))
+                    except UnicodeEncodeError:
+                        log.debug("setting saved: {0}".format(setting))
+
                 else:
                     self.config["rename_dialog_last_settings"][setting] = None
             except KeyError:
