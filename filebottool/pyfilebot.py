@@ -511,7 +511,7 @@ def _build_filebot_arguments(targets,
         process_arguments.append(targets)
     else:
         targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
-        process_arguments += [target.decode("utf8") for target in targets]
+        process_arguments += targets
 
     return process_arguments
 
