@@ -586,7 +586,10 @@ class Core(CorePluginBase):
                                              deluge_movements,
                                              filebot_results[2])
 
-            if conflicts:
+            if conflicts and handler.on_conflict == 'override':
+                for conflict in conflicts:
+                    os.remove(conflict)
+            elif conflicts:
                 log.warning("Raname is not safe on torrent {0}. "
                             "Rolling Back and recheking".format(torrent_id))
                 self._rollback(filebot_results, torrent_id)
