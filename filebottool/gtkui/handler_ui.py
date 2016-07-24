@@ -172,7 +172,6 @@ class HandlerUI(object):
         return settings
 
     def on_conflict_combo_changed(self, on_conflict, *args):
-        log.debug('HIT!')
         if not self.monitor_changes:
             return
         model = on_conflict.get_model()
