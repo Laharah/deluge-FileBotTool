@@ -8,6 +8,7 @@ from deluge.ui.client import client
 
 from filebottool.gtkui.common import inflate_list_store_combo
 from filebottool.common import Log
+import user_messenger
 
 log = Log()
 
@@ -53,12 +54,18 @@ class HandlerUI(object):
         self.output_entry = self.glade.get_widget("output_entry")
 
         self.populated = False
+        self.monitor_changes = True
+
+        self.glade.signal_autoconnect(
+            {'on_conflict_combo_changed': self.on_conflict_combo_changed}
+        )
 
         client.filebottool.get_filebot_valid_values().addCallback(
             self.init_combo_boxes)
 
     def init_combo_boxes(self, combo_data):
         """retrieves valid values for combo boxes and inflates them"""
+        self.monitor_changes = False
 
         log.debug("building database combo box")
         databases = combo_data["valid_databases"]
@@ -79,6 +86,7 @@ class HandlerUI(object):
         if self.initial_settings:
             self.populate_with_settings(self.initial_settings)
         self.populated = True
+        self.monitor_changes = True
 
     def populate_with_settings(self, settings):
         """populates the UI with the desired settings dictionary
@@ -162,3 +170,20 @@ class HandlerUI(object):
 
         log.debug("Collected settings for server: {0}".format(settings))
         return settings
+
+    def on_conflict_combo_changed(self, on_conflict, *args):
+        log.debug('HIT!')
+        if not self.monitor_changes:
+            return
+        model = on_conflict.get_model()
+        current_iter = on_conflict.get_active_iter()
+        if current_iter:
+            setting = model[current_iter][0]
+        else:
+            setting = None
+
+        if setting == 'override':
+            msg = 'Warning, override conflict resolution may overwrite files! Use Carefully!'
+            warning = user_messenger.InfoDialog('FilebotTool Warning!', msg, modal=True)
+            warning.run_async()
+        return

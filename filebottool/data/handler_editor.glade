@@ -369,6 +369,7 @@
                       <widget class="GtkComboBox" id="on_conflict_combo">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <signal name="changed" handler="on_conflict_combo_changed" swapped="no"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>

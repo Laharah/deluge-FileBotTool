@@ -509,9 +509,11 @@ class Core(CorePluginBase):
                 ["save_path"])["save_path"]
         conflicts = self._file_conflicts(torrent_id, deluge_movements, filebot_results[2])
         if conflicts:
+            overwrite = handler.on_conflict == 'override'
             errors = {}
             errors[torrent_id] = ('File Conflict',
-                                  'The following files already exsist:\n{0}'.format(
+                                  'The following files already exsist{0}:\n{1}'.format(
+                                    ' and will be overwritten!' if overwrite else '',
                                     ''.join('    ' + f + '\n' for f in conflicts))
                                   )
         defer.returnValue((

@@ -657,6 +657,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <signal name="changed" handler="on_setting_changed" swapped="no"/>
+                                <signal name="changed" handler="on_conflict_combo_changed" swapped="no"/>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
