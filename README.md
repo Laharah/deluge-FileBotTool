@@ -76,5 +76,4 @@ You will need:
 - The new .egg file located in the `dist/` folder is now ready to be added to deluge. 
 
 ####Planned Release Features:
-- more UI polish
-- support execution on individual files rather than whole torrents
+- Better handeling for unicode files on Windows
