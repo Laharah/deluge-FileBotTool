@@ -4,7 +4,6 @@ FilebotHandler convenience class.
 __author__ = 'laharah'
 __version__ = '0.2.2'
 
-import subprocess
 import re
 import os
 import tempfile
@@ -14,7 +13,7 @@ import warnings
 from types import MethodType
 import functools
 
-
+import killableprocess
 from distutils import spawn
 
 
@@ -560,16 +559,16 @@ def _execute(process_arguments, workaround=True):
     process_arguments = ([FILEBOT_EXE, "--log-file", file_temp.name] + process_arguments)
 
     if os.name == "nt":  # used to hide cmd window popup
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess._subprocess.STARTF_USESHOWWINDOW
+        startupinfo = killableprocess.winprocess.STARTUPINFO()
+        startupinfo.dwFlags |= killableprocess.winprocess.STARTF_USESHOWWINDOW
     else:
         startupinfo = None
 
     try:
-        process = subprocess.Popen(process_arguments,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   stdin=subprocess.PIPE,
+        process = killableprocess.Popen(process_arguments,
+                                   stdout=killableprocess.subprocess.PIPE,
+                                   stderr=killableprocess.subprocess.PIPE,
+                                   stdin=killableprocess.subprocess.PIPE,
                                    startupinfo=startupinfo)
     except OSError:
         raise FilebotFatalError("Filebot could not be found!")
