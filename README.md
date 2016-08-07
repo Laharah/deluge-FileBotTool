@@ -1,7 +1,7 @@
 #FilebotTool: FileBot Integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
-**Version Beta 0.9.5**
+**Version 1.0**
 
 #####[Download Latest Release](https://github.com/Laharah/deluge-FilebotTool/releases/latest)
 
@@ -74,6 +74,3 @@ You will need:
     py -2.6 setup.py bdist_egg
 ``` 
 - The new .egg file located in the `dist/` folder is now ready to be added to deluge. 
-
-####Planned Release Features:
-- Better handeling for unicode files on Windows

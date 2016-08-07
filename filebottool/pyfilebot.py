@@ -220,7 +220,6 @@ def test_format_string(format_string=None, file_name="Citizen Kane.avi"):
 def get_subtitles(target, language_code=None, encoding=None, force=False, output=None):
     """
     convenience function, Gets subtitles for a given *target*
-
     Will use filebot to download subtitles from OpenSubtitles.org using
     the file hash. By default, it will only download subtitles if the
     .srt file for the given language is missing. This behavior can be
@@ -533,7 +532,7 @@ def _build_script_arguments(script_name, script_arguments):
     if script_arguments:
         if isinstance(script_arguments, basestring):
             script_arguments = [script_arguments]
-        process_arguments += [arg.decode("utf8") for arg in script_arguments]
+        process_arguments += script_arguments
 
     return process_arguments
 
