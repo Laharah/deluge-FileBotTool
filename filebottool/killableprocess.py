@@ -135,7 +135,7 @@ class Popen(subprocess.Popen):
                 args = comspec + " /c " + args
 
             # We create a new job for this process, so that we can kill
-            # the process and any sub-processes 
+            # the process and any sub-processes
             self._job = winprocess.CreateJobObject()
 
             creationflags |= winprocess.CREATE_SUSPENDED
@@ -172,10 +172,10 @@ class Popen(subprocess.Popen):
             winprocess.ResumeThread(ht)
 
 
-    def _execute_child(self, *args):
-        if sys.version_info[:2] == (2, 6):
-            args = args[:10] + ([],) + args[10:]
-        return self._execute_child_27(*args)
+        def _execute_child(self, *args):
+            if sys.version_info[:2] == (2, 6):
+                args = args[:10] + ([],) + args[10:]
+            return self._execute_child_27(*args)
 
     def kill(self, group=True):
         """Kill the process. If group=True, all sub-processes will also be killed."""
@@ -184,7 +184,7 @@ class Popen(subprocess.Popen):
                 winprocess.TerminateJobObject(self._job, 127)
             else:
                 winprocess.TerminateProcess(self._handle, 127)
-            self.returncode = 127    
+            self.returncode = 127
         else:
             if group:
                 os.killpg(self.pid, signal.SIGKILL)
@@ -213,7 +213,7 @@ class Popen(subprocess.Popen):
             if timeout == -1:
                 subprocess.Popen.wait(self)
                 return self.returncode
-            
+
             starttime = time.time()
 
             # Make sure there is a signal handler for SIGCHLD installed
@@ -225,7 +225,7 @@ class Popen(subprocess.Popen):
                     self._handle_exitstatus(sts)
                     signal.signal(signal.SIGCHLD, oldsignal)
                     return self.returncode
-                
+
                 # time.sleep is interrupted by signals (good!)
                 newtimeout = timeout - time.time() + starttime
                 time.sleep(newtimeout)
