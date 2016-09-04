@@ -239,9 +239,7 @@ def get_subtitles(target, language_code=None, encoding=None, force=False, output
     Returns:
         A list containing the downloaded subtitle file names
     """
-    mode = "-get-missing-subtitles"
-    if force:
-        mode = "-get-subtitles"
+    mode = "-get-subtitles"
 
     if output:
         output = output.lower().strip
