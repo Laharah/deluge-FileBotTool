@@ -693,7 +693,7 @@ class Core(CorePluginBase):
     @export
     def save_rename_dialog_settings(self, new_settings):
         log.debug("recieved settings from client: {0}".format(new_settings))
-        for setting in self.config["rename_dialog_last_settings"]:
+        for setting in DEFAULT_PREFS["rename_dialog_last_settings"]:
             try:
                 if new_settings[setting] is not None:
                     self.config["rename_dialog_last_settings"][setting] = (

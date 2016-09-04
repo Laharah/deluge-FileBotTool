@@ -313,6 +313,42 @@
                       </packing>
                     </child>
                     <child>
+                      <widget class="GtkLabel" id="language_code_label1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">2 character language code
+(ex: 'en' for english)</property>
+                        <property name="xalign">1</property>
+                        <property name="label" translatable="yes">Title Language:</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkEntry" id="language_code_entry1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip" translatable="yes">2 character language code
+(ex: 'en' for english)</property>
+                        <property name="max_length">2</property>
+                        <property name="invisible_char">●</property>
+                        <property name="width_chars">3</property>
+                        <property name="invisible_char_set">True</property>
+                        <property name="primary_icon_activatable">False</property>
+                        <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
                       <widget class="GtkLabel" id="episode_order_label">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -323,7 +359,7 @@
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="padding">3</property>
-                        <property name="position">2</property>
+                        <property name="position">4</property>
                       </packing>
                     </child>
                     <child>
@@ -334,7 +370,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">3</property>
+                        <property name="position">5</property>
                       </packing>
                     </child>
                   </widget>

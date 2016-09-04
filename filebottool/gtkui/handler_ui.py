@@ -113,12 +113,12 @@ class HandlerUI(object):
                 combo.set_active(value_index)
 
         entry_value_pairs = [
-            (self.format_string_entry, settings["format_string"]),
-            (self.encoding_entry, settings["encoding"]),
-            (self.subs_language_entry, settings["subs_language"]),
-            (self.language_code_entry, settings["language_code"]),
-            (self.query_entry, settings["query_override"]),
-            (self.output_entry, settings["output"])
+            (self.format_string_entry, settings.get("format_string", '')),
+            (self.encoding_entry, settings.get("encoding", '')),
+            (self.subs_language_entry, settings.get("subs_language", '')),
+            (self.language_code_entry, settings.get("language_code", '')),
+            (self.query_entry, settings.get("query_override", '')),
+            (self.output_entry, settings.get("output", '')),
         ]
 
         log.debug("Setting entry widgets")
