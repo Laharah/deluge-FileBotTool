@@ -86,7 +86,8 @@ def rename(targets,
            on_conflict=None,
            query_override=None,
            non_strict=True,
-           recursive=True):
+           recursive=True,
+           language_code=None):
     """Renames file or files from *targets* using the current settings
 
     Args:
@@ -130,7 +131,8 @@ def rename(targets,
                                                  on_confilct=on_conflict,
                                                  query_override=query_override,
                                                  non_strict=non_strict,
-                                                 recursive=recursive)
+                                                 recursive=recursive,
+                                                 language_code=language_code)
 
     # TODO:better error handling
     exit_code, data, filebot_error = _execute(filebot_arguments)
