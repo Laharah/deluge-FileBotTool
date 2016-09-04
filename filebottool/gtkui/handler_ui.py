@@ -49,6 +49,7 @@ class HandlerUI(object):
         self.format_string_entry = self.glade.get_widget("format_string_entry")
         self.query_entry = self.glade.get_widget("query_entry")
         self.download_subs_checkbox = self.glade.get_widget("download_subs_checkbox")
+        self.subs_language_entry = self.glade.get_widget("subs_language_entry")
         self.language_code_entry = self.glade.get_widget("language_code_entry")
         self.encoding_entry = self.glade.get_widget("encoding_entry")
         self.output_entry = self.glade.get_widget("output_entry")
@@ -114,6 +115,7 @@ class HandlerUI(object):
         entry_value_pairs = [
             (self.format_string_entry, settings["format_string"]),
             (self.encoding_entry, settings["encoding"]),
+            (self.subs_language_entry, settings["subs_language"]),
             (self.language_code_entry, settings["language_code"]),
             (self.query_entry, settings["query_override"]),
             (self.output_entry, settings["output"])
@@ -156,6 +158,7 @@ class HandlerUI(object):
             "format_string": self.format_string_entry,
             "encoding": self.encoding_entry,
             "language_code": self.language_code_entry,
+            "subs_language": self.subs_language_entry,
             "query_override": self.query_entry,
             "output": self.output_entry
         }

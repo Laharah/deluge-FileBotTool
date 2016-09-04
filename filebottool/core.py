@@ -67,8 +67,9 @@ DEFAULT_PREFS = {
         "query_override": None,
         "on_conflict": None,
         "episode_order": None,
-        "download_subs": False,
         "language_code": None,
+        "download_subs": False,
+        "subs_language": None,
         "encoding": "UTF-8"
     },
     "saved_handlers": {},
@@ -624,7 +625,8 @@ class Core(CorePluginBase):
 
                     target = [self._get_full_os_path(new_save, f['path']) for f in mock]
                     try:
-                        subs = yield threads.deferToThread(handler.get_subtitles, target)
+                        subs = yield threads.deferToThread(handler.get_subtitles,
+                            target, language_code=handler_settings['subs_language'])
                         if not subs:
                             log.info("No subs found for torrent {0}".format(torrent_id))
                         else:
