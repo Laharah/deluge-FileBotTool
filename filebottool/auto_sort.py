@@ -41,6 +41,16 @@ def check_rules(torrent_id, sorting_rules):
     sorting_rules = [FilterRule(*rule) for rule in sorting_rules]
 
     for rule in sorted(sorting_rules):
+        if rule.field == 'label':  # labelPlus handling
+            try:
+                lable_name = core.get_torrent_status(torrent_id, ['labelplus_name'])['labelplus_name']
+            except KeyError:
+                pass
+            else:
+                if OPERATOR_MAP[rule.operator](lable_name, rule.value):
+                    log.info("Torrent {0} matched rule {1}".format(torrent_id, rule.id))
+                    return rule.handler_name
+
         if rule.field == 'file path':  # special handeling for file path
             files = component.get('TorrentManager')[torrent_id].get_files()
             for f in files:
@@ -49,12 +59,17 @@ def check_rules(torrent_id, sorting_rules):
                     log.info(logline.format(torrent_id, f['path'], rule.id))
                     return rule.handler_name
 
-        elif OPERATOR_MAP[rule.operator](
-                core.get_torrent_status(torrent_id, [rule.field])[rule.field],
-                rule.value):
-            log.info("Torrent {0} matched rule {1}".format(torrent_id, rule.id))
-            return rule.handler_name
+
+        else:
+            try:
+                field = core.get_torrent_status(torrent_id, [rule.field])[rule.field]
+            except KeyError:
+                log.debug('No field {0}'.format(rule.field))
+                continue
+            if OPERATOR_MAP[rule.operator](field, rule.value):
+                log.info("Torrent {0} matched rule {1}".format(torrent_id, rule.id))
+                return rule.handler_name
 
     else:
-        log.debug("No rule filter matched for torrent {}".format(torrent_id))
+        log.debug("No rule filter matched for torrent {0}".format(torrent_id))
         return None
