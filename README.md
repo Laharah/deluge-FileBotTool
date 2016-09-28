@@ -1,7 +1,7 @@
 #FilebotTool: FileBot Integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
-**Version 1.1.2**
+**Version 1.1.3**
 
 #####[Download Latest Release](https://github.com/Laharah/deluge-FilebotTool/releases/latest)
 
@@ -24,7 +24,8 @@ your torrents seeding **without wasting storage space on duplicates!**
 - Multi-language support
 - Easily rollback mistakes
 - supports both server-client and classic mode
-- Custom auto-organize rulesets:
+- Custom auto-organize rulesets
+- supports creating reflinks on btrfs filesystems
 
 
 ![prefs_page](http://i.imgur.com/Dr22k0a.png)

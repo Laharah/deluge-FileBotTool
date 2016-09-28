@@ -40,7 +40,7 @@ FILEBOT_DATABASES = [None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMo
                      'OMDb', 'AcoustID', 'ID3 Tags']
 
 FILEBOT_RENAME_ACTIONS = [None, 'move', 'copy', 'duplicate', 'keeplink', 'symlink',
-                          'hardlink', 'test']
+                          'reflink', 'hardlink', 'test']
 
 FILEBOT_ON_CONFLICT = [None, 'override', 'skip', 'fail']
 
