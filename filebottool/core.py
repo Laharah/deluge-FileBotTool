@@ -545,7 +545,10 @@ class Core(CorePluginBase):
         errors = {}
         new_files = []
         for torrent_id in torrent_ids:
-            link = "link" in handler.rename_action or handler.rename_action == 'copy'
+            if handler.rename_action is not None:
+                link = "link" in handler.rename_action or handler.rename_action == 'copy'
+            else:
+                link = False
             target = self._get_filebot_target(torrent_id)
             log.debug("beginning filebot run on torrent {0}, with target {1}".format(
                 torrent_id, target))
