@@ -365,6 +365,8 @@ class Core(CorePluginBase):
         save_path = torrent.get_status(["save_path"])["save_path"]
         targets = [self._get_full_os_path(save_path, f["path"]) for f in
                    torrent.get_files()]
+        priorities = torrent.options["file_priorities"]
+        targets = [t for t, p in zip(targets, priorities) if p != 0]
         log.debug("targets found: {0}".format(targets))
         return targets
 
