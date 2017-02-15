@@ -7,7 +7,7 @@
 
 #####[How to Install in Deluge](https://github.com/Laharah/deluge-FileBotTool/wiki)
 
-#####*NOTICE, a bug in the windows version of libtorrent breaks this plugin, use Deluge 1.3.12 on windows!!!*
+#####*NOTICE, a bug in the windows version of libtorrent (used in deluge 1.3.13) breaks this plugin, use Deluge 1.3.12 on windows!!!*
 
 Rename your torrents using FileBot from within deluge. Keep your media organized and 
 your torrents seeding **without wasting storage space on duplicates!**
