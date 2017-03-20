@@ -44,6 +44,10 @@ from deluge.plugins.pluginbase import CorePluginBase
 # noinspection PyUnresolvedReferences
 import deluge.component as component
 # noinspection PyUnresolvedReferences
+import deluge.common
+# noinspection PyUnresolvedReferences
+from deluge._libtorrent import lt
+# noinspection PyUnresolvedReferences
 import deluge.configmanager
 # noinspection PyUnresolvedReferences
 from deluge.core.rpcserver import export
@@ -275,7 +279,7 @@ class Core(CorePluginBase):
             self.listening_dictionary[torrent_id] = {}
         if new_save_path:
             self.listening_dictionary[torrent_id]["move_storage"] = new_save_path
-            torrent.move_storage(new_save_path)
+            self._repair_storage(torrent, new_save_path)
         if new_top_lvl:
             if len(torrent.get_files()) > 1:
                 current_top_lvl = torrent.get_files()[0]["path"].split("/")[0] + "/"
@@ -365,6 +369,8 @@ class Core(CorePluginBase):
         save_path = torrent.get_status(["save_path"])["save_path"]
         targets = [self._get_full_os_path(save_path, f["path"]) for f in
                    torrent.get_files()]
+        priorities = torrent.options["file_priorities"]
+        targets = [t for t, p in zip(targets, priorities) if p != 0]
         log.debug("targets found: {0}".format(targets))
         return targets
 
@@ -435,6 +441,34 @@ class Core(CorePluginBase):
 
         return new_files
 
+    def _repair_storage(self, torrent, dest):
+        """dup of 1.3.13 move storage, with correct libtorrent flags"""
+        try:
+            dest = unicode(dest, "utf-8")
+        except TypeError:
+            # String is already unicode
+            pass
+
+        if not os.path.exists(dest):
+            log.error("Path Does not exsist, repair failed.")
+            return False
+
+        kwargs = {}
+        if deluge.common.VersionSplit(lt.version) >= deluge.common.VersionSplit(
+                "1.0.0.0"):
+            kwargs['flags'] = 2  # dont_replace
+        dest_bytes = dest.encode('utf-8')
+        try:
+            # libtorrent needs unicode object if wstrings are enabled, utf8 bytestring otherwise
+            try:
+                torrent.handle.move_storage(dest, **kwargs)
+            except TypeError:
+                torrent.handle.move_storage(dest_bytes, **kwargs)
+        except Exception, e:
+            log.error("Error calling libtorrent move_storage: %s" % e)
+            return False
+
+        return True
     #########
     #  Section: Public API
     #########
