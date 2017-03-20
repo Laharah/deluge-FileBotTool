@@ -2,7 +2,7 @@
 FilebotHandler convenience class.
 """
 __author__ = 'laharah'
-__version__ = '0.2.2'
+__version__ = '0.3.0'
 
 import re
 import os
@@ -42,7 +42,7 @@ FILEBOT_DATABASES = [None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMo
 FILEBOT_RENAME_ACTIONS = [None, 'move', 'copy', 'duplicate', 'keeplink', 'symlink',
                           'reflink', 'hardlink', 'test']
 
-FILEBOT_ON_CONFLICT = [None, 'override', 'skip', 'fail']
+FILEBOT_ON_CONFLICT = [None, 'override', 'skip', 'auto', 'index', 'fail']
 
 
 class Error(Exception):
