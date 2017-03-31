@@ -16,12 +16,12 @@ import functools
 import killableprocess
 from distutils import spawn
 
-
 FILEBOT_EXE = spawn.find_executable('filebot')
 if not FILEBOT_EXE:
-    locations = [r'C:\Program Files\FileBot\filebot.exe',
-                 r'/usr/bin/filebot',
-                 r'/usr/local/bin/filebot']
+    locations = [
+        r'C:\Program Files\FileBot\filebot.exe', r'/usr/bin/filebot',
+        r'/usr/local/bin/filebot'
+    ]
     for loc in locations:
         if os.path.exists(loc):
             FILEBOT_EXE = loc
@@ -30,17 +30,22 @@ if not FILEBOT_EXE:
         warnings.warn("Could not find filebot executable!", stacklevel=2)
         FILEBOT_EXE = 'filebot'
 
-
-FILEBOT_MODES = ['rename', 'move', 'check', 'get-missing-subtitles', 'get-subtitles',
-                 'list', 'mediainfo']
+FILEBOT_MODES = [
+    'rename', 'move', 'check', 'get-missing-subtitles', 'get-subtitles', 'list',
+    'mediainfo'
+]
 
 FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute"]
 
-FILEBOT_DATABASES = [None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMovieDB',
-                     'OMDb', 'AcoustID', 'ID3 Tags']
+FILEBOT_DATABASES = [
+    None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMovieDB', 'OMDb', 'AcoustID',
+    'ID3 Tags'
+]
 
-FILEBOT_RENAME_ACTIONS = [None, 'move', 'copy', 'duplicate', 'keeplink', 'symlink',
-                          'reflink', 'hardlink', 'test']
+FILEBOT_RENAME_ACTIONS = [
+    None, 'move', 'copy', 'duplicate', 'keeplink', 'symlink', 'reflink', 'hardlink',
+    'test'
+]
 
 FILEBOT_ON_CONFLICT = [None, 'override', 'skip', 'auto', 'index', 'fail']
 
@@ -122,17 +127,18 @@ def rename(targets,
     if output:
         output = os.path.abspath(os.path.expandvars(os.path.expanduser(output)))
 
-    filebot_arguments = _build_filebot_arguments(targets,
-                                                 format_string=format_string,
-                                                 database=database,
-                                                 output=output,
-                                                 rename_action=rename_action,
-                                                 episode_order=episode_order,
-                                                 on_confilct=on_conflict,
-                                                 query_override=query_override,
-                                                 non_strict=non_strict,
-                                                 recursive=recursive,
-                                                 language_code=language_code)
+    filebot_arguments = _build_filebot_arguments(
+        targets,
+        format_string=format_string,
+        database=database,
+        output=output,
+        rename_action=rename_action,
+        episode_order=episode_order,
+        on_confilct=on_conflict,
+        query_override=query_override,
+        non_strict=non_strict,
+        recursive=recursive,
+        language_code=language_code)
 
     # TODO:better error handling
     exit_code, data, filebot_error = _execute(filebot_arguments)
@@ -207,9 +213,8 @@ def test_format_string(format_string=None, file_name="Citizen Kane.avi"):
             Returns an empty string if no matches were found.
     """
 
-    filebot_arguments = _build_filebot_arguments(file_name,
-                                                 rename_action='test',
-                                                 format_string=format_string)
+    filebot_arguments = _build_filebot_arguments(
+        file_name, rename_action='test', format_string=format_string)
 
     _, data, _ = _execute(filebot_arguments)
     _, file_moves, _ = parse_filebot(data)
@@ -247,12 +252,13 @@ def get_subtitles(target, language_code=None, encoding=None, force=False, output
             raise ValueError("Only None and srt are valid output "
                              "arguments for subtitle mode.")
 
-    filebot_arguments = _build_filebot_arguments(target,
-                                                 mode=mode,
-                                                 language_code=language_code,
-                                                 encoding=encoding,
-                                                 recursive=False,
-                                                 output=None)
+    filebot_arguments = _build_filebot_arguments(
+        target,
+        mode=mode,
+        language_code=language_code,
+        encoding=encoding,
+        recursive=False,
+        output=None)
     code, data, _ = _execute(filebot_arguments)
     if code != 0:
         raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data))
@@ -277,7 +283,7 @@ def get_history(targets):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
     filebot_arguments = _build_script_arguments("fn:history", targets)
-    _, data, _ = _execute(filebot_arguments)
+    _, data, _ = _execute(filebot_arguments, workaround=False)
     _, file_moves, _ = parse_filebot(data)
     file_moves = [(x[1], x[0]) for x in file_moves]  # swaps entries for
     # clarity
@@ -301,7 +307,10 @@ def revert(targets):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
     filebot_arguments = _build_script_arguments("fn:revert", targets)
-    _, data, _ = _execute(filebot_arguments)
+
+    exit_code, data, error = _execute(filebot_arguments, workaround=False)
+    if exit_code != 0:
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}, {1}".format(data, error))
     file_moves = parse_filebot(data)
 
     return file_moves
@@ -555,7 +564,11 @@ def _execute(process_arguments, workaround=True):
     # this is a workaround for malfunctioning UTF-8 chars in Windows.
     file_temp = tempfile.NamedTemporaryFile(delete=False)
     file_temp.close()
-    process_arguments = ([FILEBOT_EXE, "--log-file", file_temp.name] + process_arguments)
+    if workaround:
+        process_arguments = (
+            [FILEBOT_EXE, "--log-file", file_temp.name] + process_arguments)
+    else:
+        process_arguments = ([FILEBOT_EXE] + process_arguments)
 
     if os.name == "nt":  # used to hide cmd window popup
         startupinfo = killableprocess.winprocess.STARTUPINFO()
@@ -564,11 +577,12 @@ def _execute(process_arguments, workaround=True):
         startupinfo = None
 
     try:
-        process = killableprocess.Popen(process_arguments,
-                                   stdout=killableprocess.subprocess.PIPE,
-                                   stderr=killableprocess.subprocess.PIPE,
-                                   stdin=killableprocess.subprocess.PIPE,
-                                   startupinfo=startupinfo)
+        process = killableprocess.Popen(
+            process_arguments,
+            stdout=killableprocess.subprocess.PIPE,
+            stderr=killableprocess.subprocess.PIPE,
+            stdin=killableprocess.subprocess.PIPE,
+            startupinfo=startupinfo)
     except OSError:
         raise FilebotFatalError("Filebot could not be found!")
 
@@ -758,8 +772,8 @@ class FilebotHandler(object):
             """template for added methods"""
             return self._pass_to_function(func, *args, **kwargs)
 
-        setattr(FilebotHandler, func_name, MethodType(function_template, None,
-                                                      FilebotHandler))
+        setattr(FilebotHandler, func_name,
+                MethodType(function_template, None, FilebotHandler))
 
     def get_settings(self):
         """returns a dict containing all the current handler settings"""
