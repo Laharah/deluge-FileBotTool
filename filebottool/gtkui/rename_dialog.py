@@ -415,4 +415,3 @@ class RenameDialog(object):
             spinner.show()
             spinner.start()
             hide.hide()
-

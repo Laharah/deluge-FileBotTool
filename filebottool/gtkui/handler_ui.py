@@ -32,6 +32,7 @@ class HandlerUI(object):
             download_subs_checkbox
             encoding_entry
             language_code_entry
+            subs_language_entry
     """
     def __init__(self, glade, settings=None):
         """
@@ -104,9 +105,10 @@ class HandlerUI(object):
         log.debug("Setting combo boxes")
         for combo, value in combo_value_pairs:
             combo_model = combo.get_model()
-            value_index = [index for index, row in enumerate(combo_model)
-                           if row[0] == value][0]
-            if not value_index:
+            try:
+                value_index = [index for index, row in enumerate(combo_model)
+                               if row[0] == value][0]
+            except IndexError:
                 log.warning("could not set {0} to value {1}, value {1} could "
                             "not be found in {0}".format(combo, value))
             else:
