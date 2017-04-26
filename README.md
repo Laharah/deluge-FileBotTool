@@ -13,7 +13,7 @@ your torrents seeding **without wasting storage space on duplicates!**
 
 ![rename_dialog](http://i.imgur.com/pfc14Rs.png)
 
-###Features:
+### Features:
 - easy to use GUI
 - cross-platform
 - Automatic file re-direction
@@ -30,7 +30,7 @@ your torrents seeding **without wasting storage space on duplicates!**
 
 ![prefs_page](http://i.imgur.com/Dr22k0a.png)
 
-####How to Use:
+### How to Use:
 1. Download, then install the appropriate .egg files using the plugin manager in deluge->settings
  (install both if you're not sure which to use)
 
@@ -52,14 +52,14 @@ you'd like filebot to use (click the format expression link for help).
 
 See the [wiki](https://github.com/Laharah/deluge-FileBotTool/wiki) for more detailed information.
 
-####How to build:
+### How to build:
 if you want the very latest release, you can build the plugin from source.
 
 You will need:
 - git
 - a version of python that matches your deluge version (2.6 by default)
 
-######Instructions:
+##### Instructions:
 - in a command window, type
 ```
     git clone https://github.com/Laharah/deluge-FileBotTool.git
