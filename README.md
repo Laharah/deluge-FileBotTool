@@ -1,14 +1,14 @@
 # FilebotTool: FileBot Integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
-**Version 1.1.6**
+**Version 1.1.8**
 
 ##### [Download Latest Release](https://github.com/Laharah/deluge-FilebotTool/releases/latest)
 
 ##### [How to Install in Deluge](https://github.com/Laharah/deluge-FileBotTool/wiki)
 
 
-Rename your torrents using FileBot from within deluge. Keep your media organized and 
+Rename your torrents using FileBot from within deluge. Keep your media organized and
 your torrents seeding **without wasting storage space on duplicates!**
 
 ![rename_dialog](http://i.imgur.com/pfc14Rs.png)
@@ -70,9 +70,9 @@ You will need:
 - then to build the plugin, on linux/osx type:
 ```
     python2.6 setup.py bdist_egg  # replace with 2.7 if deluge uses python 2.7
-``` 
+```
    or on windows:
 ```
     py -2.6 setup.py bdist_egg
-``` 
-- The new .egg file located in the `dist/` folder is now ready to be added to deluge. 
+```
+- The new .egg file located in the `dist/` folder is now ready to be added to deluge.
