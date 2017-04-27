@@ -681,51 +681,56 @@ class Core(CorePluginBase):
 
     @export
     @defer.inlineCallbacks
-    def do_revert(self, torrent_id):
+    def do_revert(self, torrent_ids):
         """calls filebottool.revert() on files in a torrent. Will only allow
         one torrent at a time"""
-        targets = self._get_filebot_target(torrent_id)
-        log.debug("reverting torrent {0} with targets {1}".format(torrent_id,
-                                                                targets))
-        original_torrent_state = self.torrent_manager[torrent_id].state
-        self.torrent_manager[torrent_id].pause()
-        handler = pyfilebot.FilebotHandler()
-        try:
-            # noinspection PyUnresolvedReferences
-            filebot_results = yield threads.deferToThread(handler.revert,
-                                                          targets)
-        except Exception, err:
-            log.error("FILEBOT ERROR {0}".format(err))
-            defer.returnValue((False, err))
+        errors = {}
+        for torrent_id in torrent_ids:
+            targets = self._get_filebot_target(torrent_id)
+            log.debug("reverting torrent {0} with targets {1}".format(torrent_id,
+                                                                    targets))
+            original_torrent_state = self.torrent_manager[torrent_id].state
+            self.torrent_manager[torrent_id].pause()
+            handler = pyfilebot.FilebotHandler()
+            try:
+                # noinspection PyUnresolvedReferences
+                filebot_results = yield threads.deferToThread(handler.revert,
+                                                              targets)
+            except Exception, err:
+                log.error("FILEBOT ERROR {0}".format(err))
+                errors[torrent_id] = (str(err), err.msg)
+                continue
 
-        # noinspection PyUnboundLocalVariable
-        deluge_movements = self._translate_filebot_movements(torrent_id,
-                                                             filebot_results[1])
+            # noinspection PyUnboundLocalVariable
+            deluge_movements = self._translate_filebot_movements(torrent_id,
+                                                                 filebot_results[1])
 
-        if not deluge_movements:
-            if original_torrent_state == "Seeding":
-                self.torrent_manager[torrent_id].resume()
-            defer.returnValue((True, None))
+            if not deluge_movements:
+                if original_torrent_state == "Seeding":
+                    self.torrent_manager[torrent_id].resume()
+                continue
 
-        conflicts = self._file_conflicts(torrent_id,
-                                         deluge_movements,
-                                         filebot_results[2])
-        if conflicts:
-            log.warning('Rename unsafe for torrent {0}, conflicting files:{1}'.format(
-                torrent_id, conflicts))
-            log.warning('Rolling back torrent {0}.'.format(torrent_id))
-            self._rollback(filebot_results, torrent_id)
-            defer.returnValue((False, "Rename is not safe on torrent {0}.\n"
-                               "The following files already exsist:\n"
-                               "{1}"
-                               "Rolling Back and recheking.".format(torrent_id,
-                               ''.join('    ' + f + '\n' for f in conflicts))))
+            conflicts = self._file_conflicts(torrent_id,
+                                             deluge_movements,
+                                             filebot_results[2])
+            if conflicts:
+                log.warning('Rename unsafe for torrent {0}, conflicting files:{1}'.format(
+                    torrent_id, conflicts))
+                log.warning('Rolling back torrent {0}.'.format(torrent_id))
+                self._rollback(filebot_results, torrent_id)
+                errors[torrent_id] = ("FileConflicts", "Rename is not safe on torrent {0}.\n"
+                                   "The following files already exsist:\n"
+                                   "{1}"
+                                   "Rolling Back and recheking.".format(torrent_id,
+                                   ''.join('    ' + f + '\n' for f in conflicts)))
+                continue
 
-        log.debug("Attempting to re-reoute torrent: {00}".format(
-            deluge_movements))
-        self._redirect_torrent_paths(torrent_id, deluge_movements,
-                                     original_state=original_torrent_state)
-        defer.returnValue((True, None))
+            log.debug("Attempting to re-reoute torrent: {0}".format( deluge_movements))
+            self._redirect_torrent_paths(torrent_id, deluge_movements,
+                                         original_state=original_torrent_state)
+        success = True if not errors else False
+        errors = errors if errors else None
+        defer.returnValue((success, errors))
 
     @export
     def save_rename_dialog_settings(self, new_settings):
