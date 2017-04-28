@@ -69,10 +69,11 @@ class RenameDialog(object):
 
         if not self.torrent_id:
             self.glade.get_widget("tree_pane").hide()
-            self.glade.get_widget("dialog_notebook").set_show_tabs(False)
             self.glade.get_widget("do_dry_run").hide()
-            self.glade.get_widget("query_entry").set_sensitive(False)
-            self.glade.get_widget("query_label").set_sensitive(False)
+            self.history_files_treeview.hide()
+            # self.glade.get_widget("dialog_notebook").set_show_tabs(False)
+            # self.glade.get_widget("query_entry").set_sensitive(False)
+            # self.glade.get_widget("query_label").set_sensitive(False)
 
         signal_dictionary = {
             "on_toggle_advanced": self.on_toggle_advanced,
