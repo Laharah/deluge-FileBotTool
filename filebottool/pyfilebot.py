@@ -583,8 +583,8 @@ def _execute(process_arguments, workaround=True):
             stderr=killableprocess.subprocess.PIPE,
             stdin=killableprocess.subprocess.PIPE,
             startupinfo=startupinfo)
-    except OSError:
-        raise FilebotFatalError("Filebot could not be found!")
+    except OSError as e:
+        raise FilebotFatalError("Error running Filebot! {0}".format(str(e)))
 
     stdout, error = process.communicate()
     exit_code = process.returncode
