@@ -94,8 +94,8 @@ class Core(CorePluginBase):
             self.filebot_version = pyfilebot.get_version()
             log.info("Filebot Found with version {0}".format(
                 self.filebot_version))
-        except pyfilebot.FilebotFatalError:
-            log.error("Filebot cannot be found!")
+        except pyfilebot.FilebotFatalError as e:
+            log.error('FilebotFatalError ' + str(e))
             self.filebot_version = None
 
         self.torrent_manager = component.get("TorrentManager")

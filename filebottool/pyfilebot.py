@@ -20,7 +20,7 @@ FILEBOT_EXE = spawn.find_executable('filebot')
 if not FILEBOT_EXE:
     locations = [
         r'C:\Program Files\FileBot\filebot.exe', r'/usr/bin/filebot',
-        r'/usr/local/bin/filebot'
+        r'/usr/local/bin/filebot', r'/snap/bin/filebot'
     ]
     for loc in locations:
         if os.path.exists(loc):
@@ -141,7 +141,8 @@ def rename(targets,
         language_code=language_code)
 
     # TODO:better error handling
-    exit_code, data, filebot_error = _execute(filebot_arguments)
+    workaround = True if os.name == 'nt' else False
+    exit_code, data, filebot_error = _execute(filebot_arguments, workaround)
 
     if exit_code != 0:
         raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data))
@@ -546,7 +547,7 @@ def _build_script_arguments(script_name, script_arguments):
     return process_arguments
 
 
-def _execute(process_arguments, workaround=True):
+def _execute(process_arguments, workaround=False):
     """underlying execution method to call filebot as subprocess
 
     Handles the actual execution and output capture
@@ -583,8 +584,8 @@ def _execute(process_arguments, workaround=True):
             stderr=killableprocess.subprocess.PIPE,
             stdin=killableprocess.subprocess.PIPE,
             startupinfo=startupinfo)
-    except OSError:
-        raise FilebotFatalError("Filebot could not be found!")
+    except OSError as e:
+        raise FilebotFatalError("Error running Filebot! {0}".format(str(e)))
 
     stdout, error = process.communicate()
     exit_code = process.returncode
