@@ -685,6 +685,8 @@ class Core(CorePluginBase):
         """calls filebottool.revert() on files in a torrent. Will only allow
         one torrent at a time"""
         errors = {}
+        if isinstance(torrent_ids, str):
+            torrent_ids = [torrent_ids]
         for torrent_id in torrent_ids:
             targets = self._get_filebot_target(torrent_id)
             log.debug("reverting torrent {0} with targets {1}".format(torrent_id,
