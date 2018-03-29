@@ -69,10 +69,11 @@ class RenameDialog(object):
 
         if not self.torrent_id:
             self.glade.get_widget("tree_pane").hide()
-            self.glade.get_widget("dialog_notebook").set_show_tabs(False)
             self.glade.get_widget("do_dry_run").hide()
-            self.glade.get_widget("query_entry").set_sensitive(False)
-            self.glade.get_widget("query_label").set_sensitive(False)
+            self.history_files_treeview.hide()
+            # self.glade.get_widget("dialog_notebook").set_show_tabs(False)
+            # self.glade.get_widget("query_entry").set_sensitive(False)
+            # self.glade.get_widget("query_label").set_sensitive(False)
 
         signal_dictionary = {
             "on_toggle_advanced": self.on_toggle_advanced,
@@ -90,9 +91,9 @@ class RenameDialog(object):
         self.glade.signal_autoconnect(signal_dictionary)
 
         if self.server_filebot_version:
-            self.glade.get_widget("filebot_version").set_text(
-                self.server_filebot_version)
+            self.glade.get_widget("filebot_version").set_text(self.server_filebot_version)
         else:
+
             def open_filebot_homepage(*args):
                 webbrowser.open(r'http://www.filebot.net', new=2)
                 log.debug('opening filebot homepage')
@@ -112,12 +113,13 @@ class RenameDialog(object):
                 "subs_options").get_sensitive():
             self.on_download_subs_toggled()
 
-        self.init_treestore(self.original_files_treeview,
-                            "Original File Structure at {0}".format(
-                                self.current_save_path))
+        self.init_treestore(
+            self.original_files_treeview,
+            "Original File Structure at {0}".format(self.current_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
-        self.init_treestore(self.history_files_treeview,
-                            "Current File Structure at {0}".format(self.current_save_path))
+        self.init_treestore(
+            self.history_files_treeview,
+            "Current File Structure at {0}".format(self.current_save_path))
         self.load_treestore(self.original_files_treeview, self.files)
         self.load_treestore(self.history_files_treeview, self.files)
         treeview = self.glade.get_widget("files_treeview")
@@ -152,7 +154,6 @@ class RenameDialog(object):
         treeview.append_column(column)
 
     def load_treestore(self, treeview, file_data, clear=False, title=None):
-
         """
         Loads file_data into given treeview
         Args:
@@ -199,8 +200,8 @@ class RenameDialog(object):
                         if path_parts[path_depth] == os.path.basename(path):
                             model.append(parent, [str(index), path_parts[path_depth]])
                         else:
-                            folder_iterator = model.append(
-                                parent, ['', path_parts[path_depth]])
+                            folder_iterator = model.append(parent,
+                                                           ['', path_parts[path_depth]])
                             folder_iterators[path_depth] = folder_iterator
 
         treeview.expand_all()
@@ -212,8 +213,8 @@ class RenameDialog(object):
         """
         log.debug("refreshing filedata for torrent {0}".format(self.torrent_id))
 
-        torrent_data = yield client.core.get_torrent_status(
-            self.torrent_id, ["save_path", "files"])
+        torrent_data = yield client.core.get_torrent_status(self.torrent_id,
+                                                            ["save_path", "files"])
 
         log.debug("recieved response from server{0}".format(torrent_data))
         save_path = torrent_data["save_path"]
@@ -257,8 +258,8 @@ class RenameDialog(object):
         look after filebot run.
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
-        log.info("sending dry run request to server for torrent {0}".format(
-            self.torrent_id))
+        log.info(
+            "sending dry run request to server for torrent {0}".format(self.torrent_id))
         log.debug("using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
@@ -274,11 +275,7 @@ class RenameDialog(object):
         if not success:
             message = "The dry run found the following errors"
             self.messenger.display_errors(
-                errors,
-                title="Dry Run Warning",
-                message=message,
-                show_details=True
-            )
+                errors, title="Dry Run Warning", message=message, show_details=True)
 
         else:
             header = "New File Structure at: {0}".format(new_save_path)
@@ -291,15 +288,16 @@ class RenameDialog(object):
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
 
-        handler_name = self.glade.get_widget('saved_handlers_combo').get_child().get_text()
+        handler_name = self.glade.get_widget(
+            'saved_handlers_combo').get_child().get_text()
         if (handler_name in self.saved_handlers and
                 handler_settings == self.saved_handlers[handler_name]):
             handler_settings['handler_name'] = handler_name
         else:
             handler_settings['handler_name'] = None
 
-        log.info("Sending execute request to server for torrents {0}".format(
-            self.torrent_ids))
+        log.info(
+            "Sending execute request to server for torrents {0}".format(self.torrent_ids))
         log.debug("Using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
@@ -321,15 +319,22 @@ class RenameDialog(object):
             log.info("rename successful on {0}".format(self.torrent_ids))
             self.window.destroy()
 
+    @defer.inlineCallbacks
     def on_revert_button_clicked(self, button):
-        log.info("Sending revert request to server for torrent {0}".format(
-            self.torrent_id))
+        log.info(
+            "Sending revert request to server for torrents {0}".format(self.torrent_ids))
         self.toggle_button(button)
 
-        d = client.filebottool.do_revert(self.torrent_id)
-        d.addCallback(self.log_response)
-        d.addCallback(self.toggle_button, button)
-        d.addCallback(self.refresh_files)
+        result = yield client.filebottool.do_revert(self.torrent_ids)
+        self.toggle_button(button)
+        success, errors = result
+        if success:
+            log.info("Successfully reverted torrents: {0}".format(self.torrent_ids))
+            if self.torrent_id:
+                self.refresh_files()
+        else:
+            log.warning("Error while reverting torrents: {0}".format(list(errors.keys())))
+            self.messenger.display_errors(errors)
 
     def on_saved_handers_entry_focus(self, entry, *args):
         entry.select_region(0, -1)
@@ -351,8 +356,8 @@ class RenameDialog(object):
 
         if handler_name in self.saved_handlers:
             message = "Overwrite the {0} profile?".format(handler_name)
-            dialog = user_messenger.ResponseDialog("Confirm Overwrite", message=message,
-                                                   modal=True)
+            dialog = user_messenger.ResponseDialog(
+                "Confirm Overwrite", message=message, modal=True)
             response = dialog.run()
             dialog.destroy()
             if response != gtk.RESPONSE_ACCEPT:
