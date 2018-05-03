@@ -2,7 +2,7 @@
 FilebotHandler convenience class.
 """
 __author__ = 'laharah'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 import re
 import os
@@ -145,7 +145,8 @@ def rename(targets,
     exit_code, data, filebot_error = _execute(filebot_arguments, workaround)
 
     if exit_code != 0:
-        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data))
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
+            data, filebot_error))
 
     return parse_filebot(data)
 

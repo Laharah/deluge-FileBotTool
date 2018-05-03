@@ -5,6 +5,14 @@ __author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
 import gtk
+import re
+
+
+def version_tuple(s):
+    # if not re.match(r'\d+\.', s):
+    #     raise ValueError("Cannot parse version {0}.".format(s))
+    return tuple(int(x) for x in s.split('.'))
+
 
 
 def inflate_list_store_combo(model_data, combo_widget):
