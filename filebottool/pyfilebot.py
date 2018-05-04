@@ -2,7 +2,7 @@
 FilebotHandler convenience class.
 """
 __author__ = 'laharah'
-__version__ = '0.3.1'
+__version__ = '0.4.0'
 
 import re
 import os
@@ -285,12 +285,22 @@ def get_history(targets):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
     filebot_arguments = _build_script_arguments("fn:history", targets)
-    _, data, _ = _execute(filebot_arguments, workaround=False)
-    _, file_moves, _ = parse_filebot(data)
-    file_moves = [(x[1], x[0]) for x in file_moves]  # swaps entries for
-    # clarity
+    exit_code, stdout, stderr = _execute(filebot_arguments, workaround=False)
+    if exit_code != 0:
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
+            stdout, stderr))
+    return parse_history(stdout)
 
-    return file_moves
+
+def parse_history(data):
+    """ Helper function to parse history script return values """
+    try:
+        data = data.decode('utf8')
+    except UnicodeDecodeError:
+        warnings.warn('DECODING ERROR WARNING: UNVALID UNICODE DETECTED!', UnicodeWarning)
+        data = data.decode('utf8', errors='ignore')
+    data = data.splitlines()[:-1]
+    return [tuple(reversed(l.split('\t'))) for l in data]
 
 
 def revert(targets):
