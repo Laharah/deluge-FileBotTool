@@ -8,13 +8,6 @@ import gtk
 import re
 
 
-def version_tuple(s):
-    # if not re.match(r'\d+\.', s):
-    #     raise ValueError("Cannot parse version {0}.".format(s))
-    return tuple(int(x) for x in s.split('.'))
-
-
-
 def inflate_list_store_combo(model_data, combo_widget):
     """inflates an individual combo box
     Args:
@@ -35,8 +28,10 @@ def inflate_list_store_combo(model_data, combo_widget):
         combo_widget.pack_start(renderer, expand=True)
         combo_widget.add_attribute(renderer, "text", 0)
 
+
 class EditableList(object):
     """ controler for a liststore and treeview"""
+
     def __init__(self, view, model):
         """
         Args:

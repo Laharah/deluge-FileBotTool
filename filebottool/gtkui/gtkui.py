@@ -46,6 +46,7 @@ from deluge.ui.client import client
 from deluge.plugins.pluginbase import GtkPluginBase
 # noinspection PyUnresolvedReferences
 import deluge.component as component
+from twisted.internet import defer
 
 from filebottool.common import Log, get_resource
 
@@ -61,13 +62,12 @@ class GtkUI(GtkPluginBase):
         """actions to take on plugin enabled.
         loads preference page, and context menu.
         """
+        self.server_plugin_version = (1, 1, 12)
         self.config_ui = ConfigUI()
-        component.get("Preferences").add_page("FileBotTool",
-                                              self.config_ui.config_page)
+        component.get("Preferences").add_page("FileBotTool", self.config_ui.config_page)
         component.get("PluginManager").register_hook("on_apply_prefs",
                                                      self.on_apply_prefs)
-        component.get("PluginManager").register_hook("on_show_prefs",
-                                                     self.on_show_prefs)
+        component.get("PluginManager").register_hook("on_show_prefs", self.on_show_prefs)
 
         # add context menu item for FileBotTool
         torrentmenu = component.get("MenuBar").torrentmenu
@@ -77,6 +77,14 @@ class GtkUI(GtkPluginBase):
         self.menu_item.connect("activate", self.get_torrent_info)
         torrentmenu.append(self.menu_item)
         torrentmenu.show_all()
+        self.get_server_plugin_version()
+
+    @defer.inlineCallbacks
+    def get_server_plugin_version(self):
+        log.debug('Requesting server plugin version.')
+        version = yield client.filebottool.get_plugin_version()
+        log.debug('Recieved server version: {0}'.format(version))
+        self.server_plugin_version = version
 
     def get_torrent_info(self, *args):
         """context menu has been selected on a specific torrent.
@@ -86,7 +94,7 @@ class GtkUI(GtkPluginBase):
             self.build_rename_dialog)
 
     def build_rename_dialog(self, dialog_info):
-        rename_dialog = RenameDialog(dialog_info)
+        rename_dialog = RenameDialog(dialog_info, self.server_plugin_version)
 
     def disable(self):
         """cleanup actions for when plugin is disabled.

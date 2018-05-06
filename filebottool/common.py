@@ -45,6 +45,12 @@ def get_resource(filename):
     return pkg_resources.resource_filename("filebottool", os.path.join("data", filename))
 
 
+def version_tuple(s):
+    # if not re.match(r'\d+\.', s):
+    #     raise ValueError("Cannot parse version {0}.".format(s))
+    return tuple(int(x) for x in s.split('.'))
+
+
 class Log(object):
     """small wrapper class for formatting log outputs"""
 

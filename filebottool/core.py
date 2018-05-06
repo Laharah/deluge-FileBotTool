@@ -54,7 +54,7 @@ from deluge.core.rpcserver import export
 from twisted.internet import threads, defer
 
 import pyfilebot
-from common import Log
+from common import Log, version_tuple
 import filebottool.auto_sort
 
 
@@ -99,6 +99,8 @@ class Core(CorePluginBase):
             self.filebot_version = None
 
         self.torrent_manager = component.get("TorrentManager")
+        plugin_info = component.get("PluginManager").get_plugin_info("FileBotTool")
+        self.plugin_version = version_tuple(plugin_info["Version"])
         self.listening_dictionary = {}
 
         #register event/alert hooks:
@@ -801,10 +803,11 @@ class Core(CorePluginBase):
         self.config["saved_handlers"] = handlers
         self.config.save()
 
+
     @export
-    def test_function(self):
-        """used for testing purposes"""
-        pass
+    def get_plugin_version(self):
+        log.debug("Received plugin version request, replying: {0}".format(self.plugin_version))
+        return self.plugin_version
 
     @export
     def get_config(self):

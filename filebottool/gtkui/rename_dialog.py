@@ -11,7 +11,7 @@ import deluge.component as component
 
 from twisted.internet import defer
 
-from filebottool.common import Log
+from filebottool.common import Log, version_tuple
 from filebottool.common import get_resource
 from filebottool.gtkui.common import inflate_list_store_combo
 from filebottool.gtkui.handler_ui import HandlerUI
@@ -24,13 +24,14 @@ class RenameDialog(object):
     """builds and runs the rename dialog.
     """
 
-    def __init__(self, dialog_settings):
+    def __init__(self, dialog_settings, server_plugin_version):
         """sets up the dialog using the settings supplied by the server
         Also loads relevant glade widgets as members
 
         Args:
          dialog_settings: A dictionary containing the settings to populate.
         """
+        self.server_plugin_version = server_plugin_version
         self.watch_for_setting_change = False
         self.messenger = user_messenger.UserMessenger()
         self.torrent_ids = dialog_settings["torrent_ids"]
@@ -66,6 +67,7 @@ class RenameDialog(object):
         self.original_files_treeview = self.glade.get_widget("files_treeview")
         self.new_files_treeview = self.glade.get_widget("new_files_treeview")
         self.history_files_treeview = self.glade.get_widget("history_files_treeview")
+        self.previous_treeview = self.glade.get_widget("previous_treeview")
 
         if not self.torrent_id:
             self.glade.get_widget("tree_pane").hide()
@@ -113,15 +115,22 @@ class RenameDialog(object):
                 "subs_options").get_sensitive():
             self.on_download_subs_toggled()
 
-        self.init_treestore(
-            self.original_files_treeview,
-            "Original File Structure at {0}".format(self.current_save_path))
         self.init_treestore(self.new_files_treeview, "New File Structure")
-        self.init_treestore(
-            self.history_files_treeview,
-            "Current File Structure at {0}".format(self.current_save_path))
+        self.init_treestore(self.original_files_treeview,
+                            "Original File Structure at {0}".format(
+                                self.current_save_path))
         self.load_treestore(self.original_files_treeview, self.files)
+        self.init_treestore(self.history_files_treeview,
+                            "Current File Structure at {0}".format(
+                                self.current_save_path))
         self.load_treestore(self.history_files_treeview, self.files)
+        if self.server_plugin_version > (1, 1, 12):
+            self.init_treestore(self.previous_treeview, "Awaiting FileBot History...")
+            self.get_history(self.torrent_id)
+        else:
+            header = "Server version does not support History!"
+            self.init_treestore(self.previous_treeview, header)
+
         treeview = self.glade.get_widget("files_treeview")
         treeview.expand_all()
 
@@ -222,8 +231,28 @@ class RenameDialog(object):
         header = "Current File Structure at {0}".format(save_path)
         self.load_treestore(self.original_files_treeview, files, clear=True, title=header)
         self.load_treestore(self.history_files_treeview, files, clear=True, title=header)
+        if self.server_plugin_version > (1, 1, 12):
+            header = "Awaiting Filebot History..."
+            self.load_treestore(self.previous_treeview, None, clear=True, title=header)
+            self.get_history(self.torrent_id)
 
     # Section: UI actions
+
+    @defer.inlineCallbacks
+    def get_history(self, torrent_id):
+        """
+        requests torrent history from server/filebot in backround, gracefully handles
+        failure
+        """
+        log.debug("requesting filebot history for torrent {0}".format(torrent_id))
+        try:
+            fb_history = yield client.filebottool.get_filebot_history(torrent_id)
+        except Exception as e:
+            log.info("history error encountered {0}".format(str(e)))
+            raise
+        header = "Previous File Structure at {0}".format(fb_history["save_path"])
+        files = fb_history["files"]
+        self.load_treestore(self.previous_treeview, files, clear=True, title=header)
 
     def on_download_subs_toggled(self, *args):
         """download subs has been toggled.
@@ -258,8 +287,8 @@ class RenameDialog(object):
         look after filebot run.
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
-        log.info(
-            "sending dry run request to server for torrent {0}".format(self.torrent_id))
+        log.info("sending dry run request to server for torrent {0}".format(
+            self.torrent_id))
         log.debug("using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
@@ -290,14 +319,14 @@ class RenameDialog(object):
 
         handler_name = self.glade.get_widget(
             'saved_handlers_combo').get_child().get_text()
-        if (handler_name in self.saved_handlers and
-                handler_settings == self.saved_handlers[handler_name]):
+        if (handler_name in self.saved_handlers
+                and handler_settings == self.saved_handlers[handler_name]):
             handler_settings['handler_name'] = handler_name
         else:
             handler_settings['handler_name'] = None
 
-        log.info(
-            "Sending execute request to server for torrents {0}".format(self.torrent_ids))
+        log.info("Sending execute request to server for torrents {0}".format(
+            self.torrent_ids))
         log.debug("Using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
@@ -321,8 +350,8 @@ class RenameDialog(object):
 
     @defer.inlineCallbacks
     def on_revert_button_clicked(self, button):
-        log.info(
-            "Sending revert request to server for torrents {0}".format(self.torrent_ids))
+        log.info("Sending revert request to server for torrents {0}".format(
+            self.torrent_ids))
         self.toggle_button(button)
 
         result = yield client.filebottool.do_revert(self.torrent_ids)
