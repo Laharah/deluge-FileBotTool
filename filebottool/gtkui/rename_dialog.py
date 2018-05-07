@@ -73,6 +73,7 @@ class RenameDialog(object):
             self.glade.get_widget("tree_pane").hide()
             self.glade.get_widget("do_dry_run").hide()
             self.history_files_treeview.hide()
+            self.previous_treeview.hide()
             # self.glade.get_widget("dialog_notebook").set_show_tabs(False)
             # self.glade.get_widget("query_entry").set_sensitive(False)
             # self.glade.get_widget("query_label").set_sensitive(False)
@@ -244,6 +245,8 @@ class RenameDialog(object):
         requests torrent history from server/filebot in backround, gracefully handles
         failure
         """
+        if not torrent_id:
+            defer.returnValue(None)
         log.debug("requesting filebot history for torrent {0}".format(torrent_id))
         try:
             reply = yield client.filebottool.get_filebot_history(torrent_id)
