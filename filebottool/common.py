@@ -37,7 +37,10 @@
 #    statement from all source files in the program, then also delete it here.
 #
 
+import logging
 from deluge.log import LOG as delugelog
+
+PLUGIN_NAME = "FileBotTool"
 
 
 def get_resource(filename):
@@ -51,20 +54,13 @@ def version_tuple(s):
     return tuple(int(x) for x in s.split('.'))
 
 
-class Log(object):
-    """small wrapper class for formatting log outputs"""
+class PrefixHandler(logging.Handler):
+    def __init__(self, prefix=""):
+        logging.Hander.__init__(self)
+        self._prefix = prefix
 
-    def error(self, msg):
-        delugelog.error("[FilebotTool] {0}".format(msg))
+    def emit(self, record):
+        record.msg = "%s%s" % (self._prefix, record.msg)
 
-    def info(self, msg):
-        delugelog.info("[FilebotTool] {0}".format(msg))
 
-    def debug(self, msg):
-        delugelog.debug("[FilebotTool] {0}".format(msg))
-
-    def critical(self, msg):
-        delugelog.critical("[FilebotTool] {0}".format(msg))
-
-    def warning(self, msg):
-        delugelog.warning("[FilebotTool] {0}".format(msg))
+LOG_HANDLER = PrefixHandler("[{0}]".format(PLUGIN_NAME))
