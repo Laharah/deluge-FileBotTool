@@ -737,6 +737,34 @@ class Core(CorePluginBase):
         defer.returnValue((success, errors))
 
     @export
+    @defer.inlineCallbacks
+    def get_filebot_history(self, torrent_id):
+        """return the filebot history of a torrent, return in the format of a new
+        file structure
+        returns result in format (Success, (prev_save_path, files))
+        """
+        log.debug("getting history of torrent {0}".format(torrent_id))
+        targets = self._get_filebot_target(torrent_id)
+        try:
+            history = yield threads.deferToThread(pyfilebot.get_history, targets)
+        except Exception, err:
+            log.error("FILEBOT ERROR: {0}".format(str(err)))
+            defer.returnValue((False, err))
+        movements = self._translate_filebot_movements(torrent_id, history)
+        if not movements:
+            log.debug("No history found for {0}".format(torrent_id))
+            defer.returnValue((True, (None, None)))
+
+        prev_path = movements[0]
+        if not prev_path:
+            prev_path = self.torrent_manager[torrent_id].get_status(
+                ["save_path"])["save_path"]
+        mock_files = self._get_mockup_files_dictionary(torrent_id, movements)
+        defer.returnValue((True, (prev_path, mock_files)))
+
+
+
+    @export
     def save_rename_dialog_settings(self, new_settings):
         log.debug("recieved settings from client: {0}".format(new_settings))
         for setting in DEFAULT_PREFS["rename_dialog_last_settings"]:

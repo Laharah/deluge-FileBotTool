@@ -246,12 +246,21 @@ class RenameDialog(object):
         """
         log.debug("requesting filebot history for torrent {0}".format(torrent_id))
         try:
-            fb_history = yield client.filebottool.get_filebot_history(torrent_id)
+            reply = yield client.filebottool.get_filebot_history(torrent_id)
         except Exception as e:
             log.info("history error encountered {0}".format(str(e)))
             raise
-        header = "Previous File Structure at {0}".format(fb_history["save_path"])
-        files = fb_history["files"]
+        success, data = reply
+        if not success:
+            err = data
+            log.error(err)
+            defer.returnValue(None)
+        prev_path, files = data
+        if prev_path is None and files is None:
+            header = "No History found."
+            self.load_treestore(self.previous_treeview, None, clear=True, title=header)
+            defer.returnValue(None)
+        header = "Previous File Structure at {0}".format(prev_path)
         self.load_treestore(self.previous_treeview, files, clear=True, title=header)
 
     def on_download_subs_toggled(self, *args):
