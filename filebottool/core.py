@@ -99,7 +99,7 @@ class Core(CorePluginBase):
             self.filebot_version = None
 
         self.torrent_manager = component.get("TorrentManager")
-        plugin_info = component.get("PluginManager").get_plugin_info("FileBotTool")
+        plugin_info = component.get("CorePluginManager").get_plugin_info("FileBotTool")
         self.plugin_version = version_tuple(plugin_info["Version"])
         self.listening_dictionary = {}
 
