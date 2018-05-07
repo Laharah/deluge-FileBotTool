@@ -38,8 +38,6 @@
 #
 
 import logging
-from deluge.log import LOG as delugelog
-
 PLUGIN_NAME = "FileBotTool"
 
 
@@ -56,11 +54,14 @@ def version_tuple(s):
 
 class PrefixHandler(logging.Handler):
     def __init__(self, prefix=""):
-        logging.Hander.__init__(self)
+        logging.Handler.__init__(self)
         self._prefix = prefix
 
     def emit(self, record):
         record.msg = "%s%s" % (self._prefix, record.msg)
 
 
-LOG_HANDLER = PrefixHandler("[{0}]".format(PLUGIN_NAME))
+LOG_HANDLER = PrefixHandler("[{0}] ".format(PLUGIN_NAME))
+
+LOG = logging.getLogger(__name__)
+LOG.addHandler(LOG_HANDLER)

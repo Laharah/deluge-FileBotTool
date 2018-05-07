@@ -8,7 +8,7 @@ import webbrowser
 import deluge.component as component
 
 from filebottool.common import get_resource
-from filebottool.common import Log
+from filebottool.common import LOG
 from filebottool.gtkui.common import EditableList
 from filebottool.gtkui.handler_editor import HandlerEditor
 import filebottool.auto_sort
@@ -18,7 +18,7 @@ VALID_FIELDS = filebottool.auto_sort.VALID_FIELDS
 
 FilterRule = filebottool.auto_sort.FilterRule
 
-log = Log()
+log = LOG
 
 
 class ConfigUI(object):

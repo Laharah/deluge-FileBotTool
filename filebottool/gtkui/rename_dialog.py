@@ -11,13 +11,13 @@ import deluge.component as component
 
 from twisted.internet import defer
 
-from filebottool.common import Log, version_tuple
+from filebottool.common import LOG, version_tuple
 from filebottool.common import get_resource
 from filebottool.gtkui.common import inflate_list_store_combo
 from filebottool.gtkui.handler_ui import HandlerUI
 import user_messenger
 
-log = Log()
+log = LOG
 
 
 class RenameDialog(object):
@@ -253,6 +253,8 @@ class RenameDialog(object):
         except Exception as e:
             log.info("history error encountered {0}".format(str(e)))
             raise
+        else:
+            log.debug("Reply from server: {0}".format(reply))
         success, data = reply
         if not success:
             err = data
@@ -260,9 +262,11 @@ class RenameDialog(object):
             defer.returnValue(None)
         prev_path, files = data
         if prev_path is None and files is None:
+            log.debug("No history to populate.")
             header = "No History found."
             self.load_treestore(self.previous_treeview, None, clear=True, title=header)
             defer.returnValue(None)
+        log.debug("Populating torrent history...")
         header = "Previous File Structure at {0}".format(prev_path)
         self.load_treestore(self.previous_treeview, files, clear=True, title=header)
 

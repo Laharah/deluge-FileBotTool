@@ -2,14 +2,14 @@ __author__ = 'laharah'
 
 import gtk
 
-from filebottool.common import Log
+from filebottool.common import LOG
 from filebottool.common import get_resource
 from filebottool.gtkui.handler_ui import HandlerUI
 from filebottool.gtkui.common import inflate_list_store_combo
 from filebottool.gtkui.user_messenger import InfoDialog, ResponseDialog
 
 
-log = Log()
+log = LOG
 
 class HandlerEditor(HandlerUI):
     def __init__(self, handlers=None, initial=None, cb=None, parent=None):

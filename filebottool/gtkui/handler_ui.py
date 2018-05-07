@@ -7,10 +7,10 @@ import gtk
 from deluge.ui.client import client
 
 from filebottool.gtkui.common import inflate_list_store_combo
-from filebottool.common import Log
+from filebottool.common import LOG
 import user_messenger
 
-log = Log()
+log = LOG
 
 
 class HandlerUI(object):

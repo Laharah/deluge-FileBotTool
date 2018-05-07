@@ -54,11 +54,11 @@ from deluge.core.rpcserver import export
 from twisted.internet import threads, defer
 
 import pyfilebot
-from common import Log, version_tuple
+from filebottool.common import LOG, version_tuple
 import filebottool.auto_sort
 
 
-log = Log()
+log = LOG
 
 DEFAULT_PREFS = {
     "rename_dialog_last_settings": {

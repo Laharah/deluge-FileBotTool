@@ -6,9 +6,9 @@ __author__ = 'laharah'
 # noinspection PyUnresolvedReferences
 import gtk
 import pprint
-from filebottool.common import Log
+from filebottool.common import LOG
 
-log = Log()
+log = LOG
 
 
 class InfoDialog(gtk.Dialog):

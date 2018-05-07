@@ -48,12 +48,12 @@ from deluge.plugins.pluginbase import GtkPluginBase
 import deluge.component as component
 from twisted.internet import defer
 
-from filebottool.common import Log, get_resource
+from filebottool.common import LOG, get_resource
 
 from rename_dialog import RenameDialog
 from config_ui import ConfigUI
 
-log = Log()
+log = LOG
 
 
 class GtkUI(GtkPluginBase):

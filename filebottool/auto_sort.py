@@ -10,9 +10,9 @@ from collections import namedtuple
 # noinspection PyUnresolvedReferences
 import deluge.component as component
 
-from filebottool.common import Log
+from filebottool.common import LOG
 
-log = Log()
+log = LOG
 
 VALID_FIELDS = ['label', 'tracker', 'save_path', 'file path']
 
