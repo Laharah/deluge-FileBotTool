@@ -254,7 +254,7 @@ class RenameDialog(object):
             log.info("history error encountered {0}".format(str(e)))
             raise
         else:
-            log.debug("Reply from server: {0}".format(reply))
+            log.debug("History reply from server: {0}".format(reply))
         success, data = reply
         if not success:
             err = data
