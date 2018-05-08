@@ -504,10 +504,10 @@ class Core(CorePluginBase):
         h_name = info["handler_name"]
         del self.processing_torrents[torrent_id]
         if error:
-            event = events.FileBotToolProcessingError(torrent_id, h_name, error)
+            event = events.FileBotToolProcessingErrorEvent(torrent_id, h_name, error)
             self.event_manager.emit(event)
         else:
-            event = events.FileBotToolTorrentFinished(torrent_id, h_name)
+            event = events.FileBotToolTorrentFinishedEvent(torrent_id, h_name)
             self.event_manager.emit(event)
 
     #########

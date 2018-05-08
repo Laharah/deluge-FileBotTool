@@ -4,7 +4,7 @@ from deluge.event import DelugeEvent
 
 
 
-class FileBotToolTorrentFinished(DelugeEvent):
+class FileBotToolTorrentFinishedEvent(DelugeEvent):
     """
     A replacement for deluge's TorrentFinishedEvent that emits after FileBotTool has had
     a chance to complete any actions.
@@ -17,7 +17,7 @@ class FileBotToolTorrentFinished(DelugeEvent):
         """
         self._args = [torrent_id, handler_name]
 
-class FileBotToolProcessingError(DelugeEvent):
+class FileBotToolProcessingErrorEvent(DelugeEvent):
     """
     emitted when a torrent FileBotTool was processing errored out
     """
