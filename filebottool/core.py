@@ -56,6 +56,7 @@ from twisted.internet import threads, defer
 import pyfilebot
 from filebottool.common import LOG, version_tuple
 import filebottool.auto_sort
+import filebottool.events as events
 
 
 log = LOG
@@ -102,6 +103,7 @@ class Core(CorePluginBase):
         plugin_info = component.get("CorePluginManager").get_plugin_info("FileBotTool")
         self.plugin_version = version_tuple(plugin_info["Version"])
         self.listening_dictionary = {}
+        self.processing_torrents = {}
 
         #register event/alert hooks:
         component.get("AlertManager").register_handler("storage_moved_alert",
@@ -112,10 +114,11 @@ class Core(CorePluginBase):
         event_manager.register_event_handler("TorrentFileRenamedEvent",
                                              self._on_file_renamed)
         event_manager.register_event_handler("TorrentFinishedEvent", self._auto_sort)
+        self.event_manager = event_manager
 
     def disable(self):
         component.get("AlertManager").deregister_handler(self._on_storage_moved)
-        event_manager = component.get("EventManager")
+        event_manager = self.event_manager
         event_manager.deregister_event_handler("TorrentFolderRenamedEvent",
                                                self._on_folder_renamed)
         event_manager.deregister_event_handler("TorrentFileRenamedEvent",
@@ -173,21 +176,26 @@ class Core(CorePluginBase):
         if torrent_id in self.listening_dictionary:
             if not self.listening_dictionary[torrent_id]:
                 del self.listening_dictionary[torrent_id]
-                self.torrent_manager[torrent_id].resume()
+                self._finish_processing(torrent_id)
 
-        log.debug("listning dictionary updated: {0}".format(
-            self.listening_dictionary))
+        log.debug("listening dictionary updated: {0}".format(self.listening_dictionary))
 
     def _auto_sort(self, torrent_id):
         """called on completed torrents for matching auto sort rules"""
         rules = self.config["auto_sort_rules"]
         handler = filebottool.auto_sort.check_rules(torrent_id, rules)
-        if handler:
+        if not handler:  # pass through processing so every torrent emits finished event
+            self._mark_processing(torrent_id)
+            self._finish_processing(torrent_id)
+        else:
             try:
                 handler_settings = self.config["saved_handlers"][handler]
             except KeyError:
-                log.error("no handler with name '{0}' could be found!".format(handler))
-                return
+                msg = "no handler with name '{0}' could be found!".format(handler)
+                log.error(msg)
+                self._mark_processing(torrent_id)
+                self._finish_processing(torrent_id, error=msg)
+            self._mark_processing(torrent_id, handler)
             self.do_rename([torrent_id], handler_settings=handler_settings)
 
     #########
@@ -268,8 +276,7 @@ class Core(CorePluginBase):
             new_save_path = None
         return new_save_path, gcd, deluge_moves
 
-    def _redirect_torrent_paths(self, torrent_id, (new_save_path, new_top_lvl,
-                                new_file_paths), original_state=None):
+    def _redirect_torrent_paths(self, torrent_id, (new_save_path, new_top_lvl, new_file_paths)):
         """redirects a torrent's files and save paths to the new locations.
         registers them to the listening dictionary
         Args:
@@ -279,6 +286,8 @@ class Core(CorePluginBase):
         torrent = self.torrent_manager[torrent_id]
         if any([new_save_path, new_top_lvl, new_file_paths]):
             self.listening_dictionary[torrent_id] = {}
+        else:
+            self._finish_processing(torrent_id)
         if new_save_path:
             self.listening_dictionary[torrent_id]["move_storage"] = new_save_path
             self._repair_storage(torrent, new_save_path)
@@ -292,10 +301,6 @@ class Core(CorePluginBase):
             for index, path in new_file_paths:
                 self.listening_dictionary[torrent_id][index] = True
             torrent.rename_files(new_file_paths)
-
-        #prefent resume if torrent was originally paused
-        if original_state == "Paused":
-            del self.listening_dictionary[torrent_id]
 
     def _file_conflicts(self, torrent_id, filebot_translation,
                               skipped_files):
@@ -471,6 +476,40 @@ class Core(CorePluginBase):
             return False
 
         return True
+
+    def _mark_processing(self, torrent_id, handler_name=None):
+        "Notes a torrent as being processed by FileBotTool"
+        log.debug("Marking torrent {0} as processing.".format(torrent_id))
+        if torrent_id in self.processing_torrents:
+            log.debug("Torrent {0} already marked as in progress.".format(torrent_id))
+            if handler_name:
+                self.processing_torrents["handler_name"] = handler_name
+                return
+        info = {}
+        info["state"] = self.torrent_manager[torrent_id].state
+        info["handler_name"] = handler_name
+        self.processing_torrents[torrent_id] = info
+
+    def _finish_processing(self, torrent_id, error=False):
+        "Marks a torrent as done"
+        log.debug("Finished processing torrent {0}".format(torrent_id))
+        try:
+            info = self.processing_torrents[torrent_id]
+        except KeyError:
+            msg = "Trying to cleanup processing for unmarked torrent: {0} !"
+            log.warning(msg.format(torrent_id))
+            return
+        if info["state"] == "Seeding":
+            self.torrent_manager[torrent_id].resume()
+        h_name = info["handler_name"]
+        del self.processing_torrents[torrent_id]
+        if error:
+            event = events.FileBotToolProcessingError(torrent_id, h_name, error)
+            self.event_manager.emit(event)
+        else:
+            event = events.FileBotToolTorrentFinished(torrent_id, h_name)
+            self.event_manager.emit(event)
+
     #########
     #  Section: Public API
     #########
@@ -573,14 +612,20 @@ class Core(CorePluginBase):
         """
         if not handler:
             if handler_settings:
+                try:
+                    handler_name = handler_settings['handler_name']
+                except KeyError:
+                    handler_name = None
                 handler = self._configure_filebot_handler(handler_settings,
                                                           handler)
             else:
                 handler = pyfilebot.FilebotHandler()
+                handler_name = None
 
         errors = {}
         new_files = []
         for torrent_id in torrent_ids:
+            self._mark_processing(torrent_id, handler_name)
             if handler.rename_action is not None:
                 link = "link" in handler.rename_action or handler.rename_action == 'copy'
             else:
@@ -589,7 +634,6 @@ class Core(CorePluginBase):
             log.debug("beginning filebot run on torrent {0}, with target {1}".format(
                 torrent_id, target))
 
-            original_torrent_state = self.torrent_manager[torrent_id].state
             if not link:
                 self.torrent_manager[torrent_id].pause()
 
@@ -598,16 +642,16 @@ class Core(CorePluginBase):
                                                               target)
             except pyfilebot.FilebotRuntimeError as err:
                 log.error("FILEBOT ERROR{0}".format(err))
-                errors[torrent_id] = (str(err), err.msg)
+                errors[torrent_id] = (str(err.__class__.__name__), err.msg)
                 filebot_results = ["", {}, {}]
-                if original_torrent_state == "Seeding":
-                    self.torrent_manager[torrent_id].resume()
+                self._finish_processing(torrent_id, error=err)
                 continue
             except Exception as e:
                 log.error("Unexpected error from pyfilebot: {0}".format(e))
                 log.error(traceback.format_exc())
                 errors[torrent_id] = (str(err.__class__.__name__), err.msg)
                 filebot_results = ["", {}, {}]
+                self._finish_processing(torrent_id, error=err)
                 continue
 
             log.debug("recieved results from filebot: {0}".format(
@@ -620,15 +664,11 @@ class Core(CorePluginBase):
                 deluge_movements = None
                 new_files += filebot_results[1]
 
-            if not deluge_movements:
-                if original_torrent_state == "Seeding":
-                    self.torrent_manager[torrent_id].resume()
-
             conflicts = self._file_conflicts(torrent_id,
                                              deluge_movements,
                                              filebot_results[2])
 
-            if conflicts and handler.on_conflict == 'override':
+            if conflicts and handler.on_conflict == 'override':  # for non-fb files
                 for conflict in conflicts:
                     os.remove(conflict)
             elif conflicts:
@@ -641,13 +681,12 @@ class Core(CorePluginBase):
                     "Rolling back to previous state and rechecking.".format(
                     self.torrent_manager[torrent_id].get_status( ["name"])["name"],
                     ''.join('    '+f+'\n' for f in conflicts)))
+                self._finish_processing(torrent_id, error="File Conflict")
                 continue
             if deluge_movements:
                 log.debug("Attempting to re-reoute torrent: {0}".format(
                     deluge_movements))
-                self._redirect_torrent_paths(
-                    torrent_id, deluge_movements,
-                    original_state=original_torrent_state)
+                self._redirect_torrent_paths(torrent_id, deluge_movements)
 
             #  download subs
             if handler_settings:
@@ -675,6 +714,9 @@ class Core(CorePluginBase):
                         log.error("FILEBOTERROR: {0}").format(err)
                         errors[torrent_id] = (str(err), err.msg)
 
+            if not deluge_movements:
+                self._finish_processing(torrent_id)
+
 
         if errors:
             defer.returnValue((False, errors, new_files))
@@ -690,10 +732,10 @@ class Core(CorePluginBase):
         if isinstance(torrent_ids, str):
             torrent_ids = [torrent_ids]
         for torrent_id in torrent_ids:
+            self._mark_processing(torrent_id)
             targets = self._get_filebot_target(torrent_id)
             log.debug("reverting torrent {0} with targets {1}".format(torrent_id,
                                                                     targets))
-            original_torrent_state = self.torrent_manager[torrent_id].state
             self.torrent_manager[torrent_id].pause()
             handler = pyfilebot.FilebotHandler()
             try:
@@ -703,6 +745,7 @@ class Core(CorePluginBase):
             except Exception, err:
                 log.error("FILEBOT ERROR {0}".format(err))
                 errors[torrent_id] = (str(err), err.msg)
+                self._finish_processing(torrent_id, error=err)
                 continue
 
             # noinspection PyUnboundLocalVariable
@@ -710,8 +753,7 @@ class Core(CorePluginBase):
                                                                  filebot_results[1])
 
             if not deluge_movements:
-                if original_torrent_state == "Seeding":
-                    self.torrent_manager[torrent_id].resume()
+                self._finish_processing(torrent_id)
                 continue
 
             conflicts = self._file_conflicts(torrent_id,
@@ -727,11 +769,11 @@ class Core(CorePluginBase):
                                    "{1}"
                                    "Rolling Back and recheking.".format(torrent_id,
                                    ''.join('    ' + f + '\n' for f in conflicts)))
+                self._finish_processing(torrent_id, error="File Conflict")
                 continue
 
-            log.debug("Attempting to re-reoute torrent: {0}".format( deluge_movements))
-            self._redirect_torrent_paths(torrent_id, deluge_movements,
-                                         original_state=original_torrent_state)
+            log.debug("Attempting to re-reoute torrent: {0}".format(deluge_movements))
+            self._redirect_torrent_paths(torrent_id, deluge_movements)
         success = True if not errors else False
         errors = errors if errors else None
         defer.returnValue((success, errors))
