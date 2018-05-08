@@ -335,6 +335,8 @@ class RenameDialog(object):
 
         handler_name = self.glade.get_widget(
             'saved_handlers_combo').get_child().get_text()
+        if not handler_settings['query_override']:
+            handler_settings['query_override'] = None
         if (handler_name in self.saved_handlers
                 and handler_settings == self.saved_handlers[handler_name]):
             handler_settings['handler_name'] = handler_name
