@@ -37,7 +37,6 @@
 #    statement from all source files in the program, then also delete it here.
 #
 import os
-import traceback
 
 # noinspection PyUnresolvedReferences
 from deluge.plugins.pluginbase import CorePluginBase
@@ -563,8 +562,7 @@ class Core(CorePluginBase):
             defer.returnValue(((False, {torrent_id:('FilebotRuntimeError', err.msg)}),
                               ('FILEBOTERROR', None)))
         except Exception as e:
-            log.error("Unexpected error in pyfilebot: {0}".format(e))
-            log.error(traceback.format_exc())
+            log.error("Unexpected error in pyfilebot: {0}".format(e), exc_info=True)
             defer.returnValue(((False, {torrent_id:(str(e.__class__.__name__), str(e))}),
                                ('FILEBOTTOOLERROR', None)))
         # noinspection PyUnboundLocalVariable
@@ -647,8 +645,7 @@ class Core(CorePluginBase):
                 self._finish_processing(torrent_id, error=err)
                 continue
             except Exception as e:
-                log.error("Unexpected error from pyfilebot: {0}".format(e))
-                log.error(traceback.format_exc())
+                log.error("Unexpected error from pyfilebot.", exc_info=True)
                 errors[torrent_id] = (str(err.__class__.__name__), err.msg)
                 filebot_results = ["", {}, {}]
                 self._finish_processing(torrent_id, error=err)
