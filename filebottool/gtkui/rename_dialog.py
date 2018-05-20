@@ -251,7 +251,7 @@ class RenameDialog(object):
         try:
             reply = yield client.filebottool.get_filebot_history(torrent_id)
         except Exception as e:
-            log.info("history error encountered {0}".format(str(e)))
+            log.info("history error encountered!", exc_info=True)
             raise
         else:
             log.debug("History reply from server: {0}".format(reply))

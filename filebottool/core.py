@@ -95,7 +95,7 @@ class Core(CorePluginBase):
             log.info("Filebot Found with version {0}".format(
                 self.filebot_version))
         except pyfilebot.FilebotFatalError as e:
-            log.error('FilebotFatalError ' + str(e))
+            log.error('FilebotFatalError Encountered', exc_info=True)
             self.filebot_version = None
 
         self.torrent_manager = component.get("TorrentManager")
@@ -354,7 +354,7 @@ class Core(CorePluginBase):
         try:
             results = yield threads.deferToThread(pyfilebot.revert, targets)
         except pyfilebot.FilebotRuntimeError, err:
-            log.error("FILEBOT ERROR: {0}".format(err))
+            log.error("FILEBOT ERROR!", exc_info=True)
             defer.returnValue(None)
         # noinspection PyUnboundLocalVariable
         log.info("Successfully rolled back files: {0}".format(results[1]))
@@ -558,7 +558,7 @@ class Core(CorePluginBase):
             filebot_results = yield threads.deferToThread(handler.rename,
                                                           target)
         except pyfilebot.FilebotRuntimeError as err:
-            log.error("FILEBOT ERROR: {0}".format(err.msg))
+            log.error("FILEBOT ERROR!", exc_info=True)
             defer.returnValue(((False, {torrent_id:('FilebotRuntimeError', err.msg)}),
                               ('FILEBOTERROR', None)))
         except Exception as e:
@@ -639,7 +639,7 @@ class Core(CorePluginBase):
                 filebot_results = yield threads.deferToThread(handler.rename,
                                                               target)
             except pyfilebot.FilebotRuntimeError as err:
-                log.error("FILEBOT ERROR{0}".format(err))
+                log.error("FILEBOT ERROR!", exc_info=True)
                 errors[torrent_id] = (str(err.__class__.__name__), err.msg)
                 filebot_results = ["", {}, {}]
                 self._finish_processing(torrent_id, error=err)
@@ -708,7 +708,7 @@ class Core(CorePluginBase):
                             log.info('Downloaded subs: {0}'.format(subs))
                             new_files += subs
                     except pyfilebot.FilebotRuntimeError as err:
-                        log.error("FILEBOTERROR: {0}").format(err)
+                        log.error("FILEBOT ERROR while getting subs!", exc_info=True)
                         errors[torrent_id] = (str(err), err.msg)
 
             if not deluge_movements:
@@ -740,7 +740,7 @@ class Core(CorePluginBase):
                 filebot_results = yield threads.deferToThread(handler.revert,
                                                               targets)
             except Exception, err:
-                log.error("FILEBOT ERROR {0}".format(err))
+                log.error("FILEBOT ERROR!", exc_info=True)
                 errors[torrent_id] = (str(err), err.msg)
                 self._finish_processing(torrent_id, error=err)
                 continue
@@ -787,7 +787,7 @@ class Core(CorePluginBase):
         try:
             history = yield threads.deferToThread(pyfilebot.get_history, targets)
         except Exception, err:
-            log.error("FILEBOT ERROR: {0}".format(str(err)))
+            log.error("FILEBOT ERROR: {0}".format(str(err)), exc_info=True)
             defer.returnValue((False, err))
         movements = self._translate_filebot_movements(torrent_id, history)
         if not movements:

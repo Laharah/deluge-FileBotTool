@@ -30,7 +30,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-r"""killableprocess - Subprocesses which can be reliably killed
+"""killableprocess - Subprocesses which can be reliably killed
 
 This module is a subclass of the builtin "subprocess" module. It allows
 processes that launch subprocesses to be reliably killed on Windows (via the Popen.kill() method.
