@@ -100,7 +100,8 @@ class UserMessenger(object):
         dialog.run_async()
         return
 
-    def display_errors(self, errors,
+    def display_errors(self,
+                       errors,
                        title=None,
                        message=None,
                        parent=None,
@@ -163,6 +164,27 @@ class UserMessenger(object):
         else:
             dialog.run_async()
             return
+
+    def display_text(self, title, text, parent=None, modal=False):
+        dialog = InfoDialog(title, None, parent, modal)
+        text_view = gtk.TextView()
+        text_view.get_buffer().set_text(text)
+        text_view.set_editable(False)
+        text_view.set_cursor_visible(False)
+        text_view.show()
+        sw = gtk.ScrolledWindow()
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw.show()
+        sw.add(text_view)
+        detail_view = gtk.Frame()
+        detail_view.set_shadow_type(gtk.SHADOW_IN)
+        detail_view.add(sw)
+        detail_view.set_border_width(6)
+        dialog.vbox.add(detail_view)
+        detail_view.show()
+        text_view.set_size_request(485, 300)
+        dialog.run_async()
+        return
 
 
 def format_errors(errors):

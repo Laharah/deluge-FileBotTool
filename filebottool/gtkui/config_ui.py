@@ -5,6 +5,9 @@ import gtk
 import time
 import webbrowser
 
+from twisted.internet import defer
+
+from deluge.ui.client import client
 import deluge.component as component
 
 from filebottool.common import get_resource
@@ -12,6 +15,8 @@ from filebottool.common import LOG
 from filebottool.gtkui.common import EditableList
 from filebottool.gtkui.handler_editor import HandlerEditor
 import filebottool.auto_sort
+
+import user_messenger
 
 SORT_OPERATORS = filebottool.auto_sort.OPERATOR_MAP.keys()
 VALID_FIELDS = filebottool.auto_sort.VALID_FIELDS
@@ -70,6 +75,7 @@ class ConfigUI(object):
             "on_remove_rule": self.rules_list.remove,
             "on_add_rule": self.on_add_rule,
             "on_auto_sort_help_clicked": self.on_auto_sort_help_clicked,
+            "on_debug_button_clicked": self.on_debug_button_clicked,
         })
         self.gather_time = None
         if settings:
@@ -166,6 +172,17 @@ class ConfigUI(object):
     def on_auto_sort_help_clicked(self, *args):
         webbrowser.open('https://github.com/Laharah/deluge-FileBotTool/wiki/Auto-Sorting',
                         new=2)
+
+    @defer.inlineCallbacks
+    def on_debug_button_clicked(self, button):
+        log.debug("Sending request for FileBot debug info...")
+        button.set_sensitive(False)
+        info = yield client.filebottool.get_filebot_debug()
+        log.debug("Displaying debug info")
+        dialog = user_messenger.UserMessenger()
+        dialog.display_text("Filebot Debug Info", info)
+        button.set_sensitive(True)
+
 
 #########
 #  Section: Utilities

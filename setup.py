@@ -42,7 +42,7 @@ from setuptools import setup, find_packages
 __plugin_name__ = "FileBotTool"
 __author__ = "laharah"
 __author_email__ = "laharah+fbt@gmail.com"
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __url__ = "https://github.com/Laharah/deluge-FileBotTool"
 __license__ = "GPLv3"
 __description__ = "Integrates FileBot functionality to Deluge"

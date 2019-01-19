@@ -881,3 +881,16 @@ class Core(CorePluginBase):
         """Returns the config dictionary"""
         log.debug("Sending Config")
         return self.config.config
+
+    @export
+    @defer.inlineCallbacks
+    def get_filebot_debug(self):
+        """Returns the FileBot debug info."""
+        log.debug("Received request for FileBot debug info...")
+        try:
+            info = yield threads.deferToThread(pyfilebot.debug_info)
+        except Exception, err:
+            log.error("FILEBOT ERROR: {0}".format(str(err)), exc_info=True)
+            defer.returnValue('ERROR COMMUNICATING WITH FILEBOT!\n' + str(err))
+        log.debug("FileBot debug info retrieved.")
+        defer.returnValue(info)

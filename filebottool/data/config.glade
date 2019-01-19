@@ -1,26 +1,23 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <glade-interface>
   <!-- interface-requires gtk+ 2.16 -->
   <!-- interface-naming-policy project-wide -->
   <widget class="GtkWindow" id="window1">
-    <property name="can_focus">False</property>
     <property name="title" translatable="yes">Hellow World</property>
     <property name="window_position">center</property>
     <child>
       <widget class="GtkViewport" id="prefs_box">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
         <property name="tooltip" translatable="yes">Edit selected profile</property>
         <property name="resize_mode">queue</property>
         <property name="shadow_type">none</property>
         <child>
           <widget class="GtkVBox" id="vbox1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkLabel" id="saved_handlers_label">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="tooltip" translatable="yes">Saved profiles are used in auto-execute rules, and call also be used in the rename dialog.</property>
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">Saved Profiles:</property>
@@ -35,17 +32,14 @@
             <child>
               <widget class="GtkAlignment" id="alignment1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="border_width">10</property>
                 <child>
                   <widget class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="spacing">5</property>
                     <child>
                       <widget class="GtkViewport" id="viewport1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <child>
                           <widget class="GtkTreeView" id="saved_handlers_listview">
                             <property name="visible">True</property>
@@ -56,15 +50,12 @@
                         </child>
                       </widget>
                       <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
                       <widget class="GtkVButtonBox" id="vbuttonbox1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="layout_style">center</property>
                         <child>
                           <widget class="GtkButton" id="add_handler">
@@ -73,7 +64,7 @@
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="tooltip" translatable="yes">Add a new profile</property>
-                            <signal name="clicked" handler="on_add_handler" swapped="no"/>
+                            <signal name="clicked" handler="on_add_handler"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -87,7 +78,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <signal name="clicked" handler="on_edit_handler" swapped="no"/>
+                            <signal name="clicked" handler="on_edit_handler"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -102,7 +93,7 @@
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="tooltip" translatable="yes">Remove selected profile.</property>
-                            <signal name="clicked" handler="on_remove_handler" swapped="no"/>
+                            <signal name="clicked" handler="on_remove_handler"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -121,20 +112,16 @@
                 </child>
               </widget>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
               <widget class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="spacing">3</property>
                 <child>
                   <widget class="GtkLabel" id="rule_orders_label">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">On torrent completion. Executes the first rule that matches.</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">Auto Execute Rules:</property>
@@ -149,13 +136,11 @@
                 <child>
                   <widget class="GtkEventBox" id="eventbox1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="visible_window">False</property>
-                    <signal name="button_press_event" handler="on_auto_sort_help_clicked" swapped="no"/>
+                    <signal name="button_press_event" handler="on_auto_sort_help_clicked"/>
                     <child>
                       <widget class="GtkLabel" id="auto_sort_help">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="tooltip" translatable="yes">On torrent completion. Executes the first rule that matches.</property>
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">&lt;span color="blue"&gt;&lt;u&gt;help?&lt;/u&gt;&lt;/span&gt;</property>
@@ -179,13 +164,11 @@
             <child>
               <widget class="GtkHBox" id="rule_orders">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="border_width">10</property>
                 <property name="spacing">5</property>
                 <child>
                   <widget class="GtkViewport" id="viewport2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <child>
                       <widget class="GtkTreeView" id="rule_listview">
                         <property name="visible">True</property>
@@ -197,15 +180,13 @@
                     </child>
                   </widget>
                   <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
                   <widget class="GtkVBox" id="vbox2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
                     <property name="homogeneous">True</property>
                     <child>
                       <widget class="GtkButton" id="move_rule_up">
@@ -214,11 +195,10 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip" translatable="yes">Higher rules will be tried first.</property>
-                        <signal name="clicked" handler="on_move_rule_up" swapped="no"/>
+                        <signal name="clicked" handler="on_move_rule_up"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -229,11 +209,10 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip" translatable="yes">Add a new rule</property>
-                        <signal name="clicked" handler="on_add_rule" swapped="no"/>
+                        <signal name="clicked" handler="on_add_rule"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -244,11 +223,10 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip" translatable="yes">Remove selected rule.</property>
-                        <signal name="clicked" handler="on_remove_rule" swapped="no"/>
+                        <signal name="clicked" handler="on_remove_rule"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
                         <property name="position">2</property>
                       </packing>
                     </child>
@@ -259,11 +237,10 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip" translatable="yes">Lower Rules will be tried if upper rules do not match.</property>
-                        <signal name="clicked" handler="on_move_rule_down" swapped="no"/>
+                        <signal name="clicked" handler="on_move_rule_down"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
                         <property name="position">3</property>
                       </packing>
                     </child>
@@ -276,9 +253,61 @@
                 </child>
               </widget>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
                 <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkHButtonBox" id="hbuttonbox1">
+                <property name="visible">True</property>
+                <property name="layout_style">start</property>
+                <child>
+                  <widget class="GtkButton" id="debug_button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Show system and enviornment info from FileBot.</property>
+                    <property name="border_width">1</property>
+                    <property name="xalign">0</property>
+                    <signal name="clicked" handler="on_debug_button_clicked"/>
+                    <child>
+                      <widget class="GtkHBox" id="hbox3">
+                        <property name="visible">True</property>
+                        <child>
+                          <widget class="GtkImage" id="image1">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-info</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">2</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="debug_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Debug Info</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="position">4</property>
               </packing>
             </child>
           </widget>
