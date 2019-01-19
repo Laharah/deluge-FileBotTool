@@ -82,6 +82,21 @@ def get_version():
         return output.strip()
 
 
+def debug_info():
+    """Returns system and enviornment info about the filebot exe"""
+    return_code, output, error_data = _execute(
+        ['-script', 'fn:sysinfo'], workaround=False)
+    if return_code != 0:
+        msg = "Filebot error retrieving sysinfo: {0}".format(error_data)
+        raise FilebotFatalError(msg)
+    sysinfo = output
+    return_code, output, error_data = _execute(['-script', 'fn:sysenv'], workaround=False)
+    if return_code != 0:
+        msg = "Filebot error retreiving sysenv: {0}".format(error_data)
+        raise FilebotFatalError(msg)
+    return sysinfo + output
+
+
 def rename(targets,
            format_string=None,
            database=None,
