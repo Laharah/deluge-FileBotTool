@@ -384,6 +384,9 @@ class Core(CorePluginBase):
     def _get_full_os_path(save_path, deluge_path):
         """given a save path and a deluge file path, return the actual os
         path of a given file"""
+        sp = save_path.split(os.path.sep)
+        if sp[-1] == '':
+            sp = sp[:-1]
         return os.path.sep.join(save_path.split(os.path.sep) +
                                 deluge_path.split('/'))
 
