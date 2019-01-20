@@ -387,8 +387,7 @@ class Core(CorePluginBase):
         sp = save_path.split(os.path.sep)
         if sp[-1] == '':
             sp = sp[:-1]
-        return os.path.sep.join(save_path.split(os.path.sep) +
-                                deluge_path.split('/'))
+        return os.path.sep.join(sp + deluge_path.split('/'))
 
     @staticmethod
     def _configure_filebot_handler(settings, handler=None):
