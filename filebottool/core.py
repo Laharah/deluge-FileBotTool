@@ -646,6 +646,12 @@ class Core(CorePluginBase):
                 filebot_results = ["", {}, {}]
                 self._finish_processing(torrent_id, error=err)
                 continue
+            except pyfilebot.FilebotLicenseError as err:
+                log.error("Error Renaming, Unlicensed FileBot!")
+                errors[torrent_id] = (str(err.__class__.__name__), err.msg)
+                filebot_results = ["", {}, {}]
+                self._finish_processing(torrent_id, error=err)
+                continue
             except Exception as e:
                 log.error("Unexpected error from pyfilebot.", exc_info=True)
                 errors[torrent_id] = (str(err.__class__.__name__), err.msg)
