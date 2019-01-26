@@ -913,7 +913,7 @@ class Core(CorePluginBase):
         license_file.write(data)
         license_file.close()
         try:
-            result = yield threads.deferToThread(pyfilebot.license(license_file.name))
+            result = yield threads.deferToThread(pyfilebot.license, license_file.name)
         except pyfilebot.FilebotLicenseError as error:
             log.error("Error during licensing", exc_info=True)
             result = "{0}: {1}".format(error.__class__.__name__, error.message)
@@ -922,4 +922,4 @@ class Core(CorePluginBase):
         finally:
             license_file.unlink(license_file.name)
             del license_file
-            defer.retunValue(result)
+            defer.returnValue(result)

@@ -2,6 +2,7 @@ __author__ = 'laharah'
 
 
 import gtk
+import os
 import time
 import webbrowser
 
@@ -33,6 +34,10 @@ class ConfigUI(object):
         self.glade = gtk.glade.XML(get_resource("config.glade"))
         self.config_page = self.glade.get_widget("prefs_box")
         self.pref_dialog = component.get("Preferences").pref_dialog
+
+        fb_icon = self.glade.get_widget("fb_icon")
+        image = get_resource("fb_icon16.png")
+        fb_icon.set_from_file(image)
 
         model = gtk.ListStore(str)
         view = self.glade.get_widget('saved_handlers_listview')
@@ -76,6 +81,7 @@ class ConfigUI(object):
             "on_add_rule": self.on_add_rule,
             "on_auto_sort_help_clicked": self.on_auto_sort_help_clicked,
             "on_debug_button_clicked": self.on_debug_button_clicked,
+            "on_license_button_clicked": self.on_license_button_clicked,
         })
         self.gather_time = None
         if settings:
@@ -182,6 +188,64 @@ class ConfigUI(object):
         dialog = user_messenger.UserMessenger()
         dialog.display_text("Filebot Debug Info", info)
         button.set_sensitive(True)
+
+    @defer.inlineCallbacks
+    def on_license_button_clicked(self, button):
+        log.debug("License button clicked.")
+        chooser = gtk.FileChooserDialog(_("Choose your FileBot license file"),
+            None,
+            gtk.FILE_CHOOSER_ACTION_OPEN,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
+                        gtk.RESPONSE_OK))
+
+        chooser.set_transient_for(self.pref_dialog)
+        chooser.set_property("skip-taskbar-hint", True)
+        chooser.set_local_only(False)
+
+        file_filter = gtk.FileFilter()
+        file_filter.set_name(_("FileBot license files"))
+        file_filter.add_pattern("*." + "psm")
+        chooser.add_filter(file_filter)
+        file_filter = gtk.FileFilter()
+        file_filter.set_name(_("All files"))
+        file_filter.add_pattern("*")
+        chooser.add_filter(file_filter)
+
+        # Run the dialog
+        response = chooser.run()
+
+        if response == gtk.RESPONSE_OK:
+            license = chooser.get_filenames()[0]
+        else:
+            chooser.destroy()
+            return
+        chooser.destroy()
+
+        # License file should definetly be under 10K
+        size = os.stat(license).st_size
+        if size > 10*1000:
+            e = user_messenger.InfoDialog("Error", "License file is too big.")
+            e.resize(220, 125)
+            e.run_async()
+            defer.returnValue()
+
+        with open(license, 'rb') as l:
+            license_data = l.read()
+        log.debug("Sending license data to server.")
+        result = yield client.filebottool.activate_filebot_license(license_data)
+        log.debug("Recieved reply from server: %s", result)
+        if result.startswith("FilebotLicenseError: "):
+            title = "Error with License File"
+            msg = result[21:]
+        else:
+            title = "Success!"
+            msg = result
+
+        dialog = user_messenger.InfoDialog(title, msg)
+        dialog.resize(220, 125)
+        dialog.run_async()
+
+
 
 
 #########
