@@ -920,6 +920,6 @@ class Core(CorePluginBase):
         else:
             log.debug("Filebot Successufully licensed.")
         finally:
-            license_file.unlink(license_file.name)
+            os.unlink(license_file.name)
             del license_file
             defer.returnValue(result)
