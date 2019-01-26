@@ -2,7 +2,7 @@
 FilebotHandler convenience class.
 """
 __author__ = 'laharah'
-__version__ = '0.4.0'
+__version__ = '0.5.0'
 
 import re
 import os
@@ -68,6 +68,11 @@ class FilebotFatalError(Error):
 
 class FilebotRuntimeError(Error):
     """raised when filebot has a non-zero exit code"""
+    pass
+
+
+class FilebotLicenseError(Error):
+    """raised when filebot is unlicensed"""
     pass
 
 
@@ -160,8 +165,12 @@ def rename(targets,
     exit_code, data, filebot_error = _execute(filebot_arguments, workaround)
 
     if exit_code != 0:
-        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
-            data, filebot_error))
+        if u"License Error: UNREGISTERED" in filebot_error.decode('utf8', 'ignore'):
+            raise FilebotLicenseError("Filebot is unregistered, cannot rename.\n"
+                                      "FILEBOT OUTPUT DUMP:\n{0}".format(data))
+        else:
+            raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
+                data, filebot_error))
 
     return parse_filebot(data)
 
@@ -341,6 +350,23 @@ def revert(targets):
     file_moves = parse_filebot(data)
 
     return file_moves
+
+
+def license(license_path):
+    """Activates a FileBot license.
+
+    Args:
+        license_path: path to a valid filebot license
+    Returns:
+        Success message if successful, else raises FilebotLicenseError
+    """
+    args = ["--license"] + [license_path] + ["-script", "fn:sysinfo"]
+
+    exit_code, data, error = _execute(args, workaround=False)
+    if exit_code != 0 or error:
+        raise FilebotLicenseError(error)
+
+    return data.decode('utf8', 'ignore')
 
 
 def _order_is_valid(order_string):
