@@ -37,6 +37,7 @@
 #    statement from all source files in the program, then also delete it here.
 #
 import os
+import tempfile
 
 # noinspection PyUnresolvedReferences
 from deluge.plugins.pluginbase import CorePluginBase
@@ -897,8 +898,28 @@ class Core(CorePluginBase):
         log.debug("Received request for FileBot debug info...")
         try:
             info = yield threads.deferToThread(pyfilebot.debug_info)
-        except Exception, err:
+        except Exception as err:
             log.error("FILEBOT ERROR: {0}".format(str(err)), exc_info=True)
             defer.returnValue('ERROR COMMUNICATING WITH FILEBOT!\n' + str(err))
         log.debug("FileBot debug info retrieved.")
         defer.returnValue(info)
+
+    @export
+    @defer.inlineCallbacks
+    def activate_filebot_license(self, data):
+        """Uses data from a filebot license to activate FileBot"""
+        log.info("Recieved license file data for filebot registration.")
+        license_file = tempfile.NamedTemporaryFile(suffix='.psm', delete=False)
+        license_file.write(data)
+        license_file.close()
+        try:
+            result = yield threads.deferToThread(pyfilebot.license(license_file.name))
+        except pyfilebot.FilebotLicenseError as error:
+            log.error("Error during licensing", exc_info=True)
+            result = "{0}: {1}".format(error.__class__.__name__, error.message)
+        else:
+            log.debug("Filebot Successufully licensed.")
+        finally:
+            license_file.unlink(license_file.name)
+            del license_file
+            defer.retunValue(result)
