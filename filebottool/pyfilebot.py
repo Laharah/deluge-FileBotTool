@@ -31,7 +31,7 @@ if not FILEBOT_EXE:
         FILEBOT_EXE = 'filebot'
 
 FILEBOT_MODES = [
-    'rename', 'move', 'check', 'get-missing-subtitles', 'get-subtitles', 'list',
+    'rename', 'revert', 'move', 'check', 'get-missing-subtitles', 'get-subtitles', 'list',
     'mediainfo'
 ]
 
@@ -342,7 +342,7 @@ def revert(targets):
     if isinstance(targets, basestring):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
-    filebot_arguments = _build_script_arguments("fn:revert", targets)
+    filebot_arguments = _build_arguments(targets, mode='revert')
 
     exit_code, data, error = _execute(filebot_arguments, workaround=False)
     if exit_code != 0:
