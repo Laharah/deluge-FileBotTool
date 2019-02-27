@@ -342,7 +342,7 @@ def revert(targets):
     if isinstance(targets, basestring):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
-    filebot_arguments = _build_arguments(targets, mode='revert')
+    filebot_arguments = _build_filebot_arguments(targets, mode='revert')
 
     exit_code, data, error = _execute(filebot_arguments, workaround=False)
     if exit_code != 0:
