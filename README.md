@@ -3,6 +3,10 @@
 
 **Version 1.2.6**
 
+
+***NOTE: THIS PLUGIN IS NOT YET COMPATABLE WITH DELUGE 2.0***
+
+
 ##### [Download Latest Release](https://github.com/Laharah/deluge-FilebotTool/releases/latest)
 
 ##### [How to Install in Deluge](https://github.com/Laharah/deluge-FileBotTool/wiki)
