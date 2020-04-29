@@ -335,12 +335,24 @@ class RenameDialog(object):
 
         handler_name = self.glade.get_widget(
             'saved_handlers_combo').get_child().get_text()
-        if not handler_settings['query_override']:
-            handler_settings['query_override'] = None
+        log.debug('got %s for handler name in from combobox', handler_name)
         if (handler_name in self.saved_handlers
                 and handler_settings == self.saved_handlers[handler_name]):
+            log.debug('handler matches saved handler, setting name to %s.', handler_name)
+
             handler_settings['handler_name'] = handler_name
         else:
+            log.debug('handler "%s" did not match saved handler. Setting to None.',
+                    handler_name) 
+            # new, saved = set(list(handler_settings.keys())), set(list(handler_settings.keys()))
+            # missing = new ^ saved
+            # if missing:
+            #     log.debug('Key mismatch: %s.', missing) 
+            # shared = new & saved
+            # for k in shared:
+            #     new, saved = handler_settings[k], self.saved_handlers[handler_name][k]
+            #     if new != saved:
+            #         log.debug('mismatch on key "%s": %s != %s', k, new, saved)
             handler_settings['handler_name'] = None
 
         log.info("Sending execute request to server for torrents {0}".format(
