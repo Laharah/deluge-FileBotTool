@@ -38,8 +38,8 @@ FILEBOT_MODES = [
 FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute"]
 
 FILEBOT_DATABASES = [
-    None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMovieDB', 'OMDb', 'AcoustID',
-    'ID3 Tags'
+    None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMovieDB', 'TheMovieDB::TV',
+    'OMDb', 'AcoustID', 'ID3 Tags',
 ]
 
 FILEBOT_RENAME_ACTIONS = [
