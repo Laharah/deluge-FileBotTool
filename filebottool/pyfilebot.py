@@ -168,11 +168,22 @@ def rename(targets,
         if u"License Error: UNREGISTERED" in filebot_error.decode('utf8', 'ignore'):
             raise FilebotLicenseError("Filebot is unregistered, cannot rename.\n"
                                       "FILEBOT OUTPUT DUMP:\n{0}".format(data))
-        else:
+        elif rename_action != 'test':
             raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
                 data, filebot_error))
 
-    return parse_filebot(data)
+    try:
+        results = parse_filebot(data)
+    except:
+        parse_error = True
+    else:
+        parse_error = False
+
+    if parse_error or (rename_action == 'test' and results[0] == 0):
+        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
+            data, filebot_error))
+    return results
+
 
 
 def parse_filebot(data):
@@ -208,6 +219,8 @@ def parse_filebot(data):
         match = re.search(r'Processed (\d*) ', line)
         if match:
             total_processed_files = int(match.group(1))
+
+
 
     # file moves
     file_moves = []
