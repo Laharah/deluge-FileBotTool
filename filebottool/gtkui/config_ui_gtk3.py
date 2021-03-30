@@ -1,7 +1,7 @@
 __author__ = 'laharah'
 
 
-import gtk
+from gi.repository import Gtk
 import os
 import time
 import webbrowser
@@ -13,11 +13,11 @@ import deluge.component as component
 
 from filebottool.common import get_resource
 from filebottool.common import LOG
-from filebottool.gtkui.common import EditableList
-from filebottool.gtkui.handler_editor import HandlerEditor
+from filebottool.gtkui.common_gtk3 import EditableList
+from filebottool.gtkui.handler_editor_gtk3 import HandlerEditor
 import filebottool.auto_sort
 
-import user_messenger
+import user_messenger_gtk3
 
 SORT_OPERATORS = filebottool.auto_sort.OPERATOR_MAP.keys()
 VALID_FIELDS = filebottool.auto_sort.VALID_FIELDS
@@ -31,47 +31,48 @@ class ConfigUI(object):
     """handles the UI portion of getting and setting preferences"""
 
     def __init__(self, settings=None):
-        self.glade = gtk.glade.XML(get_resource("config.ui"))
-        self.config_page = self.glade.get_widget("prefs_box")
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(get_resource("config.ui"))
+        self.config_page = self.builder.get_object("prefs_box")
         self.pref_dialog = component.get("Preferences").pref_dialog
 
-        fb_icon = self.glade.get_widget("fb_icon")
+        fb_icon = self.builder.get_object("fb_icon")
         image = get_resource("fb_icon16.png")
         fb_icon.set_from_file(image)
 
-        model = gtk.ListStore(str)
-        view = self.glade.get_widget('saved_handlers_listview')
-        renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Profile Name", renderer, text=0)
+        model = Gtk.ListStore(str)
+        view = self.builder.get_object('saved_handlers_listview')
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Profile Name", renderer, text=0)
         view.append_column(column)
-        model.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
         self.handlers_list = EditableList(view, model)
 
-        model = gtk.ListStore(str, str, str, str)
-        view = self.glade.get_widget('rule_listview')
+        model = Gtk.ListStore(str, str, str, str)
+        view = self.builder.get_object('rule_listview')
         options = [
             ("Field:", VALID_FIELDS),
             ("Comparison Operator:", SORT_OPERATORS),
         ]
         for col_index, tup in enumerate(options):
             name, items = tup
-            combo_model = gtk.ListStore(str)
+            combo_model = Gtk.ListStore(str)
             for item in items:
                 combo_model.append([item])
             cb = build_combo_renderer_cb(model, col_index, items)
             renderer = build_combo_cellrenderer(combo_model, cb)
-            column = gtk.TreeViewColumn(name, renderer, text=col_index)
+            column = Gtk.TreeViewColumn(name, renderer, text=col_index)
             view.append_column(column)
-        renderer = gtk.CellRendererText()
+        renderer = Gtk.CellRendererText()
         renderer.set_property("editable", True)
         def text_edited(widget, path, text):
             model[path][2] = text
         renderer.connect("edited", text_edited)
-        column = gtk.TreeViewColumn("Pattern to Match:", renderer, text=2)
+        column = Gtk.TreeViewColumn("Pattern to Match:", renderer, text=2)
         view.append_column(column)
         self.rules_list = EditableList(view, model)
 
-        self.glade.signal_autoconnect({
+        self.builder.connect_signals({
             "on_add_handler": self.on_add_handler,
             "on_remove_handler": self.handlers_list.remove,
             "on_edit_handler": self.on_edit_handler,
@@ -106,13 +107,13 @@ class ConfigUI(object):
         self.rule_handler_combo = build_combo_cellrenderer(
             self.handlers_list.model, self.on_rule_handler_combo_changed)
         column_name = "Profile to Use:"
-        column = gtk.TreeViewColumn(column_name, self.rule_handler_combo, text=3)
+        column = Gtk.TreeViewColumn(column_name, self.rule_handler_combo, text=3)
         self.rules_list.view.append_column(column)
         self.rules_list.clear()
         for rule in rules:
             self.rules_list.add(rule[1:])
         for column in self.rules_list.view.get_columns():
-            column.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+            column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
             column.set_resizable(True)
 
         if not rules:
@@ -192,21 +193,21 @@ class ConfigUI(object):
     @defer.inlineCallbacks
     def on_license_button_clicked(self, button):
         log.debug("License button clicked.")
-        chooser = gtk.FileChooserDialog(_("Choose your FileBot license file"),
+        chooser = Gtk.FileChooserDialog(_("Choose your FileBot license file"),
             None,
-            gtk.FILE_CHOOSER_ACTION_OPEN,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
-                        gtk.RESPONSE_OK))
+            Gtk.FileChooserAction.OPEN,
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN,
+                        Gtk.ResponseType.OK))
 
         chooser.set_transient_for(self.pref_dialog)
         chooser.set_property("skip-taskbar-hint", True)
         chooser.set_local_only(False)
 
-        file_filter = gtk.FileFilter()
+        file_filter = Gtk.FileFilter()
         file_filter.set_name(_("FileBot license files"))
         file_filter.add_pattern("*." + "psm")
         chooser.add_filter(file_filter)
-        file_filter = gtk.FileFilter()
+        file_filter = Gtk.FileFilter()
         file_filter.set_name(_("All files"))
         file_filter.add_pattern("*")
         chooser.add_filter(file_filter)
@@ -214,7 +215,7 @@ class ConfigUI(object):
         # Run the dialog
         response = chooser.run()
 
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.ResponseType.OK:
             license = chooser.get_filenames()[0]
         else:
             chooser.destroy()
@@ -262,7 +263,7 @@ def build_combo_renderer_cb(list_store, column_number, allowed=None):
     return cb
 
 def build_combo_cellrenderer(model, cb):
-    renderer = gtk.CellRendererCombo()
+    renderer = Gtk.CellRendererCombo()
     if model:
         renderer.set_property("model", model)
     renderer.set_property("editable", True)

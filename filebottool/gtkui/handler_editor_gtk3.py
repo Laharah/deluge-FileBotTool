@@ -1,12 +1,12 @@
 __author__ = 'laharah'
 
-import gtk
+from gi.repository import Gtk
 
 from filebottool.common import LOG
 from filebottool.common import get_resource
-from filebottool.gtkui.handler_ui import HandlerUI
-from filebottool.gtkui.common import inflate_list_store_combo
-from filebottool.gtkui.user_messenger import InfoDialog, ResponseDialog
+from filebottool.gtkui.handler_ui_gtk3 import HandlerUI
+from filebottool.gtkui.common_gtk3 import inflate_list_store_combo
+from filebottool.gtkui.user_messenger_gtk3 import InfoDialog, ResponseDialog
 
 
 log = LOG
@@ -26,11 +26,12 @@ class HandlerEditor(HandlerUI):
         except KeyError:
             initial_settings = None
 
-        self.glade = gtk.glade.XML(get_resource("handler_editor.ui"))
-        super(self.__class__, self).__init__(self.glade, initial_settings)
-        self.window = self.glade.get_widget("window1")
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(get_resource("handler_editor.ui"))
+        super(self.__class__, self).__init__(self.builder, initial_settings)
+        self.window = self.builder.get_object("window1")
         self.window.set_modal(True)
-        self.handler_name_combo_entry = self.glade.get_widget("handler_name_combo_entry")
+        self.handler_name_combo_entry = self.builder.get_object("handler_name_combo_entry")
         inflate_list_store_combo(handlers.keys(), self.handler_name_combo_entry)
         if initial:
             self.handler_name_combo_entry.get_child().set_text(initial)
@@ -42,15 +43,15 @@ class HandlerEditor(HandlerUI):
             "on_query_checkbox_toggled": self.on_query_checkbox_toggled,
             "on_download_subs_checkbox_toggled": self.on_download_subs_checkbox_toggled,
         }
-        self.glade.signal_autoconnect(signal_dictionary)
+        self.builder.connect_signals(signal_dictionary)
 
         if parent:
-            self.window.set_transient_for(parent)
+            self.set_transient_for(parent)
         self.window.show_all()
 
     def populate_with_settings(self, *args, **kwargs):
         super(self.__class__, self).populate_with_settings(*args, **kwargs)
-        check_box = self.glade.get_widget('query_checkbox')
+        check_box = self.builder.get_object('query_checkbox')
         if self.query_entry.get_text():
             check_box.set_active(True)
         else:
@@ -58,7 +59,7 @@ class HandlerEditor(HandlerUI):
 
     def collect_dialog_settings(self):
         settings = super(self.__class__, self).collect_dialog_settings()
-        if not self.glade.get_widget('query_checkbox').get_active():
+        if not self.builder.get_object('query_checkbox').get_active():
             settings['query_override'] = ''
         return settings
 
@@ -77,7 +78,7 @@ class HandlerEditor(HandlerUI):
     def on_save_changes_clicked(self, *args):
         """send updated handlers dictionary to server, call the callback if supplied"""
         settings = self.collect_dialog_settings()
-        handler_id = self.handler_name_combo_entry.child.get_text().strip()
+        handler_id = self.handler_name_combo_entry.get_child().get_text().strip()
         if not handler_id:
             dialog = InfoDialog("Identifier Required",
                                 "The Handler requires a Name.",
@@ -86,10 +87,10 @@ class HandlerEditor(HandlerUI):
             dialog.destroy()
             return
         if handler_id in self.handlers:
-            buttons = (gtk.STOCK_CANCEL,
-                       gtk.RESPONSE_CANCEL,
-                       gtk.STOCK_OK,
-                       gtk.RESPONSE_OK,)
+            buttons = (Gtk.STOCK_CANCEL,
+                       Gtk.ResponseType.CANCEL,
+                       Gtk.STOCK_OK,
+                       Gtk.ResponseType.OK,)
 
             dialog = ResponseDialog("Overwrite?",
                                     "Overwrite the profile named {0}? "
@@ -98,7 +99,7 @@ class HandlerEditor(HandlerUI):
                                     buttons=buttons)
             response = dialog.run()
             dialog.destroy()
-            if response != gtk.RESPONSE_OK:
+            if response != Gtk.ResponseType.OK:
                 return
         self.handlers[handler_id] = settings
         self.window.destroy()
@@ -128,7 +129,7 @@ class HandlerEditor(HandlerUI):
 
     def on_download_subs_checkbox_toggled(self, box):
         log.debug("subs box toggled")
-        subs_options = self.glade.get_widget('subs_options')
+        subs_options = self.builder.get_object('subs_options')
         if box.get_active():
             subs_options.set_sensitive(True)
         else:

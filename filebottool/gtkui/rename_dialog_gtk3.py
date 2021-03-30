@@ -1,7 +1,7 @@
 __author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
-import gtk
+from gi.repository import Gtk
 import webbrowser
 import os
 
@@ -13,9 +13,9 @@ from twisted.internet import defer
 
 from filebottool.common import LOG, version_tuple
 from filebottool.common import get_resource
-from filebottool.gtkui.common import inflate_list_store_combo
-from filebottool.gtkui.handler_ui import HandlerUI
-import user_messenger
+from filebottool.gtkui.common_gtk3 import inflate_list_store_combo
+from filebottool.gtkui.handler_ui_gtk3 import HandlerUI
+import user_messenger_gtk3
 
 log = LOG
 
@@ -26,7 +26,7 @@ class RenameDialog(object):
 
     def __init__(self, dialog_settings, server_plugin_version):
         """sets up the dialog using the settings supplied by the server
-        Also loads relevant glade widgets as members
+        Also loads relevant ui widgets as members
 
         Args:
          dialog_settings: A dictionary containing the settings to populate.
@@ -38,7 +38,8 @@ class RenameDialog(object):
         self.torrent_id = None
         self.files = []
         self.current_save_path = ""
-        self.glade = gtk.glade.XML(get_resource("rename.ui"))
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(get_resource("rename.ui"))
 
         if len(dialog_settings["torrent_ids"]) == 1:
             self.torrent_id = dialog_settings["torrent_ids"][0]
@@ -53,30 +54,30 @@ class RenameDialog(object):
             except KeyError:
                 log.error('handler {0} could not be found'.format(handler_name))
 
-        self.handler_ui = HandlerUI(self.glade, self.ui_settings)
+        self.handler_ui = HandlerUI(self.builder, self.ui_settings)
 
         self.server_filebot_version = dialog_settings["filebot_version"]
 
-        self.window = self.glade.get_widget("rename_dialog")
-        self.window.set_transient_for(component.get("MainWindow").window)
+        self.window = self.builder.get_object("rename_dialog")
+        self.set_transient_for(component.get("MainWindow").window)
 
-        fb_icon = self.glade.get_widget("execute_icon")
+        fb_icon = self.builder.get_object("execute_icon")
         image = get_resource("fb_icon24.png")
         fb_icon.set_from_file(image)
 
-        self.original_files_treeview = self.glade.get_widget("files_treeview")
-        self.new_files_treeview = self.glade.get_widget("new_files_treeview")
-        self.history_files_treeview = self.glade.get_widget("history_files_treeview")
-        self.previous_treeview = self.glade.get_widget("previous_treeview")
+        self.original_files_treeview = self.builder.get_object("files_treeview")
+        self.new_files_treeview = self.builder.get_object("new_files_treeview")
+        self.history_files_treeview = self.builder.get_object("history_files_treeview")
+        self.previous_treeview = self.builder.get_object("previous_treeview")
 
         if not self.torrent_id:
-            self.glade.get_widget("tree_pane").hide()
-            self.glade.get_widget("do_dry_run").hide()
+            self.builder.get_object("tree_pane").hide()
+            self.builder.get_object("do_dry_run").hide()
             self.history_files_treeview.hide()
             self.previous_treeview.hide()
-            # self.glade.get_widget("dialog_notebook").set_show_tabs(False)
-            # self.glade.get_widget("query_entry").set_sensitive(False)
-            # self.glade.get_widget("query_label").set_sensitive(False)
+            # self.glade.get_object("dialog_notebook").set_show_tabs(False)
+            # self.glade.get_object("query_entry").set_sensitive(False)
+            # self.glade.get_object("query_label").set_sensitive(False)
 
         signal_dictionary = {
             "on_toggle_advanced": self.on_toggle_advanced,
@@ -91,10 +92,10 @@ class RenameDialog(object):
             "on_saved_handlers_entry_focus": self.on_saved_handers_entry_focus,
         }
 
-        self.glade.signal_autoconnect(signal_dictionary)
+        self.builder.conenct_signals(signal_dictionary)
 
         if self.server_filebot_version:
-            self.glade.get_widget("filebot_version").set_text(self.server_filebot_version)
+            self.builder.get_object("filebot_version").set_text(self.server_filebot_version)
         else:
 
             def open_filebot_homepage(*args):
@@ -102,17 +103,17 @@ class RenameDialog(object):
                 log.debug('opening filebot homepage')
 
             signal = {"on_filebot_version_clicked": open_filebot_homepage}
-            self.glade.signal_autoconnect(signal)
-            self.toggle_button(self.glade.get_widget('do_dry_run'))
-            self.toggle_button(self.glade.get_widget('execute_filebot'))
+            self.builder.connect_signals(signal)
+            self.toggle_button(self.builder.get_object('do_dry_run'))
+            self.toggle_button(self.builder.get_object('execute_filebot'))
 
-        advanced_options = self.glade.get_widget("advanced_options")
+        advanced_options = self.builder.get_object("advanced_options")
         show_advanced = dialog_settings['rename_dialog_last_settings']['show_advanced']
         if advanced_options.get_visible() != show_advanced:
             self.on_toggle_advanced()
 
         download_subs = self.handler_ui.download_subs_checkbox
-        if download_subs.get_active() != self.glade.get_widget(
+        if download_subs.get_active() != self.builder.get_object(
                 "subs_options").get_sensitive():
             self.on_download_subs_toggled()
 
@@ -132,15 +133,15 @@ class RenameDialog(object):
             header = "Server version does not support History!"
             self.init_treestore(self.previous_treeview, header)
 
-        treeview = self.glade.get_widget("files_treeview")
+        treeview = self.builder.get_object("files_treeview")
         treeview.expand_all()
 
         self.saved_handlers = dialog_settings["saved_handlers"]
         inflate_list_store_combo(self.saved_handlers.keys(),
-                                 self.glade.get_widget("saved_handlers_combo"))
+                                 self.builder.get_object("saved_handlers_combo"))
 
         if handler_name:
-            entry = self.glade.get_widget('saved_handlers_combo').get_child()
+            entry = self.builder.get_object('saved_handlers_combo').get_child()
             log.debug('Setting text to {0}'.format(handler_name))
             entry.set_text(handler_name)
 
@@ -148,7 +149,7 @@ class RenameDialog(object):
 
         self.window.show()
 
-        tree_pane = self.glade.get_widget("tree_pane")
+        tree_pane = self.builder.get_object("tree_pane")
         tree_pane.set_position(tree_pane.allocation.width / 2)
 
     def init_treestore(self, treeview, header):
@@ -157,10 +158,10 @@ class RenameDialog(object):
           treeview: treeview widget to initialize.
           header: the column Header to use.
         """
-        model = gtk.TreeStore(str, str)
+        model = Gtk.TreeStore(str, str)
         treeview.set_model(model)
-        renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(header, renderer, text=1)
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn(header, renderer, text=1)
         treeview.append_column(column)
 
     def load_treestore(self, treeview, file_data, clear=False, title=None):
@@ -179,7 +180,7 @@ class RenameDialog(object):
                 for column in treeview.get_columns():
                     treeview.remove_column(column)
                 self.init_treestore(treeview, title)
-            model = gtk.TreeStore(str, str)
+            model = Gtk.TreeStore(str, str)
             treeview.set_model(model)
         if not file_data:
             return
@@ -274,7 +275,7 @@ class RenameDialog(object):
         """download subs has been toggled.
         toggles "greying out" of subs options.
         """
-        subs_options = self.glade.get_widget("subs_options")
+        subs_options = self.builder.get_object("subs_options")
         if subs_options.get_sensitive():
             subs_options.set_sensitive(False)
         else:
@@ -283,18 +284,18 @@ class RenameDialog(object):
     def on_toggle_advanced(self, *args):
         """Advanced dropdown has been toggled, Show or hide options
         """
-        advanced_options = self.glade.get_widget("advanced_options")
-        arrow = self.glade.get_widget("advanced_arrow")
-        advanced_label = self.glade.get_widget("show_advanced_label")
+        advanced_options = self.builder.get_object("advanced_options")
+        arrow = self.builder.get_object("advanced_arrow")
+        advanced_label = self.builder.get_object("show_advanced_label")
 
         if advanced_options.get_visible():
             advanced_options.hide()
             advanced_label.set_text("Show Advanced")
-            arrow.set(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
+            arrow.set(Gtk.ArrowType.RIGHT, Gtk.ShadowType.NONE)
         else:
             advanced_options.show()
             advanced_label.set_text("Hide Advanced")
-            arrow.set(gtk.ARROW_DOWN, gtk.SHADOW_NONE)
+            arrow.set(Gtk.ArrowType.DOWN, Gtk.ShadowType.NONE)
 
     @defer.inlineCallbacks
     def on_do_dry_run_clicked(self, button):
@@ -308,7 +309,7 @@ class RenameDialog(object):
         log.debug("using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
-        spinner = self.glade.get_widget("dry_run_spinner")
+        spinner = self.builder.get_object("dry_run_spinner")
         self.swap_spinner(spinner)
 
         result = yield client.filebottool.do_dry_run(self.torrent_id, handler_settings)
@@ -333,7 +334,7 @@ class RenameDialog(object):
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
 
-        handler_name = self.glade.get_widget(
+        handler_name = self.builder.get_object(
             'saved_handlers_combo').get_child().get_text()
         log.debug('got %s for handler name in from combobox', handler_name)
         if (handler_name in self.saved_handlers
@@ -360,7 +361,7 @@ class RenameDialog(object):
         log.debug("Using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
-        spinner = self.glade.get_widget("execute_spinner")
+        spinner = self.builder.get_object("execute_spinner")
         self.swap_spinner(spinner)
         client.filebottool.save_rename_dialog_settings(handler_settings)
 
@@ -401,12 +402,12 @@ class RenameDialog(object):
     def on_setting_changed(self, *args):
         if not self.watch_for_setting_change or not self.handler_ui.populated:
             return
-        entry = self.glade.get_widget("saved_handlers_combo").get_child()
+        entry = self.builder.get_object("saved_handlers_combo").get_child()
         if entry.get_text() in self.saved_handlers:
             entry.set_text('')
 
     def on_save_handlers_clicked(self, *args):
-        handler_combo = self.glade.get_widget("saved_handlers_combo")
+        handler_combo = self.builder.get_object("saved_handlers_combo")
         handler_name = handler_combo.get_child().get_text()
         if not handler_name:
             return
@@ -419,7 +420,7 @@ class RenameDialog(object):
                 "Confirm Overwrite", message=message, modal=True)
             response = dialog.run()
             dialog.destroy()
-            if response != gtk.RESPONSE_ACCEPT:
+            if response != Gtk.ResponseType.ACCEPT:
                 return
             #  preserve query override for pre-exsisting handlers (from config only)
             data['query_override'] = self.saved_handlers[handler_name]['query_override']
@@ -466,10 +467,10 @@ class RenameDialog(object):
 
     def swap_spinner(self, *args):
         spinner = args[-1]
-        if spinner is self.glade.get_widget("dry_run_spinner"):
-            hide = self.glade.get_widget("dry_run_icon")
+        if spinner is self.builder.get_object("dry_run_spinner"):
+            hide = self.builder.get_object("dry_run_icon")
         else:
-            hide = self.glade.get_widget("execute_icon")
+            hide = self.builder.get_object("execute_icon")
 
         if spinner.get_visible():
             spinner.hide()
