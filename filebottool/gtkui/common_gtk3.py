@@ -1,6 +1,7 @@
 """
 Contains some common functions for manipulating gtk UIs
 """
+from __future__ import absolute_import
 __author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences

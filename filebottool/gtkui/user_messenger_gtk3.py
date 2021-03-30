@@ -1,6 +1,7 @@
 """
 Classes and functions for displaying error/warning/info dialogs to the user.
 """
+from __future__ import absolute_import
 __author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 __author__ = 'laharah'
 
 
@@ -17,9 +18,9 @@ from filebottool.gtkui.common_gtk3 import EditableList
 from filebottool.gtkui.handler_editor_gtk3 import HandlerEditor
 import filebottool.auto_sort
 
-import user_messenger_gtk3
+from . import user_messenger_gtk3
 
-SORT_OPERATORS = filebottool.auto_sort.OPERATOR_MAP.keys()
+SORT_OPERATORS = list(filebottool.auto_sort.OPERATOR_MAP.keys())
 VALID_FIELDS = filebottool.auto_sort.VALID_FIELDS
 
 FilterRule = filebottool.auto_sort.FilterRule

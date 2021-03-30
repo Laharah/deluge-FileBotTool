@@ -38,6 +38,7 @@
 #
 
 # noinspection PyUnresolvedReferences
+from __future__ import absolute_import
 from gi.repository import Gtk
 
 # noinspection PyUnresolvedReferences
@@ -50,8 +51,8 @@ from twisted.internet import defer
 
 from filebottool.common import LOG, get_resource
 
-from rename_dialog_gtk3 import RenameDialog
-from config_ui_gtk3 import ConfigUI
+from .rename_dialog_gtk3 import RenameDialog
+from .config_ui_gtk3 import ConfigUI
 
 log = LOG
 

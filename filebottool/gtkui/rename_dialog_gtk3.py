@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from filebottool.six.moves import range
 __author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
@@ -15,7 +17,7 @@ from filebottool.common import LOG, version_tuple
 from filebottool.common import get_resource
 from filebottool.gtkui.common_gtk3 import inflate_list_store_combo
 from filebottool.gtkui.handler_ui_gtk3 import HandlerUI
-import user_messenger_gtk3
+from . import user_messenger_gtk3
 
 log = LOG
 
@@ -137,7 +139,7 @@ class RenameDialog(object):
         treeview.expand_all()
 
         self.saved_handlers = dialog_settings["saved_handlers"]
-        inflate_list_store_combo(self.saved_handlers.keys(),
+        inflate_list_store_combo(list(self.saved_handlers.keys()),
                                  self.builder.get_object("saved_handlers_combo"))
 
         if handler_name:

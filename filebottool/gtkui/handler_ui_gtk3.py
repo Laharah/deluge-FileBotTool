@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 __author__ = 'laharah'
 
 
@@ -8,7 +9,7 @@ from deluge.ui.client import client
 
 from filebottool.gtkui.common_gtk3 import inflate_list_store_combo
 from filebottool.common import LOG
-import user_messenger_gtk3
+from . import user_messenger_gtk3
 
 log = LOG
 

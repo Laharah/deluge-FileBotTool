@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 __author__ = 'laharah'
 
 from gi.repository import Gtk
@@ -32,7 +33,7 @@ class HandlerEditor(HandlerUI):
         self.window = self.builder.get_object("window1")
         self.window.set_modal(True)
         self.handler_name_combo_entry = self.builder.get_object("handler_name_combo_entry")
-        inflate_list_store_combo(handlers.keys(), self.handler_name_combo_entry)
+        inflate_list_store_combo(list(handlers.keys()), self.handler_name_combo_entry)
         if initial:
             self.handler_name_combo_entry.get_child().set_text(initial)
 
