@@ -17,7 +17,7 @@ from filebottool.common import LOG, version_tuple
 from filebottool.common import get_resource
 from filebottool.gtkui.common_gtk3 import inflate_list_store_combo
 from filebottool.gtkui.handler_ui_gtk3 import HandlerUI
-from . import user_messenger_gtk3
+from . import user_messenger_gtk3 as user_messenger
 
 log = LOG
 

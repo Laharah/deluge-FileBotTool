@@ -5,7 +5,7 @@ from __future__ import absolute_import
 __author__ = 'laharah'
 
 # noinspection PyUnresolvedReferences
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 import pprint
 from filebottool.common import LOG
 
@@ -23,12 +23,14 @@ class InfoDialog(Gtk.Dialog):
             modal = Gtk.DialogFlags.MODAL
         else:
             modal = 0
-        GObject.GObject.__init__(self, title, parent, modal, (Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        Gtk.Dialog.__init__(self, title, parent, modal, (Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        #GObject.GObject.__init__(self, title, parent, modal, (Gtk.STOCK_OK, Gtk.ResponseType.OK))
         self.message = message
+        self.modal = modal
         label = Gtk.Label(label=message)
         self.get_content_area().add(label)
         self.set_position(Gtk.WindowPosition.CENTER)
-        self.set_gravity(Gdk.GRAVITY_CENTER)
+        self.set_gravity(Gdk.Gravity.CENTER)
         self.show_all()
 
     def run_async(self):
@@ -58,7 +60,7 @@ class ResponseDialog(Gtk.Dialog):
         self.message = message
         label = Gtk.Label(label=message)
         self.get_content_area().add(label)
-        self.set_gravity(Gdk.GRAVITY_CENTER)
+        self.set_gravity(Gdk.Gravity.CENTER)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.show_all()
 
@@ -169,7 +171,7 @@ class UserMessenger(object):
     def display_text(self, title, text, parent=None, modal=False):
         dialog = InfoDialog(title, None, parent, modal)
         text_view = Gtk.TextView()
-        text_view.get_buffer().set_text(text)
+        text_view.get_buffer().set_text(text.decode('utf8'))
         text_view.set_editable(False)
         text_view.set_cursor_visible(False)
         text_view.show()
@@ -181,7 +183,7 @@ class UserMessenger(object):
         detail_view.set_shadow_type(Gtk.ShadowType.IN)
         detail_view.add(sw)
         detail_view.set_border_width(6)
-        dialog.vbox.add(detail_view)
+        dialog.get_content_area().add(detail_view)
         detail_view.show()
         text_view.set_size_request(485, 300)
         dialog.run_async()

@@ -18,7 +18,7 @@ from filebottool.gtkui.common_gtk3 import EditableList
 from filebottool.gtkui.handler_editor_gtk3 import HandlerEditor
 import filebottool.auto_sort
 
-from . import user_messenger_gtk3
+from . import user_messenger_gtk3 as user_messenger
 
 SORT_OPERATORS = list(filebottool.auto_sort.OPERATOR_MAP.keys())
 VALID_FIELDS = filebottool.auto_sort.VALID_FIELDS

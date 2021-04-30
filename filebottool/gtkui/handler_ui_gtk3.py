@@ -9,7 +9,7 @@ from deluge.ui.client import client
 
 from filebottool.gtkui.common_gtk3 import inflate_list_store_combo
 from filebottool.common import LOG
-from . import user_messenger_gtk3
+from . import user_messenger_gtk3 as user_messenger
 
 log = LOG
 

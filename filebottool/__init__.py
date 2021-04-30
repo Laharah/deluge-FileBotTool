@@ -37,19 +37,31 @@
 #    statement from all source files in the program, then also delete it here.
 #
 
+from __future__ import absolute_import
 from deluge.plugins.init import PluginInitBase
+import logging
+log = logging.getLogger(__name__)
 
 class CorePlugin(PluginInitBase):
     def __init__(self, plugin_name):
-        from core import Core as _plugin_cls
+        from .core import Core as _plugin_cls
         self._plugin_cls = _plugin_cls
         super(CorePlugin, self).__init__(plugin_name)
+        log.debug("FILEBOT CORE INITTED!")
 
-class GtkUIPlugin(PluginInitBase):
+# class GtkUIPlugin(PluginInitBase):
+#     def __init__(self, plugin_name):
+#         from .gtkui.gtkui import GtkUI as _plugin_cls
+#         self._plugin_cls = _plugin_cls
+#         super(GtkUIPlugin, self).__init__(plugin_name)
+
+class Gtk3UIPlugin(PluginInitBase):
     def __init__(self, plugin_name):
-        from gtkui.gtkui import GtkUI as _plugin_cls
+        log.debug("FILEBOT GTKCLASS INIT STARTED!")
+        from .gtkui.gtk3ui import GtkUI as _plugin_cls
         self._plugin_cls = _plugin_cls
-        super(GtkUIPlugin, self).__init__(plugin_name)
+        super(Gtk3UIPlugin, self).__init__(plugin_name)
+        log.debug("FILEBOT GTKCLASS INITTED!")
 
 class WebUIPlugin(PluginInitBase):
     def __init__(self, plugin_name):

@@ -39,12 +39,14 @@
 
 # noinspection PyUnresolvedReferences
 from __future__ import absolute_import
+import gi
 from gi.repository import Gtk
+from gi.repository.GdkPixbuf import Pixbuf
 
 # noinspection PyUnresolvedReferences
 from deluge.ui.client import client
 # noinspection PyUnresolvedReferences
-from deluge.plugins.pluginbase import GtkPluginBase
+from deluge.plugins.pluginbase import Gtk3PluginBase
 # noinspection PyUnresolvedReferences
 import deluge.component as component
 from twisted.internet import defer
@@ -56,8 +58,9 @@ from .config_ui_gtk3 import ConfigUI
 
 log = LOG
 
+log.debug("gtk3 read")
 
-class GtkUI(GtkPluginBase):
+class GtkUI(Gtk3PluginBase):
     # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit
     def enable(self):
         """actions to take on plugin enabled.
@@ -65,6 +68,7 @@ class GtkUI(GtkPluginBase):
         """
         self.server_plugin_version = (1, 1, 12)
         self.config_ui = ConfigUI()
+        log.debug("ADDING PREF PAGE")
         component.get("Preferences").add_page("FileBotTool", self.config_ui.config_page)
         component.get("PluginManager").register_hook("on_apply_prefs",
                                                      self.on_apply_prefs)
@@ -73,7 +77,9 @@ class GtkUI(GtkPluginBase):
         # add context menu item for FileBotTool
         torrentmenu = component.get("MenuBar").torrentmenu
         self.menu_item = Gtk.ImageMenuItem("FileBotTool")
-        img = Gtk.image_new_from_file(get_resource("fb_icon16.png"))
+        pixbuf = Pixbuf.new_from_file(get_resource("fb_icon16.png"))
+        img = Gtk.Image()
+        img.set_from_pixbuf(pixbuf)
         self.menu_item.set_image(img)
         self.menu_item.connect("activate", self.get_torrent_info)
         torrentmenu.append(self.menu_item)

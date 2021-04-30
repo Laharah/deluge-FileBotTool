@@ -36,6 +36,7 @@
 #    this exception statement from your version. If you delete this exception
 #    statement from all source files in the program, then also delete it here.
 #
+from __future__ import absolute_import
 import os
 import tempfile
 
@@ -53,10 +54,12 @@ import deluge.configmanager
 from deluge.core.rpcserver import export
 from twisted.internet import threads, defer
 
-import pyfilebot
+from . import pyfilebot
 from filebottool.common import LOG, version_tuple
 import filebottool.auto_sort
 import filebottool.events as events
+import six
+from six.moves import zip
 
 
 log = LOG
@@ -251,7 +254,7 @@ class Core(CorePluginBase):
             new_save_path = os.path.dirname(gcd)
         else:
             new_save_path = os.path.dirname(
-                renames[renames.keys()[0]]["new_path"])
+                renames[list(renames.keys())[0]]["new_path"])
 
         #  build filemove tuples by striping out new_save_path
         #  spliting on sep, and joining with '/'
@@ -276,13 +279,14 @@ class Core(CorePluginBase):
             new_save_path = None
         return new_save_path, gcd, deluge_moves
 
-    def _redirect_torrent_paths(self, torrent_id, (new_save_path, new_top_lvl, new_file_paths)):
+    def _redirect_torrent_paths(self, torrent_id, deluge_movements):
         """redirects a torrent's files and save paths to the new locations.
         registers them to the listening dictionary
         Args:
             torrent_id
             a tuple from _translate_filebot_movements
         """
+        (new_save_path, new_top_lvl, new_file_paths) = deluge_movements
         torrent = self.torrent_manager[torrent_id]
         if any([new_save_path, new_top_lvl, new_file_paths]):
             self.listening_dictionary[torrent_id] = {}
@@ -354,7 +358,7 @@ class Core(CorePluginBase):
         targets = [pair[1] for pair in filebot_movements[1]]
         try:
             results = yield threads.deferToThread(pyfilebot.revert, targets)
-        except pyfilebot.FilebotRuntimeError, err:
+        except pyfilebot.FilebotRuntimeError as err:
             log.error("FILEBOT ERROR!", exc_info=True)
             defer.returnValue(None)
         # noinspection PyUnboundLocalVariable
@@ -454,7 +458,7 @@ class Core(CorePluginBase):
     def _repair_storage(self, torrent, dest):
         """dup of 1.3.13 move storage, with correct libtorrent flags"""
         try:
-            dest = unicode(dest, "utf-8")
+            dest = six.text_type(dest, "utf-8")
         except TypeError:
             # String is already unicode
             pass
@@ -474,7 +478,7 @@ class Core(CorePluginBase):
                 torrent.handle.move_storage(dest, **kwargs)
             except TypeError:
                 torrent.handle.move_storage(dest_bytes, **kwargs)
-        except Exception, e:
+        except Exception as e:
             log.error("Error calling libtorrent move_storage: %s" % e)
             return False
 
@@ -749,7 +753,7 @@ class Core(CorePluginBase):
                 # noinspection PyUnresolvedReferences
                 filebot_results = yield threads.deferToThread(handler.revert,
                                                               targets)
-            except Exception, err:
+            except Exception as err:
                 log.error("FILEBOT ERROR!", exc_info=True)
                 errors[torrent_id] = (str(err), err.msg)
                 self._finish_processing(torrent_id, error=err)
@@ -796,7 +800,7 @@ class Core(CorePluginBase):
         targets = self._get_filebot_target(torrent_id)
         try:
             history = yield threads.deferToThread(pyfilebot.get_history, targets)
-        except Exception, err:
+        except Exception as err:
             log.error("FILEBOT ERROR: {0}".format(str(err)), exc_info=True)
             defer.returnValue((False, err))
         movements = self._translate_filebot_movements(torrent_id, history)
