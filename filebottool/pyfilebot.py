@@ -1,8 +1,11 @@
 """Contains functions for interaction with the filebotCLI and the
 FilebotHandler convenience class.
 """
-__author__ = 'laharah'
-__version__ = '0.5.0'
+from __future__ import absolute_import
+import six
+
+__author__ = "laharah"
+__version__ = "0.5.0"
 
 import re
 import os
@@ -13,14 +16,17 @@ import warnings
 from types import MethodType
 import functools
 
-import killableprocess
+from . import killableprocess
+import subprocess
 from distutils import spawn
 
-FILEBOT_EXE = spawn.find_executable('filebot')
+FILEBOT_EXE = spawn.find_executable("filebot")
 if not FILEBOT_EXE:
     locations = [
-        r'C:\Program Files\FileBot\filebot.exe', r'/usr/bin/filebot',
-        r'/usr/local/bin/filebot', r'/snap/bin/filebot'
+        r"C:\Program Files\FileBot\filebot.exe",
+        r"/usr/bin/filebot",
+        r"/usr/local/bin/filebot",
+        r"/snap/bin/filebot",
     ]
     for loc in locations:
         if os.path.exists(loc):
@@ -28,26 +34,47 @@ if not FILEBOT_EXE:
             break
     else:
         warnings.warn("Could not find filebot executable!", stacklevel=2)
-        FILEBOT_EXE = 'filebot'
+        FILEBOT_EXE = "filebot"
 
 FILEBOT_MODES = [
-    'rename', 'revert', 'move', 'check', 'get-missing-subtitles', 'get-subtitles', 'list',
-    'mediainfo'
+    "rename",
+    "revert",
+    "move",
+    "check",
+    "get-missing-subtitles",
+    "get-subtitles",
+    "list",
+    "mediainfo",
 ]
 
 FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute"]
 
 FILEBOT_DATABASES = [
-    None, 'TheTVDB', 'Tvmaze', 'AniDB', 'OpenSubtitles', 'TheMovieDB', 'TheMovieDB::TV',
-    'OMDb', 'AcoustID', 'ID3 Tags',
+    None,
+    "TheTVDB",
+    "Tvmaze",
+    "AniDB",
+    "OpenSubtitles",
+    "TheMovieDB",
+    "TheMovieDB::TV",
+    "OMDb",
+    "AcoustID",
+    "ID3 Tags",
 ]
 
 FILEBOT_RENAME_ACTIONS = [
-    None, 'move', 'copy', 'duplicate', 'keeplink', 'symlink', 'reflink', 'hardlink',
-    'test'
+    None,
+    "move",
+    "copy",
+    "duplicate",
+    "keeplink",
+    "symlink",
+    "reflink",
+    "hardlink",
+    "test",
 ]
 
-FILEBOT_ON_CONFLICT = [None, 'override', 'skip', 'auto', 'index', 'fail']
+FILEBOT_ON_CONFLICT = [None, "override", "skip", "auto", "index", "fail"]
 
 
 class Error(Exception):
@@ -63,23 +90,26 @@ class Error(Exception):
 
 class FilebotFatalError(Error):
     """raise on a non-recoverable error, such as filebot not found"""
+
     pass
 
 
 class FilebotRuntimeError(Error):
     """raised when filebot has a non-zero exit code"""
+
     pass
 
 
 class FilebotLicenseError(Error):
     """raised when filebot is unlicensed"""
+
     pass
 
 
 def get_version():
     """returns the filebot version string. Useful for testing if filebot is
     installed."""
-    return_code, output, error_data = _execute(['-version'], workaround=False)
+    return_code, output, error_data = _execute(["-version"], workaround=False)
     if return_code != 0:
         msg = "Filebot not found or could not run: {0}".format(error_data)
         raise FilebotFatalError(msg)
@@ -90,29 +120,34 @@ def get_version():
 def debug_info():
     """Returns system and enviornment info about the filebot exe"""
     return_code, output, error_data = _execute(
-        ['-script', 'fn:sysinfo'], workaround=False)
+        ["-script", "fn:sysinfo"], workaround=False
+    )
     if return_code != 0:
         msg = "Filebot error retrieving sysinfo: {0}".format(error_data)
         raise FilebotFatalError(msg)
     sysinfo = output
-    return_code, output, error_data = _execute(['-script', 'fn:sysenv'], workaround=False)
+    return_code, output, error_data = _execute(
+        ["-script", "fn:sysenv"], workaround=False
+    )
     if return_code != 0:
         msg = "Filebot error retreiving sysenv: {0}".format(error_data)
         raise FilebotFatalError(msg)
     return sysinfo + output
 
 
-def rename(targets,
-           format_string=None,
-           database=None,
-           output=None,
-           rename_action='move',
-           episode_order=None,
-           on_conflict=None,
-           query_override=None,
-           non_strict=True,
-           recursive=True,
-           language_code=None):
+def rename(
+    targets,
+    format_string=None,
+    database=None,
+    output=None,
+    rename_action="move",
+    episode_order=None,
+    on_conflict=None,
+    query_override=None,
+    non_strict=True,
+    recursive=True,
+    language_code=None,
+):
     """Renames file or files from *targets* using the current settings
 
     Args:
@@ -158,19 +193,23 @@ def rename(targets,
         query_override=query_override,
         non_strict=non_strict,
         recursive=recursive,
-        language_code=language_code)
+        language_code=language_code,
+    )
 
     # TODO:better error handling
-    workaround = True if os.name == 'nt' else False
+    workaround = True if os.name == "nt" else False
     exit_code, data, filebot_error = _execute(filebot_arguments, workaround)
 
     if exit_code != 0:
-        if u"License Error: UNREGISTERED" in filebot_error.decode('utf8', 'ignore'):
-            raise FilebotLicenseError("Filebot is unregistered, cannot rename.\n"
-                                      "FILEBOT OUTPUT DUMP:\n{0}".format(data))
-        elif rename_action != 'test':
-            raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
-                data, filebot_error))
+        if u"License Error: UNREGISTERED" in filebot_error.decode("utf8", "ignore"):
+            raise FilebotLicenseError(
+                "Filebot is unregistered, cannot rename.\n"
+                "FILEBOT OUTPUT DUMP:\n{0}".format(data)
+            )
+        elif rename_action != "test":
+            raise FilebotRuntimeError(
+                "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(data, filebot_error)
+            )
 
     try:
         results = parse_filebot(data)
@@ -179,11 +218,11 @@ def rename(targets,
     else:
         parse_error = False
 
-    if parse_error or (rename_action == 'test' and results[0] == 0):
-        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
-            data, filebot_error))
+    if parse_error or (rename_action == "test" and results[0] == 0):
+        raise FilebotRuntimeError(
+            "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(data, filebot_error)
+        )
     return results
-
 
 
 def parse_filebot(data):
@@ -201,32 +240,33 @@ def parse_filebot(data):
                            skipped/failed files)
     """
     try:
-        data = data.decode('utf8')
+        data = data.decode("utf8")
     except UnicodeDecodeError:
-        warnings.warn('DECODING ERROR WARNING: UNVALID UNICODE DETECTED!', UnicodeWarning)
-        data = data.decode('utf8', errors='ignore')
+        warnings.warn(
+            "DECODING ERROR WARNING: UNVALID UNICODE DETECTED!", UnicodeWarning
+        )
+        data = data.decode("utf8", errors="ignore")
     data = data.splitlines()
 
     skipped_files = []
     for line in data:
-        skipped_match = re.search(r'Skipped \[(.*?)\] because', line)
+        skipped_match = re.search(r"Skipped \[(.*?)\] because", line)
         if skipped_match:
             skipped_files.append(skipped_match.group(1))
 
     # processed files
     total_processed_files = 0
     for line in data:
-        match = re.search(r'Processed (\d*) ', line)
+        match = re.search(r"Processed (\d*) ", line)
         if match:
             total_processed_files = int(match.group(1))
-
-
 
     # file moves
     file_moves = []
     for line in data:
-        match = (re.search(r'(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]$',
-                           line))
+        match = re.search(
+            r"(?:\[\w+\] )?.*?\[(.*?)\] (?:(?:to)|(?:=>)) \[(.*?)\]$", line
+        )
         if match:
             file_moves.append((match.group(1), match.group(2)))
 
@@ -253,7 +293,8 @@ def test_format_string(format_string=None, file_name="Citizen Kane.avi"):
     """
 
     filebot_arguments = _build_filebot_arguments(
-        file_name, rename_action='test', format_string=format_string)
+        file_name, rename_action="test", format_string=format_string
+    )
 
     _, data, _ = _execute(filebot_arguments)
     _, file_moves, _ = parse_filebot(data)
@@ -287,9 +328,10 @@ def get_subtitles(target, language_code=None, encoding=None, force=False, output
 
     if output:
         output = output.lower().strip
-        if output != 'srt':
-            raise ValueError("Only None and srt are valid output "
-                             "arguments for subtitle mode.")
+        if output != "srt":
+            raise ValueError(
+                "Only None and srt are valid output " "arguments for subtitle mode."
+            )
 
     filebot_arguments = _build_filebot_arguments(
         target,
@@ -297,7 +339,8 @@ def get_subtitles(target, language_code=None, encoding=None, force=False, output
         language_code=language_code,
         encoding=encoding,
         recursive=False,
-        output=None)
+        output=None,
+    )
     code, data, _ = _execute(filebot_arguments)
     if code != 0:
         raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}".format(data))
@@ -318,26 +361,29 @@ def get_history(targets):
     Returns:
         list of tuples in format (current_filename, previous_filename)
     """
-    if isinstance(targets, basestring):
+    if isinstance(targets, six.string_types):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
     filebot_arguments = _build_script_arguments("fn:history", targets)
     exit_code, stdout, stderr = _execute(filebot_arguments, workaround=False)
     if exit_code != 0:
-        raise FilebotRuntimeError("FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
-            stdout, stderr))
+        raise FilebotRuntimeError(
+            "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(stdout, stderr)
+        )
     return parse_history(stdout)
 
 
 def parse_history(data):
     """ Helper function to parse history script return values """
     try:
-        data = data.decode('utf8')
+        data = data.decode("utf8")
     except UnicodeDecodeError:
-        warnings.warn('DECODING ERROR WARNING: UNVALID UNICODE DETECTED!', UnicodeWarning)
-        data = data.decode('utf8', errors='ignore')
+        warnings.warn(
+            "DECODING ERROR WARNING: UNVALID UNICODE DETECTED!", UnicodeWarning
+        )
+        data = data.decode("utf8", errors="ignore")
     data = data.splitlines()[:-1]
-    return [tuple(reversed(l.split('\t'))) for l in data]
+    return [tuple(reversed(l.split("\t"))) for l in data]
 
 
 def revert(targets):
@@ -352,10 +398,10 @@ def revert(targets):
     Returns:
         a list of tuples containing the file movements in format (old, new).
     """
-    if isinstance(targets, basestring):
+    if isinstance(targets, six.string_types):
         targets = [targets]
     targets = [os.path.expanduser(os.path.expandvars(target)) for target in targets]
-    filebot_arguments = _build_filebot_arguments(targets, mode='revert')
+    filebot_arguments = _build_filebot_arguments(targets, mode="revert")
 
     exit_code, data, error = _execute(filebot_arguments, workaround=False)
     if exit_code != 0:
@@ -379,7 +425,7 @@ def license(license_path):
     if exit_code != 0 or error:
         raise FilebotLicenseError(error)
 
-    return data.decode('utf8', 'ignore')
+    return data.decode("utf8", "ignore")
 
 
 def _order_is_valid(order_string):
@@ -417,7 +463,7 @@ def _mode_is_valid(mode_string):
     Returns:
         True if valid, False if not.
     """
-    if mode_string.startswith('-'):
+    if mode_string.startswith("-"):
         mode_string = mode_string[1:]
 
     if mode_string.lower() not in FILEBOT_MODES:
@@ -489,19 +535,21 @@ def _on_conflict_is_valid(on_conflict_string):
         return False
 
 
-def _build_filebot_arguments(targets,
-                             format_string=None,
-                             database=None,
-                             output=None,
-                             rename_action='move',
-                             episode_order=None,
-                             mode='-rename',
-                             recursive=True,
-                             language_code=None,
-                             encoding=None,
-                             query_override=None,
-                             on_confilct=None,
-                             non_strict=True):
+def _build_filebot_arguments(
+    targets,
+    format_string=None,
+    database=None,
+    output=None,
+    rename_action="move",
+    episode_order=None,
+    mode="-rename",
+    recursive=True,
+    language_code=None,
+    encoding=None,
+    query_override=None,
+    on_confilct=None,
+    non_strict=True,
+):
     """internal function used to set arguments and execute a filebot run
         on targets.
 
@@ -541,10 +589,12 @@ def _build_filebot_arguments(targets,
     if not _mode_is_valid(mode):
         raise ValueError("'{0}' is not a valid filebot mode".format(mode))
     if not _on_conflict_is_valid(on_confilct):
-        raise ValueError("'{0}' is not a valid conflict resolution.".format(on_confilct))
+        raise ValueError(
+            "'{0}' is not a valid conflict resolution.".format(on_confilct)
+        )
 
-    if not mode.startswith('-'):
-        mode = '-' + mode
+    if not mode.startswith("-"):
+        mode = "-" + mode
     process_arguments = [mode]
 
     if format_string:
@@ -577,9 +627,9 @@ def _build_filebot_arguments(targets,
         process_arguments.append("--conflict")
         process_arguments.append(on_confilct)
     if non_strict:
-        process_arguments.append('-non-strict')
+        process_arguments.append("-non-strict")
 
-    if isinstance(targets, basestring):
+    if isinstance(targets, six.string_types):
         targets = os.path.expanduser((os.path.expandvars(targets)))
         process_arguments.append(targets)
     else:
@@ -603,9 +653,9 @@ def _build_script_arguments(script_name, script_arguments):
     Returns:
         tuple in format '(exit_code, stdout, stderr)'
     """
-    process_arguments = ['-script', script_name]
+    process_arguments = ["-script", script_name]
     if script_arguments:
-        if isinstance(script_arguments, basestring):
+        if isinstance(script_arguments, six.string_types):
             script_arguments = [script_arguments]
         process_arguments += script_arguments
 
@@ -630,25 +680,35 @@ def _execute(process_arguments, workaround=False):
     # this is a workaround for malfunctioning UTF-8 chars in Windows.
     file_temp = tempfile.NamedTemporaryFile(delete=False)
     file_temp.close()
+    if six.PY3:
+        workaround = False
     if workaround:
-        process_arguments = (
-            [FILEBOT_EXE, "--log-file", file_temp.name] + process_arguments)
+        process_arguments = [
+            FILEBOT_EXE,
+            "--log-file",
+            file_temp.name,
+        ] + process_arguments
     else:
-        process_arguments = ([FILEBOT_EXE] + process_arguments)
+        process_arguments = [FILEBOT_EXE] + process_arguments
 
-    if os.name == "nt":  # used to hide cmd window popup
+    if os.name == "nt" and six.PY2:  # used to hide cmd window popup
         startupinfo = killableprocess.winprocess.STARTUPINFO()
         startupinfo.dwFlags |= killableprocess.winprocess.STARTF_USESHOWWINDOW
     else:
         startupinfo = None
 
+    if six.PY2:
+        sp = killableprocess
+    else:
+        sp = subprocess
     try:
-        process = killableprocess.Popen(
+        process = sp.Popen(
             process_arguments,
-            stdout=killableprocess.subprocess.PIPE,
-            stderr=killableprocess.subprocess.PIPE,
-            stdin=killableprocess.subprocess.PIPE,
-            startupinfo=startupinfo)
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            startupinfo=startupinfo,
+        )
     except OSError as e:
         raise FilebotFatalError("Error running Filebot! {0}".format(str(e)))
 
@@ -656,7 +716,7 @@ def _execute(process_arguments, workaround=False):
     exit_code = process.returncode
 
     if workaround:
-        with open(file_temp.name, 'rU') as log:
+        with open(file_temp.name, "rU") as log:
             data = log.read()  # read and cleanup temp/logfile
             log.close()
     else:
@@ -733,19 +793,21 @@ class FilebotHandler(object):
             handler settings and their values
     """
 
-    def __init__(self,
-                 format_string=None,
-                 database=None,
-                 output=None,
-                 episode_order=None,
-                 rename_action=None,
-                 recursive=True,
-                 language_code=None,
-                 encoding='UTF-8',
-                 on_conflict='skip',
-                 query_override=None,
-                 non_strict=True,
-                 mode='rename'):
+    def __init__(
+        self,
+        format_string=None,
+        database=None,
+        output=None,
+        episode_order=None,
+        rename_action=None,
+        recursive=True,
+        language_code=None,
+        encoding="UTF-8",
+        on_conflict="skip",
+        query_override=None,
+        non_strict=True,
+        mode="rename",
+    ):
 
         self.format_string = format_string
         self._database = None
@@ -758,11 +820,11 @@ class FilebotHandler(object):
         self.recursive = recursive
         self.language_code = language_code
         self.encoding = encoding
-        self._on_conflict = 'skip'
+        self._on_conflict = "skip"
         self.on_conflict = on_conflict
         self.non_strict = non_strict
         self.query_override = query_override
-        self._mode = 'rename'
+        self._mode = "rename"
         self.mode = mode
 
         self._populate_methods()
@@ -825,7 +887,7 @@ class FilebotHandler(object):
     def _populate_methods(self):
         """populates the class methods with public functions from the module"""
         to_add = inspect.getmembers(sys.modules[__name__], inspect.isfunction)
-        to_add = [f[0] for f in to_add if not f[0].startswith('_')]
+        to_add = [f[0] for f in to_add if not f[0].startswith("_")]
         for func_name in to_add:
             func = getattr(sys.modules[__name__], func_name)
             self._add_function_as_method(func_name, func)
@@ -838,22 +900,28 @@ class FilebotHandler(object):
             """template for added methods"""
             return self._pass_to_function(func, *args, **kwargs)
 
-        setattr(FilebotHandler, func_name,
-                MethodType(function_template, None, FilebotHandler))
+        if six.PY2:
+            setattr(
+                FilebotHandler,
+                func_name,
+                MethodType(function_template, None, FilebotHandler),
+            )
+        else:
+            setattr(FilebotHandler, func_name, MethodType(function_template, self))
 
     def get_settings(self):
         """returns a dict containing all the current handler settings"""
         handler_vars = vars(self).copy()
-        for var in handler_vars.keys():
-            if var.startswith('_'):
+        for var in vars(self).keys():
+            if var.startswith("_"):
                 handler_vars[var[1:]] = handler_vars[var]
                 del handler_vars[var]
         return handler_vars
 
     def _pass_to_function(self, function, *overrided_args, **overrided_kwargs):
         """used set the function arguments to attributes found in this class.
-         Also allows for argument replacement by the user"""
-        functon_kwargs = inspect.getargspec(function)[0][len(overrided_args):]
+        Also allows for argument replacement by the user"""
+        functon_kwargs = inspect.getargspec(function)[0][len(overrided_args) :]
         handler_vars = self.get_settings()
         kwargs_to_pass = {}
 
