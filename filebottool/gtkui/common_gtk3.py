@@ -26,7 +26,7 @@ def inflate_list_store_combo(model_data, combo_widget):
 
     if empty:
         renderer = Gtk.CellRendererText()
-        combo_widget.pack_start(renderer, True, True, 0)
+        combo_widget.pack_start(renderer, True)
         combo_widget.add_attribute(renderer, "text", 0)
 
 

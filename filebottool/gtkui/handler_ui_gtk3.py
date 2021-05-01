@@ -42,6 +42,10 @@ class HandlerUI(object):
         :param settings: a dict of handler settings to pre-populate with
         """
         self.builder = builder
+        self.builder.connect_signals(
+            {'on_conflict_combo_changed': self.on_conflict_combo_changed}
+        )
+
         self.initial_settings = settings
         self.database_combo = self.builder.get_object("database_combo")
         self.rename_action_combo = self.builder.get_object("rename_action_combo")
@@ -59,9 +63,6 @@ class HandlerUI(object):
         self.populated = False
         self.monitor_changes = True
 
-        self.builder.connect_signals(
-            {'on_conflict_combo_changed': self.on_conflict_combo_changed}
-        )
 
         client.filebottool.get_filebot_valid_values().addCallback(
             self.init_combo_boxes)

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from filebottool.six.moves import range
-__author__ = 'laharah'
+
+__author__ = "laharah"
 
 # noinspection PyUnresolvedReferences
 from gi.repository import Gtk
@@ -23,8 +24,7 @@ log = LOG
 
 
 class RenameDialog(object):
-    """builds and runs the rename dialog.
-    """
+    """builds and runs the rename dialog."""
 
     def __init__(self, dialog_settings, server_plugin_version):
         """sets up the dialog using the settings supplied by the server
@@ -43,25 +43,40 @@ class RenameDialog(object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(get_resource("rename.ui"))
 
+        signal_dictionary = {
+            "on_toggle_advanced": self.on_toggle_advanced,
+            "on_do_dry_run_clicked": self.on_do_dry_run_clicked,
+            "on_format_help_clicked": self.on_format_help_clicked,
+            "on_execute_filebot_clicked": self.on_execute_filebot_clicked,
+            "on_revert_button_clicked": self.on_revert_button_clicked,
+            "on_download_subs_toggled": self.on_download_subs_toggled,
+            "on_setting_changed": self.on_setting_changed,
+            "on_save_handlers_clicked": self.on_save_handlers_clicked,
+            "on_load_saved_handler": self.on_load_saved_handler,
+            "on_saved_handlers_entry_focus": self.on_saved_handers_entry_focus,
+        }
+
+        self.builder.connect_signals(signal_dictionary)
+
         if len(dialog_settings["torrent_ids"]) == 1:
             self.torrent_id = dialog_settings["torrent_ids"][0]
             self.files = dialog_settings["files"]
             self.current_save_path = dialog_settings["torrent_save_path"]
 
         self.ui_settings = dialog_settings["rename_dialog_last_settings"]
-        handler_name = self.ui_settings['handler_name']
-        if handler_name in dialog_settings['saved_handlers']:
+        handler_name = self.ui_settings["handler_name"]
+        if handler_name in dialog_settings["saved_handlers"]:
             try:
-                self.ui_settings = dialog_settings['saved_handlers'][handler_name]
+                self.ui_settings = dialog_settings["saved_handlers"][handler_name]
             except KeyError:
-                log.error('handler {0} could not be found'.format(handler_name))
+                log.error("handler {0} could not be found".format(handler_name))
 
         self.handler_ui = HandlerUI(self.builder, self.ui_settings)
 
         self.server_filebot_version = dialog_settings["filebot_version"]
 
         self.window = self.builder.get_object("rename_dialog")
-        self.set_transient_for(component.get("MainWindow").window)
+        self.window.set_transient_for(component.get("MainWindow").window)
 
         fb_icon = self.builder.get_object("execute_icon")
         image = get_resource("fb_icon24.png")
@@ -81,52 +96,43 @@ class RenameDialog(object):
             # self.glade.get_object("query_entry").set_sensitive(False)
             # self.glade.get_object("query_label").set_sensitive(False)
 
-        signal_dictionary = {
-            "on_toggle_advanced": self.on_toggle_advanced,
-            "on_do_dry_run_clicked": self.on_do_dry_run_clicked,
-            "on_format_help_clicked": self.on_format_help_clicked,
-            "on_execute_filebot_clicked": self.on_execute_filebot_clicked,
-            "on_revert_button_clicked": self.on_revert_button_clicked,
-            "on_download_subs_toggled": self.on_download_subs_toggled,
-            "on_setting_changed": self.on_setting_changed,
-            "on_save_handlers_clicked": self.on_save_handlers_clicked,
-            "on_load_saved_handler": self.on_load_saved_handler,
-            "on_saved_handlers_entry_focus": self.on_saved_handers_entry_focus,
-        }
-
-        self.builder.conenct_signals(signal_dictionary)
-
         if self.server_filebot_version:
-            self.builder.get_object("filebot_version").set_text(self.server_filebot_version)
+            self.builder.get_object("filebot_version").set_text(
+                self.server_filebot_version.decode("utf8")
+            )
         else:
 
             def open_filebot_homepage(*args):
-                webbrowser.open(r'http://www.filebot.net', new=2)
-                log.debug('opening filebot homepage')
+                webbrowser.open(r"http://www.filebot.net", new=2)
+                log.debug("opening filebot homepage")
 
             signal = {"on_filebot_version_clicked": open_filebot_homepage}
             self.builder.connect_signals(signal)
-            self.toggle_button(self.builder.get_object('do_dry_run'))
-            self.toggle_button(self.builder.get_object('execute_filebot'))
+            self.toggle_button(self.builder.get_object("do_dry_run"))
+            self.toggle_button(self.builder.get_object("execute_filebot"))
 
         advanced_options = self.builder.get_object("advanced_options")
-        show_advanced = dialog_settings['rename_dialog_last_settings']['show_advanced']
+        show_advanced = dialog_settings["rename_dialog_last_settings"]["show_advanced"]
         if advanced_options.get_visible() != show_advanced:
             self.on_toggle_advanced()
 
         download_subs = self.handler_ui.download_subs_checkbox
-        if download_subs.get_active() != self.builder.get_object(
-                "subs_options").get_sensitive():
+        if (
+            download_subs.get_active()
+            != self.builder.get_object("subs_options").get_sensitive()
+        ):
             self.on_download_subs_toggled()
 
         self.init_treestore(self.new_files_treeview, "New File Structure")
-        self.init_treestore(self.original_files_treeview,
-                            "Original File Structure at {0}".format(
-                                self.current_save_path))
+        self.init_treestore(
+            self.original_files_treeview,
+            "Original File Structure at {0}".format(self.current_save_path),
+        )
         self.load_treestore(self.original_files_treeview, self.files)
-        self.init_treestore(self.history_files_treeview,
-                            "Current File Structure at {0}".format(
-                                self.current_save_path))
+        self.init_treestore(
+            self.history_files_treeview,
+            "Current File Structure at {0}".format(self.current_save_path),
+        )
         self.load_treestore(self.history_files_treeview, self.files)
         if self.server_plugin_version > (1, 1, 12):
             self.init_treestore(self.previous_treeview, "Awaiting FileBot History...")
@@ -139,12 +145,19 @@ class RenameDialog(object):
         treeview.expand_all()
 
         self.saved_handlers = dialog_settings["saved_handlers"]
-        inflate_list_store_combo(list(self.saved_handlers.keys()),
-                                 self.builder.get_object("saved_handlers_combo"))
+        combo = self.builder.get_object("saved_handlers_combo")
+        if combo is None:
+            log.critical("HANDLER COMBO NOT FOUND!")
+        else:
+            log.critical("COMBO HANDLER EXISTS!")
+        inflate_list_store_combo(
+            list(self.saved_handlers.keys()),
+            combo,
+        )
 
         if handler_name:
-            entry = self.builder.get_object('saved_handlers_combo').get_child()
-            log.debug('Setting text to {0}'.format(handler_name))
+            entry = self.builder.get_object("saved_handlers_combo").get_child()
+            log.debug("Setting text to {0}".format(handler_name))
             entry.set_text(handler_name)
 
         self.watch_for_setting_change = True
@@ -152,7 +165,7 @@ class RenameDialog(object):
         self.window.show()
 
         tree_pane = self.builder.get_object("tree_pane")
-        tree_pane.set_position(tree_pane.allocation.width / 2)
+        tree_pane.set_position(tree_pane.get_allocation().width / 2)
 
     def init_treestore(self, treeview, header):
         """builds the treestore that will be used to hold the files info
@@ -191,7 +204,7 @@ class RenameDialog(object):
         folder_iterators = {}
         folder_structure = {}
         for index, path in index_path_pairs:
-            path_parts = path.split('/')
+            path_parts = path.split("/")
             if len(path_parts) == 1:
                 model.append(None, [index, path])
 
@@ -213,8 +226,9 @@ class RenameDialog(object):
                         if path_parts[path_depth] == os.path.basename(path):
                             model.append(parent, [str(index), path_parts[path_depth]])
                         else:
-                            folder_iterator = model.append(parent,
-                                                           ['', path_parts[path_depth]])
+                            folder_iterator = model.append(
+                                parent, ["", path_parts[path_depth]]
+                            )
                             folder_iterators[path_depth] = folder_iterator
 
         treeview.expand_all()
@@ -226,15 +240,20 @@ class RenameDialog(object):
         """
         log.debug("refreshing filedata for torrent {0}".format(self.torrent_id))
 
-        torrent_data = yield client.core.get_torrent_status(self.torrent_id,
-                                                            ["save_path", "files"])
+        torrent_data = yield client.core.get_torrent_status(
+            self.torrent_id, ["save_path", "files"]
+        )
 
         log.debug("recieved response from server{0}".format(torrent_data))
         save_path = torrent_data["save_path"]
         files = torrent_data["files"]
         header = "Current File Structure at {0}".format(save_path)
-        self.load_treestore(self.original_files_treeview, files, clear=True, title=header)
-        self.load_treestore(self.history_files_treeview, files, clear=True, title=header)
+        self.load_treestore(
+            self.original_files_treeview, files, clear=True, title=header
+        )
+        self.load_treestore(
+            self.history_files_treeview, files, clear=True, title=header
+        )
         if self.server_plugin_version > (1, 1, 12):
             header = "Awaiting Filebot History..."
             self.load_treestore(self.previous_treeview, None, clear=True, title=header)
@@ -284,8 +303,7 @@ class RenameDialog(object):
             subs_options.set_sensitive(True)
 
     def on_toggle_advanced(self, *args):
-        """Advanced dropdown has been toggled, Show or hide options
-        """
+        """Advanced dropdown has been toggled, Show or hide options"""
         advanced_options = self.builder.get_object("advanced_options")
         arrow = self.builder.get_object("advanced_arrow")
         advanced_label = self.builder.get_object("show_advanced_label")
@@ -306,8 +324,9 @@ class RenameDialog(object):
         look after filebot run.
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
-        log.info("sending dry run request to server for torrent {0}".format(
-            self.torrent_id))
+        log.info(
+            "sending dry run request to server for torrent {0}".format(self.torrent_id)
+        )
         log.debug("using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
@@ -323,43 +342,56 @@ class RenameDialog(object):
         if not success:
             message = "The dry run found the following errors"
             self.messenger.display_errors(
-                errors, title="Dry Run Warning", message=message, show_details=True)
+                errors, title="Dry Run Warning", message=message, show_details=True
+            )
 
         else:
             header = "New File Structure at: {0}".format(new_save_path)
-            self.load_treestore(self.new_files_treeview, files, clear=True, title=header)
+            self.load_treestore(
+                self.new_files_treeview, files, clear=True, title=header
+            )
 
     @defer.inlineCallbacks
     def on_execute_filebot_clicked(self, button):
         """collects and sends settings, and tells server to execute run using
-         them.
+        them.
         """
         handler_settings = self.handler_ui.collect_dialog_settings()
 
-        handler_name = self.builder.get_object(
-            'saved_handlers_combo').get_child().get_text()
-        log.debug('got %s for handler name in from combobox', handler_name)
-        if (handler_name in self.saved_handlers
-                and handler_settings == self.saved_handlers[handler_name]):
-            log.debug('handler matches saved handler, setting name to %s.', handler_name)
+        handler_name = (
+            self.builder.get_object("saved_handlers_combo").get_child().get_text()
+        )
+        log.debug("got %s for handler name in from combobox", handler_name)
+        if (
+            handler_name in self.saved_handlers
+            and handler_settings == self.saved_handlers[handler_name]
+        ):
+            log.debug(
+                "handler matches saved handler, setting name to %s.", handler_name
+            )
 
-            handler_settings['handler_name'] = handler_name
+            handler_settings["handler_name"] = handler_name
         else:
-            log.debug('handler "%s" did not match saved handler. Setting to None.',
-                    handler_name) 
+            log.debug(
+                'handler "%s" did not match saved handler. Setting to None.',
+                handler_name,
+            )
             # new, saved = set(list(handler_settings.keys())), set(list(handler_settings.keys()))
             # missing = new ^ saved
             # if missing:
-            #     log.debug('Key mismatch: %s.', missing) 
+            #     log.debug('Key mismatch: %s.', missing)
             # shared = new & saved
             # for k in shared:
             #     new, saved = handler_settings[k], self.saved_handlers[handler_name][k]
             #     if new != saved:
             #         log.debug('mismatch on key "%s": %s != %s', k, new, saved)
-            handler_settings['handler_name'] = None
+            handler_settings["handler_name"] = None
 
-        log.info("Sending execute request to server for torrents {0}".format(
-            self.torrent_ids))
+        log.info(
+            "Sending execute request to server for torrents {0}".format(
+                self.torrent_ids
+            )
+        )
         log.debug("Using settings: {0}".format(handler_settings))
         self.toggle_button(button)
 
@@ -383,8 +415,9 @@ class RenameDialog(object):
 
     @defer.inlineCallbacks
     def on_revert_button_clicked(self, button):
-        log.info("Sending revert request to server for torrents {0}".format(
-            self.torrent_ids))
+        log.info(
+            "Sending revert request to server for torrents {0}".format(self.torrent_ids)
+        )
         self.toggle_button(button)
 
         result = yield client.filebottool.do_revert(self.torrent_ids)
@@ -395,7 +428,9 @@ class RenameDialog(object):
             if self.torrent_id:
                 self.refresh_files()
         else:
-            log.warning("Error while reverting torrents: {0}".format(list(errors.keys())))
+            log.warning(
+                "Error while reverting torrents: {0}".format(list(errors.keys()))
+            )
             self.messenger.display_errors(errors)
 
     def on_saved_handers_entry_focus(self, entry, *args):
@@ -406,7 +441,7 @@ class RenameDialog(object):
             return
         entry = self.builder.get_object("saved_handlers_combo").get_child()
         if entry.get_text() in self.saved_handlers:
-            entry.set_text('')
+            entry.set_text("")
 
     def on_save_handlers_clicked(self, *args):
         handler_combo = self.builder.get_object("saved_handlers_combo")
@@ -414,18 +449,19 @@ class RenameDialog(object):
         if not handler_name:
             return
         data = self.handler_ui.collect_dialog_settings()
-        data['query_override'] = None
+        data["query_override"] = None
 
         if handler_name in self.saved_handlers:
             message = "Overwrite the {0} profile?".format(handler_name)
             dialog = user_messenger.ResponseDialog(
-                "Confirm Overwrite", message=message, modal=True)
+                "Confirm Overwrite", message=message, modal=True
+            )
             response = dialog.run()
             dialog.destroy()
             if response != Gtk.ResponseType.ACCEPT:
                 return
             #  preserve query override for pre-exsisting handlers (from config only)
-            data['query_override'] = self.saved_handlers[handler_name]['query_override']
+            data["query_override"] = self.saved_handlers[handler_name]["query_override"]
 
         self.saved_handlers[handler_name] = data
         log.debug("Sending handler configurations to server.")
@@ -447,8 +483,8 @@ class RenameDialog(object):
         self.watch_for_setting_change = True
 
     def on_format_help_clicked(self, *args):
-        webbrowser.open(r'http://www.filebot.net/naming.html', new=2)
-        log.debug('Format expression info button was clicked')
+        webbrowser.open(r"http://www.filebot.net/naming.html", new=2)
+        log.debug("Format expression info button was clicked")
 
     def log_response(self, response):
         log.debug("response from server: {0}".format(response))
