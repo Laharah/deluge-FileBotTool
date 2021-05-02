@@ -100,7 +100,8 @@
                             <signal name="changed" handler="on_load_saved_handler" swapped="no"/>
                             <child internal-child="entry">
                               <object class="GtkEntry">
-                                <property name="can-focus">False</property>
+                                <property name="visible">True</property>
+                                <property name="can-focus">True</property>
                               </object>
                             </child>
                           </object>
@@ -365,6 +366,7 @@
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
+                    <property name="padding">1</property>
                     <property name="position">3</property>
                   </packing>
                 </child>
