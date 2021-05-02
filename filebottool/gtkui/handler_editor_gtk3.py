@@ -29,14 +29,6 @@ class HandlerEditor(HandlerUI):
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file(get_resource("handler_editor.ui"))
-        super().__init__(self.builder, initial_settings)
-        self.window = self.builder.get_object("window1")
-        self.window.set_modal(True)
-        self.handler_name_combo_entry = self.builder.get_object("handler_name_combo_entry")
-        inflate_list_store_combo(list(handlers.keys()), self.handler_name_combo_entry)
-        if initial:
-            self.handler_name_combo_entry.get_child().set_text(initial)
-
         signal_dictionary = {
             "on_handler_name_combo_changed": self.on_handler_changed,
             "on_save_changes_clicked": self.on_save_changes_clicked,
@@ -45,6 +37,14 @@ class HandlerEditor(HandlerUI):
             "on_download_subs_checkbox_toggled": self.on_download_subs_checkbox_toggled,
         }
         self.builder.connect_signals(signal_dictionary)
+
+        super().__init__(self.builder, initial_settings)
+        self.window = self.builder.get_object("window1")
+        self.window.set_modal(True)
+        self.handler_name_combo_entry = self.builder.get_object("handler_name_combo_entry")
+        inflate_list_store_combo(list(handlers.keys()), self.handler_name_combo_entry)
+        if initial:
+            self.handler_name_combo_entry.get_child().set_text(initial)
 
         if parent:
             self.set_transient_for(parent)
