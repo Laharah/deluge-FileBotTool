@@ -34,8 +34,9 @@
                 <child>
                   <object class="GtkComboBoxText" id="saved_handlers_combo">
                     <property name="visible">True</property>
-                    <property name="can-focus">False</property>
+                    <property name="can-focus">True</property>
                     <property name="has-entry">True</property>
+                    <signal name="changed" handler="on_handler_name_combo_changed" swapped="no"/>
                     <child internal-child="entry">
                       <object class="GtkEntry">
                         <property name="can-focus">False</property>
