@@ -476,9 +476,11 @@ class RenameDialog(object):
             return
         handler_name = combo_model[current_iter][0]
         log.debug(handler_name)
-        if current_iter >= 0:
+        try:
             handler = self.saved_handlers[handler_name]
             self.handler_ui.populate_with_settings(handler)
+        except KeyError:
+            pass
         saved_handler_combo.get_child().set_text(handler_name)
         self.watch_for_setting_change = True
 
