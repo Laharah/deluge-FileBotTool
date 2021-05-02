@@ -11,7 +11,6 @@
       <object class="GtkNotebook" id="dialog_notebook">
         <property name="visible">True</property>
         <property name="can-focus">True</property>
-        <signal name="select-page" handler="on_select_page" swapped="no"/>
         <child>
           <object class="GtkViewport" id="rename_tab">
             <property name="visible">True</property>
@@ -680,7 +679,6 @@
                               <object class="GtkComboBox" id="on_conflict_combo">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
-                                <signal name="changed" handler="on_conflict_combo_changed" swapped="no"/>
                                 <signal name="changed" handler="on_setting_changed" swapped="no"/>
                               </object>
                               <packing>
