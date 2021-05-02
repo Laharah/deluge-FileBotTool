@@ -383,7 +383,11 @@ def parse_history(data):
         )
         data = data.decode("utf8", errors="ignore")
     data = data.splitlines()[:-1]
-    return [tuple(reversed(l.split("\t"))) for l in data]
+    return [
+        tuple(reversed(l.split("\t")))
+        for l in data
+        if not l.lower().startswith("file does not exist:")
+    ]
 
 
 def revert(targets):
