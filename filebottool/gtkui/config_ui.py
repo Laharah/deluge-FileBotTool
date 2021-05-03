@@ -31,7 +31,7 @@ class ConfigUI(object):
     """handles the UI portion of getting and setting preferences"""
 
     def __init__(self, settings=None):
-        self.glade = gtk.glade.XML(get_resource("config.ui"))
+        self.glade = gtk.glade.XML(get_resource("config.glade"))
         self.config_page = self.glade.get_widget("prefs_box")
         self.pref_dialog = component.get("Preferences").pref_dialog
 

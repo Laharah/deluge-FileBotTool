@@ -49,11 +49,11 @@ class CorePlugin(PluginInitBase):
         super(CorePlugin, self).__init__(plugin_name)
         log.debug("FILEBOT CORE INITTED!")
 
-# class GtkUIPlugin(PluginInitBase):
-#     def __init__(self, plugin_name):
-#         from .gtkui.gtkui import GtkUI as _plugin_cls
-#         self._plugin_cls = _plugin_cls
-#         super(GtkUIPlugin, self).__init__(plugin_name)
+class GtkUIPlugin(PluginInitBase):
+    def __init__(self, plugin_name):
+        from .gtkui.gtkui import GtkUI as _plugin_cls
+        self._plugin_cls = _plugin_cls
+        super(GtkUIPlugin, self).__init__(plugin_name)
 
 class Gtk3UIPlugin(PluginInitBase):
     def __init__(self, plugin_name):

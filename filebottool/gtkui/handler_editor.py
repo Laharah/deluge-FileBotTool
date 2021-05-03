@@ -26,7 +26,7 @@ class HandlerEditor(HandlerUI):
         except KeyError:
             initial_settings = None
 
-        self.glade = gtk.glade.XML(get_resource("handler_editor.ui"))
+        self.glade = gtk.glade.XML(get_resource("handler_editor.glade"))
         super(self.__class__, self).__init__(self.glade, initial_settings)
         self.window = self.glade.get_widget("window1")
         self.window.set_modal(True)

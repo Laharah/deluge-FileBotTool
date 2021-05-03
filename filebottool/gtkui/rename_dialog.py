@@ -38,7 +38,7 @@ class RenameDialog(object):
         self.torrent_id = None
         self.files = []
         self.current_save_path = ""
-        self.glade = gtk.glade.XML(get_resource("rename.ui"))
+        self.glade = gtk.glade.XML(get_resource("rename.glade"))
 
         if len(dialog_settings["torrent_ids"]) == 1:
             self.torrent_id = dialog_settings["torrent_ids"][0]
