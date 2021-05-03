@@ -32,14 +32,15 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkComboBoxText" id="saved_handlers_combo">
+                  <object class="GtkComboBoxText" id="handler_name_combo_entry">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="has-entry">True</property>
                     <signal name="changed" handler="on_handler_name_combo_changed" swapped="no"/>
                     <child internal-child="entry">
                       <object class="GtkEntry">
-                        <property name="can-focus">False</property>
+						<property name="visible">True</property>
+                        <property name="can-focus">True</property>
                       </object>
                     </child>
                   </object>
@@ -391,7 +392,7 @@
                       <object class="GtkComboBox" id="on_conflict_combo">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <signal name="changed" handler="on_conflict_combo_changed" swapped="no"/>
+						<signal name="changed" handler="on_conflict_combo_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>

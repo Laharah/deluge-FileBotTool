@@ -43,21 +43,6 @@ class RenameDialog(object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(get_resource("rename.ui"))
 
-        signal_dictionary = {
-            "on_toggle_advanced": self.on_toggle_advanced,
-            "on_do_dry_run_clicked": self.on_do_dry_run_clicked,
-            "on_format_help_clicked": self.on_format_help_clicked,
-            "on_execute_filebot_clicked": self.on_execute_filebot_clicked,
-            "on_revert_button_clicked": self.on_revert_button_clicked,
-            "on_download_subs_toggled": self.on_download_subs_toggled,
-            "on_setting_changed": self.on_setting_changed,
-            "on_save_handlers_clicked": self.on_save_handlers_clicked,
-            "on_load_saved_handler": self.on_load_saved_handler,
-            "on_saved_handlers_entry_focus": self.on_saved_handers_entry_focus,
-        }
-
-        self.builder.connect_signals(signal_dictionary)
-
         if len(dialog_settings["torrent_ids"]) == 1:
             self.torrent_id = dialog_settings["torrent_ids"][0]
             self.files = dialog_settings["files"]
@@ -72,6 +57,24 @@ class RenameDialog(object):
                 log.error("handler {0} could not be found".format(handler_name))
 
         self.handler_ui = HandlerUI(self.builder, self.ui_settings)
+
+        # fmt: off
+        signal_dictionary = {
+            "on_toggle_advanced":            self.on_toggle_advanced,
+            "on_do_dry_run_clicked":         self.on_do_dry_run_clicked,
+            "on_format_help_clicked":        self.on_format_help_clicked,
+            "on_execute_filebot_clicked":    self.on_execute_filebot_clicked,
+            "on_revert_button_clicked":      self.on_revert_button_clicked,
+            "on_download_subs_toggled":      self.on_download_subs_toggled,
+            "on_setting_changed":            self.on_setting_changed,
+            "on_save_handlers_clicked":      self.on_save_handlers_clicked,
+            "on_load_saved_handler":         self.on_load_saved_handler,
+            "on_saved_handlers_entry_focus": self.on_saved_handers_entry_focus,
+            "on_conflict_combo_changed":     self.handler_ui.on_conflict_combo_changed,
+        }
+        # fmt: on
+
+        self.builder.connect_signals(signal_dictionary)
 
         self.server_filebot_version = dialog_settings["filebot_version"]
 

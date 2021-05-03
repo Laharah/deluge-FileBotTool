@@ -1,5 +1,6 @@
 from __future__ import absolute_import
-__author__ = 'laharah'
+
+__author__ = "laharah"
 
 from gi.repository import Gtk
 
@@ -11,6 +12,7 @@ from filebottool.gtkui.user_messenger_gtk3 import InfoDialog, ResponseDialog
 
 
 log = LOG
+
 
 class HandlerEditor(HandlerUI):
     def __init__(self, handlers=None, initial=None, cb=None, parent=None):
@@ -30,29 +32,32 @@ class HandlerEditor(HandlerUI):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(get_resource("handler_editor.ui"))
         signal_dictionary = {
-            "on_handler_name_combo_changed": self.on_handler_changed,
-            "on_save_changes_clicked": self.on_save_changes_clicked,
-            "on_cancel_changes_clicked": self.on_cancel_changes_clicked,
-            "on_query_checkbox_toggled": self.on_query_checkbox_toggled,
+            "on_handler_name_combo_changed":     self.on_handler_changed,
+            "on_save_changes_clicked":           self.on_save_changes_clicked,
+            "on_cancel_changes_clicked":         self.on_cancel_changes_clicked,
+            "on_query_checkbox_toggled":         self.on_query_checkbox_toggled,
             "on_download_subs_checkbox_toggled": self.on_download_subs_checkbox_toggled,
+            "on_conflict_combo_changed":         self.on_conflict_combo_changed,
         }
         self.builder.connect_signals(signal_dictionary)
 
         super().__init__(self.builder, initial_settings)
         self.window = self.builder.get_object("window1")
         self.window.set_modal(True)
-        self.handler_name_combo_entry = self.builder.get_object("handler_name_combo_entry")
+        self.handler_name_combo_entry = self.builder.get_object(
+            "handler_name_combo_entry"
+        )
         inflate_list_store_combo(list(handlers.keys()), self.handler_name_combo_entry)
         if initial:
             self.handler_name_combo_entry.get_child().set_text(initial)
 
         if parent:
-            self.set_transient_for(parent)
+            self.window.set_transient_for(parent)
         self.window.show_all()
 
     def populate_with_settings(self, *args, **kwargs):
         super(self.__class__, self).populate_with_settings(*args, **kwargs)
-        check_box = self.builder.get_object('query_checkbox')
+        check_box = self.builder.get_object("query_checkbox")
         if self.query_entry.get_text():
             check_box.set_active(True)
         else:
@@ -60,8 +65,8 @@ class HandlerEditor(HandlerUI):
 
     def collect_dialog_settings(self):
         settings = super(self.__class__, self).collect_dialog_settings()
-        if not self.builder.get_object('query_checkbox').get_active():
-            settings['query_override'] = ''
+        if not self.builder.get_object("query_checkbox").get_active():
+            settings["query_override"] = ""
         return settings
 
     def on_handler_changed(self, *args):
@@ -81,23 +86,27 @@ class HandlerEditor(HandlerUI):
         settings = self.collect_dialog_settings()
         handler_id = self.handler_name_combo_entry.get_child().get_text().strip()
         if not handler_id:
-            dialog = InfoDialog("Identifier Required",
-                                "The Handler requires a Name.",
-                                modal=True)
+            dialog = InfoDialog(
+                "Identifier Required", "The Handler requires a Name.", modal=True
+            )
             dialog.run()
             dialog.destroy()
             return
         if handler_id in self.handlers:
-            buttons = (Gtk.STOCK_CANCEL,
-                       Gtk.ResponseType.CANCEL,
-                       Gtk.STOCK_OK,
-                       Gtk.ResponseType.OK,)
+            buttons = (
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OK,
+                Gtk.ResponseType.OK,
+            )
 
-            dialog = ResponseDialog("Overwrite?",
-                                    "Overwrite the profile named {0}? "
-                                    "Auto-sort rules that use this handler will "
-                                    "be affected.".format(handler_id),
-                                    buttons=buttons)
+            dialog = ResponseDialog(
+                "Overwrite?",
+                "Overwrite the profile named {0}? "
+                "Auto-sort rules that use this handler will "
+                "be affected.".format(handler_id),
+                buttons=buttons,
+            )
             response = dialog.run()
             dialog.destroy()
             if response != Gtk.ResponseType.OK:
@@ -115,11 +124,13 @@ class HandlerEditor(HandlerUI):
         text = self.query_entry.get_text()
         if box.get_active():
             if not text:
-                dialog = InfoDialog("Override Query Warning!",
-                                    "Using A Search Query in a saved profile "
-                                    "will force every run to match against the same"
-                                    " title!",
-                                    modal=True)
+                dialog = InfoDialog(
+                    "Override Query Warning!",
+                    "Using A Search Query in a saved profile "
+                    "will force every run to match against the same"
+                    " title!",
+                    modal=True,
+                )
                 dialog.run()
                 dialog.destroy()
 
@@ -130,7 +141,7 @@ class HandlerEditor(HandlerUI):
 
     def on_download_subs_checkbox_toggled(self, box):
         log.debug("subs box toggled")
-        subs_options = self.builder.get_object('subs_options')
+        subs_options = self.builder.get_object("subs_options")
         if box.get_active():
             subs_options.set_sensitive(True)
         else:

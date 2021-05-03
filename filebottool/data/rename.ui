@@ -679,6 +679,7 @@
                               <object class="GtkComboBox" id="on_conflict_combo">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
+                                <signal name="changed" handler="on_conflict_combo_changed" swapped="no"/>
                                 <signal name="changed" handler="on_setting_changed" swapped="no"/>
                               </object>
                               <packing>

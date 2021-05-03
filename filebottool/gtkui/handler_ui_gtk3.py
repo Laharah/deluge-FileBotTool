@@ -1,9 +1,11 @@
 from __future__ import absolute_import
-__author__ = 'laharah'
+
+__author__ = "laharah"
 
 
 # noinspection PyUnresolvedReferences
 from gi.repository import Gtk
+
 # noinspection PyUnresolvedReferences
 from deluge.ui.client import client
 
@@ -35,6 +37,7 @@ class HandlerUI(object):
             language_code_entry
             subs_language_entry
     """
+
     def __init__(self, builder, settings=None):
         """
         Initial setup
@@ -42,9 +45,6 @@ class HandlerUI(object):
         :param settings: a dict of handler settings to pre-populate with
         """
         self.builder = builder
-        self.builder.connect_signals(
-            {'on_conflict_combo_changed': self.on_conflict_combo_changed}
-        )
 
         self.initial_settings = settings
         self.database_combo = self.builder.get_object("database_combo")
@@ -60,12 +60,11 @@ class HandlerUI(object):
         self.encoding_entry = self.builder.get_object("encoding_entry")
         self.output_entry = self.builder.get_object("output_entry")
 
+
         self.populated = False
         self.monitor_changes = True
 
-
-        client.filebottool.get_filebot_valid_values().addCallback(
-            self.init_combo_boxes)
+        client.filebottool.get_filebot_valid_values().addCallback(self.init_combo_boxes)
 
     def init_combo_boxes(self, combo_data):
         """retrieves valid values for combo boxes and inflates them"""
@@ -101,28 +100,31 @@ class HandlerUI(object):
             (self.database_combo, settings["database"]),
             (self.rename_action_combo, settings["rename_action"]),
             (self.on_conflict_combo, settings["on_conflict"]),
-            (self.episode_order_combo, settings["episode_order"])
+            (self.episode_order_combo, settings["episode_order"]),
         ]
 
         log.debug("Setting combo boxes")
         for combo, value in combo_value_pairs:
             combo_model = combo.get_model()
             try:
-                value_index = [index for index, row in enumerate(combo_model)
-                               if row[0] == value][0]
+                value_index = [
+                    index for index, row in enumerate(combo_model) if row[0] == value
+                ][0]
             except IndexError:
-                log.warning("could not set {0} to value {1}, value {1} could "
-                            "not be found in {0}".format(combo, value))
+                log.warning(
+                    "could not set {0} to value {1}, value {1} could "
+                    "not be found in {0}".format(combo, value)
+                )
             else:
                 combo.set_active(value_index)
 
         entry_value_pairs = [
-            (self.format_string_entry, settings.get("format_string", '')),
-            (self.encoding_entry, settings.get("encoding", '')),
-            (self.subs_language_entry, settings.get("subs_language", '')),
-            (self.language_code_entry, settings.get("language_code", '')),
-            (self.query_entry, settings.get("query_override", '')),
-            (self.output_entry, settings.get("output", '')),
+            (self.format_string_entry, settings.get("format_string", "")),
+            (self.encoding_entry, settings.get("encoding", "")),
+            (self.subs_language_entry, settings.get("subs_language", "")),
+            (self.language_code_entry, settings.get("language_code", "")),
+            (self.query_entry, settings.get("query_override", "")),
+            (self.output_entry, settings.get("output", "")),
         ]
 
         log.debug("Setting entry widgets")
@@ -130,7 +132,7 @@ class HandlerUI(object):
             if value:
                 entry.set_text(value)
             else:
-                entry.set_text('')
+                entry.set_text("")
 
         if settings["download_subs"]:
             self.download_subs_checkbox.set_active(True)
@@ -148,7 +150,7 @@ class HandlerUI(object):
             "database": self.database_combo,
             "rename_action": self.rename_action_combo,
             "on_conflict": self.on_conflict_combo,
-            "episode_order": self.episode_order_combo
+            "episode_order": self.episode_order_combo,
         }
         for setting in combos:
             combo_model = combos[setting].get_model()
@@ -164,15 +166,16 @@ class HandlerUI(object):
             "language_code": self.language_code_entry,
             "subs_language": self.subs_language_entry,
             "query_override": self.query_entry,
-            "output": self.output_entry
+            "output": self.output_entry,
         }
         for setting in entries:
             if not entries[setting]:
-                entries[setting] = ''
+                entries[setting] = ""
             settings[setting] = entries[setting].get_text()
 
         settings["show_advanced"] = self.builder.get_object(
-            "advanced_options").get_visible()
+            "advanced_options"
+        ).get_visible()
         settings["download_subs"] = self.download_subs_checkbox.get_active()
 
         log.debug("Collected settings for server: {0}".format(settings))
@@ -188,8 +191,8 @@ class HandlerUI(object):
         else:
             setting = None
 
-        if setting == 'override':
-            msg = 'Warning, override conflict resolution may overwrite files! Use Carefully!'
-            warning = user_messenger.InfoDialog('FilebotTool Warning!', msg, modal=True)
+        if setting == "override":
+            msg = "Warning, override conflict resolution may overwrite files! Use Carefully!"
+            warning = user_messenger.InfoDialog("FilebotTool Warning!", msg, modal=True)
             warning.run_async()
         return
