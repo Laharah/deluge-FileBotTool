@@ -31,7 +31,6 @@ class InfoDialog(Gtk.Dialog):
         self.get_content_area().add(label)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_gravity(Gdk.Gravity.CENTER)
-        self.show_all()
 
     def run_async(self):
         """a version of run that does not block"""
@@ -85,12 +84,13 @@ class UserMessenger(object):
         files = [' => '.join(f) if isinstance(f, tuple) else f for f in files]
         files = pprint.pformat(files)
         text_view = Gtk.TextView()
-        text_view.get_buffer().set_text(files)
+        text_view.get_buffer().set_text(files.decode('utf8'))
         text_view.set_editable(False)
         text_view.set_cursor_visible(False)
         text_view.show()
         sw = Gtk.ScrolledWindow()
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        sw.set_size_request(485, 300)
         sw.show()
         sw.add(text_view)
         detail_view = Gtk.Frame()
@@ -98,8 +98,8 @@ class UserMessenger(object):
         detail_view.add(sw)
         detail_view.set_border_width(6)
         dialog.vbox.add(detail_view)
-        text_view.set_size_request(485, 300)
         detail_view.show()
+        dialog.show_all()
         dialog.run_async()
         return
 
@@ -137,13 +137,14 @@ class UserMessenger(object):
         sw = Gtk.ScrolledWindow()
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         sw.show()
+        sw.set_size_request(485, 300)
         sw.add(text_view)
         detail_view = Gtk.Frame()
         detail_view.set_shadow_type(Gtk.ShadowType.IN)
         detail_view.add(sw)
         detail_view.set_border_width(6)
         dialog.vbox.add(detail_view)
-        text_view.set_size_request(485, 300)
+        dialog.show_all()
 
         info_button = Gtk.Button("Show Details")
 
@@ -174,18 +175,17 @@ class UserMessenger(object):
         text_view.get_buffer().set_text(text.decode('utf8'))
         text_view.set_editable(False)
         text_view.set_cursor_visible(False)
-        text_view.show()
         sw = Gtk.ScrolledWindow()
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        sw.show()
+        sw.set_size_request(485, 300)
         sw.add(text_view)
         detail_view = Gtk.Frame()
         detail_view.set_shadow_type(Gtk.ShadowType.IN)
         detail_view.add(sw)
         detail_view.set_border_width(6)
         dialog.get_content_area().add(detail_view)
-        detail_view.show()
-        text_view.set_size_request(485, 300)
+        text_view.show()
+        dialog.show_all()
         dialog.run_async()
         return
 

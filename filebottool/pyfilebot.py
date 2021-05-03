@@ -220,7 +220,9 @@ def rename(
 
     if parse_error or (rename_action == "test" and results[0] == 0):
         raise FilebotRuntimeError(
-            "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(data, filebot_error)
+            "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
+                data.decode("utf8"), filebot_error
+            )
         )
     return results
 
@@ -435,13 +437,13 @@ def license(license_path):
 def _order_is_valid(order_string):
     """Checks if an order argument is valid
 
-    None passing non evaluates to true as it uses filebot's default ordering
+        None passing non evaluates to true as it uses filebot's default ordering
 
-    Args:
-        order_string: valid orders:(None | 'airdate' | 'dvd' | 'absolute')
-
-    Returns:
-        True or False based on success
+        Args:
+            order_string: valid orders:(None | 'airdate' | 'dvd' | 'absolute')
+    .decode('utf8')
+        Returns:
+            True or False based on success
     """
     if order_string is not None:
         order_string = order_string.lower()
