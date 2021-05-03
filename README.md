@@ -1,10 +1,10 @@
 # FilebotTool: FileBot Integration for Deluge
 *requires [Filebot](http://www.filebot.net/)*
 
-**Version 1.2.6**
+**Version 2.0.0**
 
 
-***NOTE: THIS PLUGIN IS NOT YET COMPATABLE WITH DELUGE 2.0***
+***Now Compatible With Deluge 2.0!***
 
 
 ##### [Download Latest Release](https://github.com/Laharah/deluge-FilebotTool/releases/latest)
@@ -61,7 +61,7 @@ if you want the very latest release, you can build the plugin from source.
 
 You will need:
 - git
-- a version of python that matches your deluge version (2.7 by default)
+- a version of python that matches your deluge version (2.7 by default, 3.5+ for deluge 2.0)
 
 ##### Instructions:
 - in a command window, type
@@ -73,7 +73,7 @@ You will need:
 
 - then to build the plugin, on linux/osx type:
 ```
-    python2.7 setup.py bdist_egg  # replace with 2.6 if your deluge uses python 2.6
+    python2.7 setup.py bdist_egg  # use python3 if using deluge 2.0
 ```
    or on windows:
 ```
