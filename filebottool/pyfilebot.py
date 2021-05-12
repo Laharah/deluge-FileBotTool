@@ -1,7 +1,7 @@
 """Contains functions for interaction with the filebotCLI and the
 FilebotHandler convenience class.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 import six
 
 __author__ = "laharah"
