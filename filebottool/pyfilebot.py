@@ -201,7 +201,7 @@ def rename(
     exit_code, data, filebot_error = _execute(filebot_arguments, workaround)
 
     if exit_code != 0:
-        if u"License Error: UNREGISTERED" in filebot_error.decode("utf8", "ignore"):
+        if u"License Error: UNREGISTERED" in filebot_error:
             raise FilebotLicenseError(
                 "Filebot is unregistered, cannot rename.\n"
                 "FILEBOT OUTPUT DUMP:\n{0}".format(data)
@@ -221,7 +221,7 @@ def rename(
     if parse_error or (rename_action == "test" and results[0] == 0):
         raise FilebotRuntimeError(
             "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
-                data.decode("utf8"), filebot_error
+                data, filebot_error
             )
         )
     return results
@@ -241,13 +241,6 @@ def parse_filebot(data):
         a tuple in format (num processed files, list of movement tuples,
                            skipped/failed files)
     """
-    try:
-        data = data.decode("utf8")
-    except UnicodeDecodeError:
-        warnings.warn(
-            "DECODING ERROR WARNING: UNVALID UNICODE DETECTED!", UnicodeWarning
-        )
-        data = data.decode("utf8", errors="ignore")
     data = data.splitlines()
 
     skipped_files = []
@@ -377,13 +370,6 @@ def get_history(targets):
 
 def parse_history(data):
     """ Helper function to parse history script return values """
-    try:
-        data = data.decode("utf8")
-    except UnicodeDecodeError:
-        warnings.warn(
-            "DECODING ERROR WARNING: UNVALID UNICODE DETECTED!", UnicodeWarning
-        )
-        data = data.decode("utf8", errors="ignore")
     data = data.splitlines()[:-1]
     return [
         tuple(reversed(l.split("\t")))
@@ -431,7 +417,7 @@ def license(license_path):
     if exit_code != 0 or error:
         raise FilebotLicenseError(error)
 
-    return data.decode("utf8", "ignore")
+    return data
 
 
 def _order_is_valid(order_string):
@@ -441,7 +427,7 @@ def _order_is_valid(order_string):
 
         Args:
             order_string: valid orders:(None | 'airdate' | 'dvd' | 'absolute')
-    .decode('utf8')
+    
         Returns:
             True or False based on success
     """
@@ -729,6 +715,14 @@ def _execute(process_arguments, workaround=False):
         data = stdout
 
     os.remove(file_temp.name)
+    try:
+        data = data.decode('utf8', errors="ignore")
+    except AttributeError:
+        pass
+    try:
+        error = error.decode('utf8', errors="ignore")
+    except AttributeError:
+        pass
 
     return exit_code, data, error
 

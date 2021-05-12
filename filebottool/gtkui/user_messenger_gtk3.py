@@ -41,7 +41,7 @@ class InfoDialog(Gtk.Dialog):
         if not self.modal:
             self.set_modal(True)
         self.connect('response', dialog_response_cb)
-        self.show()
+        self.show_all()
 
 
 class ResponseDialog(Gtk.Dialog):
@@ -84,7 +84,7 @@ class UserMessenger(object):
         files = [' => '.join(f) if isinstance(f, tuple) else f for f in files]
         files = pprint.pformat(files)
         text_view = Gtk.TextView()
-        text_view.get_buffer().set_text(files.decode('utf8'))
+        text_view.get_buffer().set_text(files)
         text_view.set_editable(False)
         text_view.set_cursor_visible(False)
         text_view.show()
@@ -172,7 +172,7 @@ class UserMessenger(object):
     def display_text(self, title, text, parent=None, modal=False):
         dialog = InfoDialog(title, None, parent, modal)
         text_view = Gtk.TextView()
-        text_view.get_buffer().set_text(text.decode('utf8'))
+        text_view.get_buffer().set_text(text)
         text_view.set_editable(False)
         text_view.set_cursor_visible(False)
         sw = Gtk.ScrolledWindow()

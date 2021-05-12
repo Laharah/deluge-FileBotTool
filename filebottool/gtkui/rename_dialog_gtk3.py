@@ -101,7 +101,7 @@ class RenameDialog(object):
 
         if self.server_filebot_version:
             self.builder.get_object("filebot_version").set_text(
-                self.server_filebot_version.decode("utf8")
+                self.server_filebot_version
             )
         else:
 
