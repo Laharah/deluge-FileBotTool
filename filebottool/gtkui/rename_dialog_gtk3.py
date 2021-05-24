@@ -209,7 +209,7 @@ class RenameDialog(object):
         for index, path in index_path_pairs:
             path_parts = path.split("/")
             if len(path_parts) == 1:
-                model.append(None, [index, path])
+                model.append(None, [str(index), path])
 
             else:  # not a single file, torrent is a folder.
                 for path_depth in range(len(path_parts)):
