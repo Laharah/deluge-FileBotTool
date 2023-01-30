@@ -66,7 +66,7 @@ except ImportError:
 mswindows = (sys.platform == "win32")
 
 if mswindows:
-    import winprocess
+    from . import winprocess
 else:
     import signal
 
