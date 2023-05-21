@@ -206,7 +206,7 @@ def rename(
                 "Filebot is unregistered, cannot rename.\n"
                 "FILEBOT OUTPUT DUMP:\n{0}".format(data)
             )
-        elif rename_action != "test":
+        elif rename_action != "test" and filebot_error!='':
             raise FilebotRuntimeError(
                 "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(data, filebot_error)
             )
