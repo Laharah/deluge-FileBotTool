@@ -921,7 +921,11 @@ class FilebotHandler(object):
     def _pass_to_function(self, function, *overrided_args, **overrided_kwargs):
         """used set the function arguments to attributes found in this class.
         Also allows for argument replacement by the user"""
-        functon_kwargs = inspect.getargspec(function)[0][len(overrided_args) :]
+        if six.PY3:
+            functon_kwargs = inspect.getfullargspec(function)[0][len(overrided_args) :]
+        else:
+            functon_kwargs = inspect.getargspec(function)[0][len(overrided_args) :]
+
         handler_vars = self.get_settings()
         kwargs_to_pass = {}
 
