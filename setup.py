@@ -42,11 +42,13 @@ from setuptools import setup, find_packages
 __plugin_name__ = "FileBotTool"
 __author__ = "laharah"
 __author_email__ = "laharah+fbt@gmail.com"
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 __url__ = "https://github.com/Laharah/deluge-FileBotTool"
 __license__ = "GPLv3"
 __description__ = "Integrates FileBot functionality to Deluge"
-__long_description__ = """Allows Filebot renaming and sorting from within Deluge. No more duplicates!"""
+__long_description__ = (
+    """Allows Filebot renaming and sorting from within Deluge. No more duplicates!"""
+)
 __pkg_data__ = {__plugin_name__.lower(): ["template/*", "data/*"]}
 
 setup(
@@ -58,10 +60,8 @@ setup(
     url=__url__,
     license=__license__,
     long_description=__long_description__ if __long_description__ else __description__,
-
     packages=find_packages(),
-    package_data = __pkg_data__,
-
+    package_data=__pkg_data__,
     entry_points="""
     [deluge.plugin.core]
     %s = %s:CorePlugin
@@ -71,5 +71,6 @@ setup(
     %s = %s:Gtk3UIPlugin
     [deluge.plugin.web]
     %s = %s:WebUIPlugin
-    """ % ((__plugin_name__, __plugin_name__.lower())*4)
+    """
+    % ((__plugin_name__, __plugin_name__.lower()) * 4),
 )

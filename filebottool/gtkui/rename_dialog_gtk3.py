@@ -1,5 +1,6 @@
 from __future__ import absolute_import
-from filebottool.six.moves import range
+
+# from filebottool.six.moves import range
 
 __author__ = "laharah"
 
