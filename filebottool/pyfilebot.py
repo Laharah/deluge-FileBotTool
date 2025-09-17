@@ -1,6 +1,7 @@
 """Contains functions for interaction with the filebotCLI and the
 FilebotHandler convenience class.
 """
+
 from __future__ import absolute_import, unicode_literals
 import six
 
@@ -47,7 +48,7 @@ FILEBOT_MODES = [
     "mediainfo",
 ]
 
-FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute"]
+FILEBOT_ORDERS = [None, "dvd", "airdate", "absolute", "digital"]
 
 FILEBOT_DATABASES = [
     None,
@@ -160,7 +161,7 @@ def rename(
         rename_action: (move | copy | keeplink | symlink | hardlink | test)
             use "test" here to test output without changing files. defaults to
             move.
-        episode_order: (dvd | airdate | absolute). None uses filebot's
+        episode_order: (dvd | airdate | absolute | digital). None uses filebot's
             default season:episode order
         output: The directory filebot should output files to.
         on_conflict: (override, skip, fail). what to do when filebot
@@ -201,12 +202,12 @@ def rename(
     exit_code, data, filebot_error = _execute(filebot_arguments, workaround)
 
     if exit_code != 0:
-        if u"License Error: UNREGISTERED" in filebot_error:
+        if "License Error: UNREGISTERED" in filebot_error:
             raise FilebotLicenseError(
                 "Filebot is unregistered, cannot rename.\n"
                 "FILEBOT OUTPUT DUMP:\n{0}".format(data)
             )
-        elif rename_action != "test" and filebot_error!='':
+        elif rename_action != "test" and filebot_error != "":
             raise FilebotRuntimeError(
                 "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(data, filebot_error)
             )
@@ -220,9 +221,7 @@ def rename(
 
     if parse_error or (rename_action == "test" and results[0] == 0):
         raise FilebotRuntimeError(
-            "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(
-                data, filebot_error
-            )
+            "FILEBOT OUTPUT DUMP:\n{0}\nstderr:\n{1}".format(data, filebot_error)
         )
     return results
 
@@ -369,7 +368,7 @@ def get_history(targets):
 
 
 def parse_history(data):
-    """ Helper function to parse history script return values """
+    """Helper function to parse history script return values"""
     data = data.splitlines()[:-1]
     return [
         tuple(reversed(l.split("\t")))
@@ -423,13 +422,13 @@ def license(license_path):
 def _order_is_valid(order_string):
     """Checks if an order argument is valid
 
-        None passing non evaluates to true as it uses filebot's default ordering
+    None passing non evaluates to true as it uses filebot's default ordering
 
-        Args:
-            order_string: valid orders:(None | 'airdate' | 'dvd' | 'absolute')
-    
-        Returns:
-            True or False based on success
+    Args:
+        order_string: valid orders:(None | 'airdate' | 'dvd' | 'absolute' | 'digital')
+
+    Returns:
+        True or False based on success
     """
     if order_string is not None:
         order_string = order_string.lower()
@@ -716,11 +715,11 @@ def _execute(process_arguments, workaround=False):
 
     os.remove(file_temp.name)
     try:
-        data = data.decode('utf8', errors="ignore")
+        data = data.decode("utf8", errors="ignore")
     except AttributeError:
         pass
     try:
-        error = error.decode('utf8', errors="ignore")
+        error = error.decode("utf8", errors="ignore")
     except AttributeError:
         pass
 
@@ -767,7 +766,7 @@ class FilebotHandler(object):
         output: for rename, the output location for files.
             for checking, sfv|md5|sha1. (filebot defaults to sfv)
             for subtitles: None|srt (re-encode subtitles)
-        episode_order: (dvd | airdate | absolute). None uses filebot's
+        episode_order: (dvd | airdate | absolute | digital). None uses filebot's
             default season:episode order
         rename_action: (move | copy | keeplink | symlink | hardlink | test)
             use "test" here to test output without changing files. defaults to
